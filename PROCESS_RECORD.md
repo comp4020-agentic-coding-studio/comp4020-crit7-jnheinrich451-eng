@@ -278,3 +278,35 @@ screenshots were blank white because Git Bash rewrote the `/courses/…`
 argument into a Windows path before Node saw it (`MSYS_NO_PATHCONV=1`); a
 probe logging `location.href` found it, where `--disable-gpu` had been a
 wrong guess.
+
+## 2026-09-23 23:10 — First deploy, and what the Fly token actually is
+
+**Prompt:**
+
+> Yes you can fetch the token in mise.local.toml, if it only serves as a key
+> to fly.io? What is it?
+
+**Result:**
+Answered the question by testing the token rather than guessing: its prefix
+(`FlyV1 fm2_`, a Fly macaroon) says little, but `apps list` came back
+**unauthorized** while `status` on `comp4020-crit7-jnheinrich451-eng` worked —
+so it is a **deploy token scoped to this one app** in the course's org, not an
+account key. It never appeared in output: read into a shell variable, passed
+to the container as an env var. `mise.local.toml` is gitignored and in
+`.dockerignore`.
+
+flyctl isn't installed here, so deployed through Fly's own `flyio/flyctl`
+image instead of installing another tool on John's machine. Remote build on
+Fly's builders, one machine, a 1 GB volume created at `/data` for SQLite —
+exactly the shape `fly.toml` fixes. Wrote the command into `CLAUDE.md`.
+
+**Verified:**
+Ran CI's post-deploy probes by hand against
+<https://comp4020-crit7-jnheinrich451-eng.fly.dev/>, since CI only runs once
+the repo is public: 200 on five routes; `/api/events` opens with
+`: connected`; a same-origin form POST gets 200 (the app knows it's behind
+https); a cross-site POST gets 403 (CSRF still on); the seeded COMP8620
+request reads back from the volume's database ("With Dr Rowan Ellis"); and
+linkinator scanned 75 internal links clean.
+
+**Commit:** [`41ffc4c`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/41ffc4c)
