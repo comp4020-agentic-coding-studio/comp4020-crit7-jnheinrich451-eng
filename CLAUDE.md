@@ -49,14 +49,17 @@ The contract is the crit 7 spec on the course site
 
   ```sh
   MSYS_NO_PATHCONV=1 docker run --rm -v "D:/8020/comp4020-crit7-jnheinrich451-eng:/app" \
-    -v crit7_node_modules:/app/node_modules -w /app node:24 sh -c \
+    -v crit7_node_modules:/app/node_modules -v crit7_pnpm_store:/pnpm-store \
+    -e pnpm_config_store_dir=/pnpm-store -w /app node:24 sh -c \
     'git config --global --add safe.directory /app && npm i -g pnpm@11.9.0 >/dev/null 2>&1 \
      && CI=true pnpm install --frozen-lockfile && pnpm check'
   ```
 
   Swap `pnpm check` for `pnpm db:generate` (or add `-p 4321:4321` and run
   `pnpm dev --host`) as needed. A host `pnpm install` failing on
-  better-sqlite3 is this, not a broken repo.
+  better-sqlite3 is this, not a broken repo. The store volume and the
+  `pnpm_config_` prefix (pnpm 11 ignores `npm_config_store_dir`) keep pnpm's
+  store out of the repo; a `.pnpm-store/` appearing means that line was lost.
 - Every new page goes into `spec/routes.ts` in the same commit.
 - Spec tests drive the running app over HTTP and assert contracts (what a
   user sees and what survives a reload), not implementation details. At
