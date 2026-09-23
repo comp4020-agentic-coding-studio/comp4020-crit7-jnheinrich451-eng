@@ -1,53 +1,74 @@
 ---
-import { listMessages } from "../lib/db";
-import "../styles.css";
+import { REQUISITES } from "../data/requisites";
+import Layout from "../layouts/Layout.astro";
+import { gate } from "../lib/eligibility";
+import { actorFrom, applicationsOfStudent, listCourses, recordOf, TERM_LABELS } from "../lib/store";
 
-const messages = listMessages();
+// The catalogue. For a student, every row carries its gate outcome, so the
+// courses that need a permission code are visible before anyone opens one.
+const actor = actorFrom(Astro.cookies.get("as")?.value);
+const query = Astro.url.searchParams.get("q") ?? "";
+const rows = listCourses(query);
+
+const record = actor.kind === "student" ? recordOf(actor.student) : null;
+const requests = actor.kind === "student" ? applicationsOfStudent(actor.student.id) : [];
+const badge = (code: string): { label: string; tone: string } | null => {
+  if (!record) return null;
+  const open = requests.find((a) => a.course.code === code && ["with-convenor", "approved"].includes(a.status));
+  if (open) return { label: open.status === "approved" ? "Code approved" : "Requested", tone: "info" };
+  const g = gate(code, REQUISITES[code], record);
+  switch (g.outcome) {
+    case "eligible":
+      return { label: "Enrol directly", tone: "ok" };
+    case "rules-not-met":
+      return { label: "Code needed", tone: "warn" };
+    case "permission-always":
+      return { label: "Code for everyone", tone: "always" };
+    case "not-recorded":
+      return { label: "Not recorded", tone: "muted" };
+    case "already":
+      return { label: g.text.includes("passed") ? "Passed" : "Enrolled", tone: "muted" };
+  }
+};
 ---
 
-<!doctype html>
-<html lang="en-AU">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>COMP4020 prototype</title>
-  </head>
-  <body>
-    <nav aria-label="site">
-      <a href="/">Guestbook</a>
-      <a href="/readme/">About</a>
-    </nav>
-    <main>
-      <h1>Guestbook</h1>
-      <p>
-        A minimal full-stack starter: messages live in SQLite on the machine's
-        volume (state survives a reload and a redeploy), and new messages
-        appear in every open tab over a server-sent-events stream — open this
-        page twice and sign it in one. Replace all of this with your own
-        prototype.
-      </p>
-      <form method="post" action="/api/messages">
-        <label for="body">Leave a message</label>
-        <input id="body" name="body" required maxlength="500" />
-        <button>Sign</button>
-      </form>
-      <ul id="messages">
-        {messages.map((message) => <li>{message.body}</li>)}
-      </ul>
-    </main>
-    <script>
-      // The live half of the demo: subscribe to the SSE stream and prepend
-      // messages as they arrive. The form itself needs none of this — its
-      // POST + redirect re-renders the submitting tab from SQLite; this
-      // stream is how every other tab finds out.
-      const list = document.querySelector("#messages");
-      const source = new EventSource("/api/events");
-      source.addEventListener("message", (event) => {
-        const message = JSON.parse(event.data);
-        const item = document.createElement("li");
-        item.textContent = message.body;
-        list?.prepend(item);
-      });
-    </script>
-  </body>
-</html>
+<Layout title="Courses" actor={actor}>
+  <h1>Courses</h1>
+  <p class="lede">
+    {
+      actor.kind === "student" ? (
+        <>Every course shows whether you can enrol straight away or need a permission code, checked against your record.</>
+      ) : (
+        <>You're acting as a convenor. Switch to a student to see the gate, or go to your <a href="/applications/">request queue</a>.</>
+      )
+    }
+  </p>
+
+  <form method="get" action="/" class="search" role="search">
+    <label for="q">Find a course</label>
+    <input id="q" name="q" type="search" value={query} placeholder="Code or title, e.g. COMP8620 or vision" />
+    <button>Search</button>
+  </form>
+
+  {query && <p class="muted">{rows.length} {rows.length === 1 ? "course matches" : "courses match"} “{query}”. <a href="/">Show all</a></p>}
+
+  <ul class="course-list">
+    {
+      rows.map((c) => {
+        const b = badge(c.code);
+        return (
+          <li>
+            <a href={`/courses/${c.code}/`} class="course-card">
+              <span class="code">{c.code}</span>
+              <span class="title">{c.title}</span>
+              <span class="meta">
+                {c.units} units · {c.termList.length ? c.termList.map((t) => TERM_LABELS[t]).join(", ") : "no offering listed"}
+              </span>
+              {b && <span class={`badge badge-${b.tone}`}>{b.label}</span>}
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+</Layout>

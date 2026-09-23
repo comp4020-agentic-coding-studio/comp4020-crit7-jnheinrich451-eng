@@ -1,10 +1,9 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import Database from "better-sqlite3";
-import { desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { type Message, messages } from "./schema";
+import { seed } from "./seed";
 
 // One SQLite file is the app's whole persistent state. In production
 // fly.toml points DATABASE_PATH at the machine's volume (/data), which is
@@ -15,8 +14,10 @@ mkdirSync(dirname(path), { recursive: true });
 
 const client = new Database(path);
 client.pragma("journal_mode = WAL");
+client.pragma("foreign_keys = ON");
 
 export const db = drizzle(client);
+export type Db = typeof db;
 
 // Migrations run at boot, on whatever machine holds the volume — the
 // recommended shape for SQLite on Fly, where there's no separate machine to
@@ -24,12 +25,6 @@ export const db = drizzle(client);
 // commit the migration it writes to drizzle/.
 migrate(db, { migrationsFolder: "./drizzle" });
 
-export type { Message };
-
-export function listMessages(): Message[] {
-  return db.select().from(messages).orderBy(desc(messages.id)).limit(50).all();
-}
-
-export function addMessage(body: string): Message {
-  return db.insert(messages).values({ body }).returning().get();
-}
+// Reference data follows the migrations: idempotent, so every boot brings the
+// catalogue and seeded records in line with src/data/.
+seed(db);

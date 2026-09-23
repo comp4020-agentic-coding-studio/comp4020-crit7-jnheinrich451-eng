@@ -1,0 +1,61 @@
+---
+import GatePanel from "../../components/GatePanel.astro";
+import { REQUISITES } from "../../data/requisites";
+import Layout from "../../layouts/Layout.astro";
+import { actorFrom, gateFor, getCourse, liveApplication, queueOf, TERM_LABELS } from "../../lib/store";
+
+const actor = actorFrom(Astro.cookies.get("as")?.value);
+const course = getCourse(Astro.params.code ?? "");
+if (!course) return new Response("No such course", { status: 404 });
+
+const rules = REQUISITES[course.code];
+const g = actor.kind === "student" ? gateFor(actor.student, course.code) : null;
+const live = actor.kind === "student" ? liveApplication(actor.student.id, course.id) : undefined;
+const waiting =
+  actor.kind === "convenor" && actor.convenor.id === course.convenorId
+    ? queueOf(actor.convenor.id).filter((a) => a.courseId === course.id && a.status === "with-convenor").length
+    : 0;
+---
+
+<Layout title={course.code} actor={actor}>
+  <p class="breadcrumb"><a href="/">Courses</a> / {course.code}</p>
+  <h1><span class="code">{course.code}</span> {course.title}</h1>
+  <dl class="facts">
+    <div><dt>Units</dt><dd>{course.units}</dd></div>
+    <div>
+      <dt>Offered</dt>
+      <dd>{course.termList.length ? course.termList.map((t) => TERM_LABELS[t]).join(", ") : "No offering listed"}</dd>
+    </div>
+    <div><dt>Convenor</dt><dd>{course.convenor.name}</dd></div>
+  </dl>
+
+  {g && <GatePanel course={course} gate={g} live={live} />}
+  {
+    actor.kind === "convenor" && (
+      <p class="gate gate-muted">
+        {actor.convenor.id === course.convenorId ? (
+          <>
+            You convene {course.code}. {waiting} {waiting === 1 ? "request is" : "requests are"} waiting in your{" "}
+            <a href="/applications/">queue</a>.
+          </>
+        ) : (
+          <>Requests for {course.code} go to {course.convenor.name}, not to you. Switch to a student to see the gate.</>
+        )}
+      </p>
+    )
+  }
+
+  <section aria-labelledby="rules-heading" class="rules">
+    <h2 id="rules-heading">Requisite and Incompatibility</h2>
+    {
+      rules ? (
+        <>
+          <blockquote>{rules.text}</blockquote>
+          <p class="muted">As published on ANU Programs &amp; Courses, transcribed by hand.</p>
+        </>
+      ) : (
+        <p class="muted">Not transcribed for this prototype.</p>
+      )
+    }
+  </section>
+</Layout>

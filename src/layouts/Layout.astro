@@ -1,0 +1,113 @@
+---
+import { PROGRAMS, type ProgramKey } from "../data/requisites";
+import { type Actor, people } from "../lib/store";
+import "../styles.css";
+
+// Every page's frame: who you're acting as (there's no login — CLAUDE.md),
+// where you can go, and any message a form POST left behind. `watch` names
+// what this page shows, so the live stream can refresh it when that changes.
+interface Props {
+  title: string;
+  actor: Actor;
+  watch?: { applicationId?: number; convenorId?: number; studentId?: number };
+}
+
+const { title, actor, watch } = Astro.props;
+const { students, convenors } = people();
+const current = actor.kind === "student" ? `s:${actor.student.id}` : `c:${actor.convenor.id}`;
+const error = Astro.url.searchParams.get("error");
+const notice = Astro.url.searchParams.get("ok");
+const here = Astro.url.pathname;
+const navLinks =
+  actor.kind === "student"
+    ? [
+        { href: "/", label: "Courses" },
+        { href: "/applications/", label: "My requests" },
+        { href: "/record/", label: "My record" },
+        { href: "/readme/", label: "About" },
+      ]
+    : [
+        { href: "/applications/", label: "Request queue" },
+        { href: "/", label: "Courses" },
+        { href: "/readme/", label: "About" },
+      ];
+---
+
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · Permission Gate</title>
+  </head>
+  <body data-watch={watch ? JSON.stringify(watch) : undefined}>
+    <header class="site-header">
+      <div class="bar">
+        <a class="brand" href="/">
+          <span class="brand-mark" aria-hidden="true">PG</span>
+          <span>Permission Gate <small>prototype, not an ANU service</small></span>
+        </a>
+        <form class="act-as" method="post" action="/api/act-as">
+          <label for="as">Acting as</label>
+          <select id="as" name="as">
+            <optgroup label="Students">
+              {
+                students.map((s) => (
+                  <option value={`s:${s.id}`} selected={current === `s:${s.id}`}>
+                    {s.name}, {PROGRAMS[s.program as ProgramKey]}
+                  </option>
+                ))
+              }
+            </optgroup>
+            <optgroup label="Convenors">
+              {
+                convenors.map((c) => (
+                  <option value={`c:${c.id}`} selected={current === `c:${c.id}`}>
+                    {c.name}
+                  </option>
+                ))
+              }
+            </optgroup>
+          </select>
+          <input type="hidden" name="next" value={here} />
+          <button>Switch</button>
+        </form>
+      </div>
+      <nav aria-label="site">
+        {
+          navLinks.map((l) => (
+            <a href={l.href} aria-current={here === l.href || (l.href !== "/" && here.startsWith(l.href)) ? "page" : undefined}>
+              {l.label}
+            </a>
+          ))
+        }
+      </nav>
+    </header>
+    <main>
+      {error && <p class="flash flash-error" role="alert">{error}</p>}
+      {notice && <p class="flash flash-ok" role="status">{notice}</p>}
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <p>
+        Course codes, titles and requisites are ANU's, transcribed by hand from Programs &amp; Courses. Students,
+        convenors and results are invented. <a href="/readme/">What this is</a>
+      </p>
+    </footer>
+    <script>
+      // Enhancement only: if a page says what it's showing, re-render it when
+      // the server reports a change to that thing. Everything works without.
+      const watch = document.body.dataset.watch ? JSON.parse(document.body.dataset.watch) : null;
+      if (watch) {
+        const source = new EventSource("/api/events");
+        source.addEventListener("message", (event) => {
+          const change = JSON.parse(event.data);
+          const concerns = ["applicationId", "convenorId", "studentId"].some(
+            (key) => watch[key] !== undefined && watch[key] === change[key],
+          );
+          if (concerns) location.reload();
+        });
+      }
+    </script>
+  </body>
+</html>

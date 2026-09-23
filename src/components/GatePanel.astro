@@ -1,0 +1,161 @@
+---
+import type { Term } from "../data/courses";
+import { firstRound, type Gate } from "../lib/eligibility";
+import type { Application } from "../lib/schema";
+import { type CourseRow, TERM_LABELS } from "../lib/store";
+
+// The gate, as a student meets it on a course page. The three outcomes get
+// three different headings and never share wording (CLAUDE.md): "you can
+// enrol", "permission code needed" (with each unmet rule), and "required for
+// all students" (which is about the course, not the student's record).
+interface Props {
+  course: CourseRow;
+  gate: Gate;
+  live?: Application;
+}
+
+const { course, gate, live } = Astro.props;
+const offered = course.termList.length > 0;
+const handbook = `https://programsandcourses.anu.edu.au/2026/course/${course.code}`;
+const checks = "checks" in gate ? gate.checks : [];
+const canApply = offered && !live && (gate.outcome === "rules-not-met" || gate.outcome === "permission-always");
+// What the automatic first round would say, shown before sending rather than
+// discovered after: the student can still send (to put a disputed record on
+// file), but never by surprise.
+const preview = canApply ? firstRound(course.code, gate) : null;
+const statusText: Record<string, string> = {
+  "with-convenor": `waiting with ${course.convenor.name}`,
+  approved: "approved",
+};
+---
+
+<section class={`gate gate-${gate.outcome}`} aria-labelledby="gate-heading">
+  {
+    gate.outcome === "eligible" && (
+      <>
+        <h2 id="gate-heading">You can enrol directly</h2>
+        <p>Your record meets {course.code}'s requisites. No permission code needed.</p>
+      </>
+    )
+  }
+  {
+    gate.outcome === "rules-not-met" && (
+      <>
+        <h2 id="gate-heading">Permission code needed</h2>
+        <p>Your record doesn't meet {course.code}'s requisites yet. Here's how it compares:</p>
+      </>
+    )
+  }
+  {
+    gate.outcome === "permission-always" && (
+      <>
+        <h2 id="gate-heading">Permission code required for all students</h2>
+        <p>
+          Every student needs a permission code for {course.code}, whatever their record. This isn't about your
+          requisites: {gate.requisitesMet ? "yours are met." : "and separately, yours aren't met yet."}
+        </p>
+      </>
+    )
+  }
+  {
+    gate.outcome === "not-recorded" && (
+      <>
+        <h2 id="gate-heading">Requisites not recorded here</h2>
+        <p>
+          This prototype hasn't transcribed {course.code}'s requisites, so it can't check them and won't guess. The
+          rules are on <a href={handbook}>Programs &amp; Courses</a>.
+        </p>
+      </>
+    )
+  }
+  {
+    gate.outcome === "already" && (
+      <>
+        <h2 id="gate-heading">Nothing to do</h2>
+        <p>{gate.text}</p>
+      </>
+    )
+  }
+
+  {
+    checks.length > 0 && (
+      <ul class="checks">
+        {checks.map((c) => (
+          <li class={c.met ? "met" : "unmet"}>
+            <span class="mark" aria-hidden="true">{c.met ? "✓" : "✗"}</span>
+            <span class="visually-hidden">{c.met ? "Met:" : "Not met:"}</span> {c.text}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  {!offered && gate.outcome !== "already" && <p class="muted">No offering is listed for {course.code}, so there's nothing to enrol in.</p>}
+
+  {
+    live && (
+      <div class="live">
+        <p>
+          You have a request for {course.code}: <strong>{statusText[live.status] ?? live.status}</strong>.
+          {live.permissionCode && (
+            <>
+              {" "}
+              Your code is <code>{live.permissionCode}</code>.
+            </>
+          )}{" "}
+          <a href={`/applications/${live.id}/`}>See its timeline</a>
+        </p>
+      </div>
+    )
+  }
+
+  {
+    offered && gate.outcome !== "already" && (gate.outcome === "eligible" || live?.status === "approved") && (
+      <form method="post" action="/api/enrol" class="stack">
+        <input type="hidden" name="courseCode" value={course.code} />
+        <label for="enrol-term">Term</label>
+        <select id="enrol-term" name="term">
+          {course.termList.map((t: Term) => (
+            <option value={t}>{TERM_LABELS[t]}</option>
+          ))}
+        </select>
+        <button class="primary">{live?.status === "approved" ? "Enrol with your code" : "Enrol"}</button>
+      </form>
+    )
+  }
+
+  {
+    canApply && (
+      <form method="post" action="/api/applications" class="stack apply">
+        <h3>Request a permission code</h3>
+        {preview?.decision === "to-convenor" && (
+          <p class="muted">
+            It goes to {course.convenor.name}, {course.code}'s convenor, after an automatic check of your record.
+            You'll see every step on the request's timeline.
+          </p>
+        )}
+        {preview?.decision === "auto-reject" && (
+          <div class="warning" role="note">
+            <p><strong>The automatic first round will turn this request down:</strong></p>
+            <ul>
+              {preview.reasons.map((r) => (
+                <li>{r}</li>
+              ))}
+            </ul>
+            <p>You can still send it, for example if you think your record is wrong, but it won't reach the convenor.</p>
+          </div>
+        )}
+        <input type="hidden" name="courseCode" value={course.code} />
+        <label for="apply-term">Term</label>
+        <select id="apply-term" name="term">
+          {course.termList.map((t: Term) => (
+            <option value={t}>{TERM_LABELS[t]}</option>
+          ))}
+        </select>
+        <label for="statement">Why you're ready for {course.code}</label>
+        <textarea id="statement" name="statement" rows="4" required maxlength="2000" />
+        <button class={preview?.decision === "auto-reject" ? "" : "primary"}>Send request</button>
+      </form>
+    )
+  }
+</section>
