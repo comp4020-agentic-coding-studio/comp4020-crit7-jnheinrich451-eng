@@ -205,3 +205,76 @@ The first container run left pnpm's package store inside the repo as
 pnpm 11 reads `pnpm_config_store_dir` — and `git status` is what caught it
 both times, not the green test run. Deleted the stray store and fixed the
 command.
+
+## 2026-09-23 22:50 — Real rules in, the gate end to end, and a screenshot that caught a false invitation
+
+**Prompt:**
+
+> Here we are, the 15 courses, god kind of tired to do such work!
+
+Mid-turn, after being told COMP8300's paste duplicated COMP8600's: *"Changed
+for COMP8300"*.
+
+**Result:**
+Encoded 18 courses' requisites in `src/data/requisites.ts`, each with ANU's
+text verbatim beside it. The text forced four rule shapes — and/or trees
+(COMP6242), a program standing in for courses (COMP6361), "completed or
+currently enrolled" (COMP6320), and a units count (COMP8535, "12 units of
+6000-level COMP"). **COMP8300's first paste was byte-identical to COMP8600's**
+(intro ML as a prerequisite for Parallel Systems); I held it out as "not
+recorded" rather than encode a likely slip, and it went in only after John
+re-checked it.
+
+Then the app, replacing the guestbook: schema, boot seed, store, six pages,
+four form handlers, SSE. The calls that weren't the obvious ones:
+
+- **Routing is a column, not a lookup at read time.** `applications.convenor_id`
+  is copied from the course row at submission. The student's form carries the
+  course as a hidden field from the page they were on; there is no field for a
+  course code or a convenor anywhere. The COMP8620 → COMP9095 misroute has no
+  way to be expressed.
+- **Two migrations, not one.** Dropping `messages` and creating seven tables
+  in one diff makes drizzle-kit ask an interactive "renamed or new?" question,
+  which would hang in the container. Dropping first, then creating, gives two
+  unambiguous diffs.
+- **The seed upserts by natural key** (email, course code, uID), so
+  applications keep pointing at the same rows when the catalogue is corrected
+  and redeployed; only seed-owned rows (transcripts, seed enrolments) are
+  rewritten.
+- **COMP8620's own wording decides its first round:** "Students who meet the
+  pre-requisites can request a permission code", so a request with unmet
+  requisites is rejected automatically, while an ordinary course with unmet
+  requisites goes to the convenor, who can judge equivalent study.
+- **Tests read `<main>` only.** The "act as" picker names every seeded person on
+  every page, so a "Mei Lin is not in Dr Quinn's queue" check against the
+  whole body could never pass — or worse, would pass for the wrong reason
+  once inverted.
+
+**Verified:**
+`pnpm check` green: 0 type errors, 117 tests — 15 unit tests of the pure
+check against the real rules, 19 HTTP contract tests (each outcome's heading
+appears *alone*; a request lands in exactly one of six queues; a wrong
+convenor's decision is refused and the status is unchanged on reload;
+approve → code matches `COMP8620-XXXXXX` → enrolment shows on the record; the
+SSE stream carries the change), and the invariants plus axe across 9 routes.
+Then screenshots of the built server through headless Chrome as four
+different people, at 1200px and 390px.
+
+**Commit:** [`c0bd1e7`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/c0bd1e7), [`1ca9662`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/1ca9662)
+
+**What happened:**
+The green suite missed what the screenshot caught: Kenji's COMP8600 page
+listed his incompatible course in red and then **invited him to request a
+code** that the first round was certain to reject — the page knew the answer
+and hid it. Fixed by computing the first-round verdict in the panel (the same
+pure function) and warning before sending; the "It goes to Dr Mara Quinn"
+line now only appears when it's true. A test now holds it. The same look
+caught "Here's what's missing:" sitting above a list with a met rule in it.
+
+Two test bugs on the way: the decision POST went to the *page* URL
+(`/applications/2/decision`, a 404) rather than `/api/…`, and
+`decodeURIComponent` leaves `+` as `+` in a query string. The first CDP
+screenshots were blank white because Git Bash rewrote the `/courses/…`
+argument into a Windows path before Node saw it (`MSYS_NO_PATHCONV=1`); a
+probe logging `location.href` found it, where `--disable-gpu` had been a
+wrong guess.
