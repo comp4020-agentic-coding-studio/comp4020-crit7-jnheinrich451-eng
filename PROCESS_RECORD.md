@@ -161,3 +161,47 @@ Read the full `robots.txt` before answering.
 
 **Commit:** none — a decision; it lands in the seed-data rule already in
 `CLAUDE.md`.
+
+## 2026-09-23 20:12 — Carrying the record skill forward, and a check that isn't there
+
+**Prompt:**
+
+> Yes you can commit, and please check the /process_record skill, if you
+> cannot find, find the .claude/ folder about rest crits, I think it will be in
+> there, and it is about to create the prompts I sent as records, convenient
+> for the later summary on PROCESS.md and reflections.
+
+**Result:**
+Found the skill in ass1, ass2, crit4 and crit5; took crit5's (the newest) and
+repointed its citation URLs at this repo. `.gitignore` excludes `.claude/`, so
+it's tracked with `git add -f`, as in C5.
+
+The finding that mattered: C5's copy says "see the carry-forward sensor in
+`spec/`" — **but C5's `spec/` has no such test.** The harness claimed a check
+it didn't have, which is why the skill went missing a third time. Wrote it:
+`spec/harness.test.ts` fails `pnpm check` if the skill or `PROCESS_RECORD.md`
+is absent, and the skill's notes now say to carry the test with it. Added a
+"record every turn" rule to `CLAUDE.md` so the habit is in the harness, not
+in memory.
+
+Committing meant running `pnpm check` first (a `CLAUDE.md` rule), and that
+surfaced a platform problem: **better-sqlite3 v13 publishes no prebuilt
+binaries** (0 release assets; v12.12 had 145), so a Windows install compiles
+C++ and fails without Visual Studio. It wasn't the Node version — the machine
+has Node 26 and no mise, but a portable Node 24 failed identically. Ran the
+checks in a `node:24` Linux container instead, the way CI and Fly build, and
+wrote the command into `CLAUDE.md`.
+
+**Verified:**
+`pnpm check` green in the container: typecheck 0 errors, 30 tests across 5
+files, including the 2 new harness checks. Confirmed `git status` shows no
+`.pnpm-store/` after a run.
+
+**Commit:** [`a468c3b`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/a468c3b), [`07acd94`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/07acd94), [`c7dc16f`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/c7dc16f)
+
+**What happened:**
+The first container run left pnpm's package store inside the repo as
+`.pnpm-store/`. The first fix (`npm_config_store_dir`) silently did nothing —
+pnpm 11 reads `pnpm_config_store_dir` — and `git status` is what caught it
+both times, not the green test run. Deleted the stray store and fixed the
+command.
