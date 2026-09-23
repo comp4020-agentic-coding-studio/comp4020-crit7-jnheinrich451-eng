@@ -60,6 +60,20 @@ The contract is the crit 7 spec on the course site
   better-sqlite3 is this, not a broken repo. The store volume and the
   `pnpm_config_` prefix (pnpm 11 ignores `npm_config_store_dir`) keep pnpm's
   store out of the repo; a `.pnpm-store/` appearing means that line was lost.
+- **Deploying from this machine** (no flyctl installed; Fly's own image
+  instead). `FLY_API_TOKEN` in the gitignored `mise.local.toml` is a deploy
+  token scoped to this one app. Read it into a variable; never print it:
+
+  ```sh
+  T=$(sed -nE 's/^FLY_API_TOKEN\s*=\s*"(.*)"\s*$/\1/p' mise.local.toml)
+  MSYS_NO_PATHCONV=1 docker run --rm -e FLY_API_TOKEN="$T" \
+    -v "D:/8020/comp4020-crit7-jnheinrich451-eng:/app" -w /app flyio/flyctl:latest \
+    deploy --remote-only --ha=false -a comp4020-crit7-jnheinrich451-eng
+  ```
+
+  After a deploy, run CI's probes by hand until the repo is public: 200 on
+  `/`, bytes from `/api/events`, a same-origin form POST not 403, a
+  cross-site one 403, and linkinator over internal links.
 - Every new page goes into `spec/routes.ts` in the same commit.
 - Spec tests drive the running app over HTTP and assert contracts (what a
   user sees and what survives a reload), not implementation details. At
