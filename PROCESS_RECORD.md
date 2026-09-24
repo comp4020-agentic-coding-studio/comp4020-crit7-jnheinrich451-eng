@@ -310,3 +310,43 @@ request reads back from the volume's database ("With Dr Rowan Ellis"); and
 linkinator scanned 75 internal links clean.
 
 **Commit:** [`41ffc4c`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/41ffc4c)
+
+## 2026-09-24 15:10 — The guide, and where ANUHub actually says no
+
+**Prompt:**
+
+> could you please introduce the functions? And maybe a manual file? The
+> functions I check first, and see if need to add or trim something
+
+Then, with three ANUHub screenshots and notes in `assets/ANU_enrollment.md`:
+
+> Then b please. And I plan to add some ANU pages in words […] as reference.
+
+**Result:**
+Listed the six features by role with a "check it" path for each, and
+proposed add/trim candidates (a recorded-rules filter, withdraw, "ask for
+more info"; live refresh as the one piece of JS) without building any —
+John asked to review first. For the manual, recommended an in-app
+`/guide/` page over a `MANUAL.md`, since `README.md` is John's and is
+already the `/readme/` page; John chose it.
+
+John's notes changed the guide's framing. In ANUHub, a permission-code
+refusal **only appears at the final confirmation step**, after choosing a
+term and adding a class by class number. So the guide opens with the two
+flows side by side: ANU says no at step three, this app shows the verdict
+in the catalogue. Tours are one-click: each button is the act-as form plus
+a destination, so no JS and no instructions to switch people by hand.
+
+**Verified:**
+`pnpm check` green, 126 tests: a new contract test submits every tour
+button and checks it lands on a page that returns 200 as that person, and
+the invariants and axe now cover `/guide/`. Screenshot at 1200px read
+through before committing.
+
+**Commit:** [`bf09f98`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/bf09f98)
+
+**What happened:**
+The first draft of the ANUHub column said, as fact, that a code request
+"waits without being able to see where it is". That generalises one
+experience into a claim about ANU's system, which `AGENTS.md` says not to
+do. It now reads as the case that prompted the prototype.
