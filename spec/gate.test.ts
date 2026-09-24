@@ -226,3 +226,19 @@ describe("the live stream", () => {
     expect(received).toContain("data: ");
   }, 10_000);
 });
+
+describe("the guide", () => {
+  it("every tour step switches to a seeded person and opens a working page", async () => {
+    const res = await fetch(new URL("/guide/", baseUrl));
+    const doc = new JSDOM(await res.text()).window.document;
+    const steps = [...doc.querySelectorAll('main form[action="/api/act-as"]')];
+    expect(steps.length).toBeGreaterThan(0);
+    for (const form of steps) {
+      const who = form.querySelector<HTMLInputElement>('input[name="as"]')?.value ?? "";
+      const next = form.querySelector<HTMLInputElement>('input[name="next"]')?.value ?? "";
+      const switched = await post("/api/act-as", who, { as: who, next });
+      expect(switched.location, next).toBe(next);
+      expect((await get(next, who)).status, `${who} ${next}`).toBe(200);
+    }
+  });
+});

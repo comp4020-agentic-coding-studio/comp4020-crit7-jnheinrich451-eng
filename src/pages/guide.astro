@@ -1,0 +1,186 @@
+---
+import { PROGRAMS, type ProgramKey } from "../data/requisites";
+import { STUDENTS } from "../data/people";
+import Layout from "../layouts/Layout.astro";
+import { actorFrom, people } from "../lib/store";
+
+// How to use the prototype: what it changes about ANU's flow, who you can be,
+// and short tours. Each "try it" button is the act-as form with a destination,
+// so a tour step switches person and opens the page in one click, no JS.
+const actor = actorFrom(Astro.cookies.get("as")?.value);
+const { students, convenors } = people();
+const who = (name: string): string => {
+  const s = students.find((x) => x.name === name);
+  if (s) return `s:${s.id}`;
+  const c = convenors.find((x) => x.name === name);
+  if (c) return `c:${c.id}`;
+  throw new Error(`guide names someone who isn't seeded: ${name}`);
+};
+
+interface Step {
+  as: string;
+  next: string;
+  label: string;
+}
+const tours: { title: string; intro: string; steps: Step[]; look: string }[] = [
+  {
+    title: "The three answers the gate can give",
+    intro: "The same course page, three different verdicts, each with its own heading and colour.",
+    steps: [
+      { as: "Tom Okoye", next: "/courses/COMP6466/", label: "Tom on COMP6466" },
+      { as: "Tom Okoye", next: "/courses/COMP6242/", label: "Tom on COMP6242" },
+      { as: "Mei Lin", next: "/courses/COMP8620/", label: "Mei on COMP8620" },
+    ],
+    look: "Green says enrol now. Amber says a code is needed and lists each rule Tom hasn't met. Violet says COMP8620 needs a code from everyone. It's about the course, and Mei's own requisites are met.",
+  },
+  {
+    title: "A request goes to the right convenor",
+    intro: "Send a request as Tom, then look at it from both sides.",
+    steps: [
+      { as: "Tom Okoye", next: "/courses/COMP6242/", label: "Request COMP6242 as Tom" },
+      { as: "Dr Mara Quinn", next: "/applications/", label: "Dr Mara Quinn's queue" },
+      { as: "Dr Rowan Ellis", next: "/applications/", label: "Dr Rowan Ellis's queue" },
+    ],
+    look: "The form has no box for a course code or a convenor, so the request can only go to COMP6242's convenor. It shows up in Dr Quinn's queue and in no one else's.",
+  },
+  {
+    title: "The automatic first round",
+    intro: "Kenji passed COMP4670, which ANU lists as incompatible with COMP8600.",
+    steps: [{ as: "Kenji Sato", next: "/courses/COMP8600/", label: "Kenji on COMP8600" }],
+    look: "The page tells him before he sends anything that the first round will turn this down, and why. If he sends it anyway, it's rejected at once with that reason on its timeline, and it never takes up a convenor's time.",
+  },
+  {
+    title: "A convenor decides, and the student enrols",
+    intro: "Olivia's COMP8620 request is already waiting.",
+    steps: [
+      { as: "Dr Rowan Ellis", next: "/applications/1/", label: "Open it as Dr Rowan Ellis" },
+      { as: "Olivia Park", next: "/applications/1/", label: "See it as Olivia" },
+      { as: "Olivia Park", next: "/courses/COMP8620/", label: "Enrol as Olivia" },
+    ],
+    look: "Approving issues a code and adds a step to the timeline. Rejecting needs a reason, so the student is never left guessing. If someone got there first, send a fresh COMP8620 request as Mei.",
+  },
+  {
+    title: "The record can't be typed over",
+    intro: "Ana failed COMP6710 once. The gate reads her record, not her claims.",
+    steps: [
+      { as: "Ana Ruiz", next: "/record/", label: "Ana's record" },
+      { as: "Ana Ruiz", next: "/courses/COMP6466/", label: "Ana on COMP6466" },
+    ],
+    look: "An N grade doesn't count as passed, so COMP6466 needs a code for her. A request freezes the checklist as the system saw it, so what the convenor reads is what the record said.",
+  },
+];
+---
+
+<Layout title="Guide" actor={actor}>
+  <h1>How to use Permission Gate</h1>
+  <p class="lede">
+    A prototype of the part of ANU enrolment that gets stuck: permission codes. Pick who you are, open a course, and see
+    straight away whether you can enrol, and if not, exactly why.
+  </p>
+
+  <section aria-labelledby="why-heading">
+    <h2 id="why-heading">What it changes</h2>
+    <div class="compare">
+      <div>
+        <h3>ANUHub today</h3>
+        <ol>
+          <li>Choose a term for your program.</li>
+          <li>Find the class by its class number (not the COMP code), then add it.</li>
+          <li>Confirm. <strong>Only now</strong> does a missing permission code stop you.</li>
+          <li>
+            Request a code through a separate process. In the case that prompted this prototype, a COMP8620 request
+            reached the convenor of a different course and stalled, with no status to see.
+          </li>
+        </ol>
+      </div>
+      <div>
+        <h3>Permission Gate</h3>
+        <ol>
+          <li>Every course in the catalogue already shows whether you can enrol.</li>
+          <li>The course page lists each rule you meet or don't, from your record.</li>
+          <li>You request a code from that page. It goes to that course's convenor, because you can't type a course code.</li>
+          <li>The request's timeline shows who has it and what happened, until it's decided.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="who-heading">
+    <h2 id="who-heading">Who you can be</h2>
+    <p>
+      There's no login. Use <strong>Acting as</strong> at the top of every page to switch between these people. All of
+      them are invented.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th scope="col">Student</th><th scope="col">Program</th><th scope="col">What their record shows</th></tr>
+        </thead>
+        <tbody>
+          {
+            STUDENTS.map((s) => (
+              <tr>
+                <td>{s.name}</td>
+                <td>{PROGRAMS[s.program as ProgramKey]}</td>
+                <td>{s.shows}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">
+      Convenors: {convenors.map((c) => c.name).join(", ")}. Each convenes a group of courses, shown on every course
+      page.
+    </p>
+  </section>
+
+  <section aria-labelledby="tours-heading">
+    <h2 id="tours-heading">Five short tours</h2>
+    <ol class="tours">
+      {
+        tours.map((t) => (
+          <li class="tour">
+            <h3>{t.title}</h3>
+            <p>{t.intro}</p>
+            <div class="tour-steps">
+              {t.steps.map((s) => (
+                <form method="post" action="/api/act-as">
+                  <input type="hidden" name="as" value={who(s.as)} />
+                  <input type="hidden" name="next" value={s.next} />
+                  <button>{s.label}</button>
+                </form>
+              ))}
+            </div>
+            <p class="muted">
+              <strong>What to look for:</strong> {t.look}
+            </p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section aria-labelledby="real-heading">
+    <h2 id="real-heading">What's real and what isn't</h2>
+    <ul>
+      <li>
+        <strong>Real:</strong> course codes, titles, units and offering terms for 70 postgraduate courses, plus the
+        requisite text for 18 of them. All of it was transcribed by hand from ANU Programs &amp; Courses. Each of those
+        course pages quotes ANU's wording.
+      </li>
+      <li>
+        <strong>Invented:</strong> every student, grade and convenor. No real staff member made any decision shown here.
+      </li>
+      <li>
+        <strong>Not checked:</strong> courses without transcribed rules say “Requisites not recorded here” rather
+        than guess.
+      </li>
+      <li>
+        <strong>Simplified:</strong> terms have no year; incompatibility is always a hard stop; there are no census or
+        closing dates; the live site is shared, so other visitors' requests and decisions show up too.
+      </li>
+    </ul>
+    <p>More on the reasoning behind it is in <a href="/readme/">About</a>.</p>
+  </section>
+</Layout>

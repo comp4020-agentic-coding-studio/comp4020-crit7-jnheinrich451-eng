@@ -37,7 +37,10 @@ const badge = (code: string): { label: string; tone: string } | null => {
   <p class="lede">
     {
       actor.kind === "student" ? (
-        <>Every course shows whether you can enrol straight away or need a permission code, checked against your record.</>
+        <>
+          Every course shows whether you can enrol straight away or need a permission code, checked against your
+          record. New here? The <a href="/guide/">guide</a> has five short tours.
+        </>
       ) : (
         <>You're acting as a convenor. Switch to a student to see the gate, or go to your <a href="/applications/">request queue</a>.</>
       )
