@@ -3,6 +3,11 @@
 Assessment requested on 26 September 2026. This is a proposal for discussion,
 not an implemented LLM integration or a change to the running gate.
 
+The follow-up below revises the initial staffing assumption: the public demo
+must provide a useful outcome without depending on a person operating the
+reviewer queue. Human review of rule authoring and per-request review are
+different activities.
+
 ## Feasibility and existing foundation
 
 Course eligibility is feasible to compute from structured rules and structured
@@ -135,3 +140,85 @@ This stays within the published Crit 7 enrolment slice. Multi-semester schedulin
 specialisation counting and avoiding double-counted credit are a further
 constraint-planning problem. Structured eligibility is a useful foundation for
 that work, but this proposal does not implement or validate a complete study planner.
+
+## Follow-up: a demo that works without a staffed reviewer queue
+
+John pointed out that nobody is available to act as a reviewer for ordinary
+visitors. The current implementation does have this limitation: an application
+in `with-convenor` stays there until its assigned authenticated reviewer decides
+it. There is no automated approver, escalation worker or background agent.
+The published crit does not require a human reviewer for every request.
+
+Recommended revision: provide a clearly labelled automated demo decision path.
+Keep the published academic conditions and the prototype's approval policy as
+separate, versioned inputs. Permission being required establishes the need for
+approval; it does not establish the university's policy for issuing it.
+
+| Evidence and policy | Student-facing result | Available next action |
+| --- | --- | --- |
+| All required conditions met; permission not required under the reviewed policy | Ready to enrol | Confirm enrolment |
+| All required conditions met; permission required; the explicit demo approval policy permits issuance | Demo permission approved automatically | Confirm enrolment using the offering-scoped demo permission |
+| A required academic condition is known unmet | Requirements not met, with the exact condition and evidence | Correct the fictional record, supply supporting evidence where applicable, or choose another course; do not imply a waiver automatically exists |
+| Evidence is missing or rule meaning unresolved | Assessment incomplete, naming the missing item | Add the specific evidence and rerun; for demonstrating the complete flow, open a separate labelled fictional scenario with that evidence supplied |
+| The source requires a discretionary selection or waiver | Automated assessment and recommendation only | Explore an explicit fictional selection/waiver scenario, or use the optional reviewer workflow if someone is actually operating it |
+
+This gives every request a saved assessment and next action. It does not force
+unknown evidence into an approval or rejection. A visitor who wants to experience
+the complete approval/enrolment flow can use a prepared fictional scenario
+without waiting for staff. The scenario result is explicitly a demonstration,
+not newly discovered evidence about the published ANU course.
+
+For COMP8620, the initial report can establish that the fictional record passes
+COMP6320, that permission is required and that the announced topic's additional
+requirements are missing. To demonstrate automated completion, supply a labelled
+fictional offering scenario with explicit topic requirements and matching
+academic evidence. The engine evaluates those conditions, applies the separate
+demo approval policy, issues a demo permission, and waits for the student's
+explicit enrolment confirmation. It must not silently assume no topic rules.
+
+Record automated decisions with a system actor such as `Automated demo review`,
+policy/rule versions, evidence and time. Never attribute a model's action to
+Dr Rowan Ellis. Keep scenarios separate from existing reviewer decisions and
+historical requests. Do not grant students a reviewer role or give a model
+unrestricted access to the existing decision endpoint. Keep permissions scoped
+to student/course/year/term, preserve reload persistence, and prevent duplicate
+issuance on retries. These are proposed acceptance checks, not implemented changes.
+
+### Analyst and critic experiment
+
+An analyst can propose a structured assessment; a critic can look for omitted
+clauses, unsupported equivalence, grouping errors and mismatched course/year.
+Both should first inspect the source independently. The critic should provide
+specific evidence or a counterexample, rather than merely agree/disagree.
+A bounded correction pass can revise the draft. The decision engine then
+checks the evidence against the approved rule and demo policy. A model judge
+may summarise the comparison, but agreement or a confidence score cannot fill
+a missing field or authorise an otherwise unsupported exception.
+
+Research supports investigating this rather than assuming a guaranteed gain:
+[Du et al.](https://arxiv.org/abs/2305.14325) report improvements on tested tasks;
+[Choi et al.](https://arxiv.org/abs/2508.17536) find that voting explains much of
+debate's gains in their benchmarks; [Wynn et al.](https://arxiv.org/abs/2509.05396)
+show cases where peer discussion changes correct answers into incorrect ones.
+None of these studies validates decisions for our enrolment data. Compare an
+analyst alone, independent assessments and analyst/critic on held-out course
+cases at comparable inference budgets before adding a judge or repeated debate.
+Track erroneous approvals, omitted conditions, unknown handling, latency and
+cost. Missing evidence, disagreement or a model timeout must yield a saved
+actionable result, not an indefinite processing spinner.
+
+### Useful intermediate output
+
+Present a concise assessment report made from explicit, checkable outputs:
+source and catalogue version; each requirement; matching academic evidence;
+met/unmet/unknown; unresolved assumptions or conflicts; recommendation; next
+action. A student should be able to expand a source reference or correct a
+fictional fact. Preserve which statements are model proposals, validated checks
+or scenario assumptions. Expose actual completed stages (source loaded, checks
+evaluated, discrepancy found, result saved), with a timeout/retry result if
+inference fails. Summaries should reflect recorded outputs; no invented live
+progress or claim that a simulated decision came from a human reviewer.
+
+Build the assessment report and reproducible demo decision path first. Evaluate
+the analyst/critic aid afterwards. Reviewing the rule catalogue during project
+development does not require a human to process every visitor's request.
