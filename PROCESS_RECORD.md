@@ -1144,3 +1144,43 @@ John identified that the earlier recommendation assumed a staffed reviewer
 queue. Confirmed this is a real limitation in the running prototype and corrected
 the proposed design rather than implying the fictional reviewer is operating
 in the background. No runtime change, model deployment or push was performed.
+
+## 2026-09-26 01:36 — Agree both eligibility workstreams and a local Llama baseline
+
+**Prompt:**
+
+> I think it is fundamental or preparing work, it is worth doing.
+> And here your test on "assessment report and automated demo decision path first", I think they both worth doing. You can record them.
+> And a thing, I think if there are deployable agent harness, I think only model? And published on server as fly.io? And if you need me to download the model? Lets set as llama first?
+
+**Result:**
+Recorded the two agreed workstreams in `docs/eligibility-implementation-plan.md`
+and linked them from the shared harness. The rule vocabulary, unknown semantics
+and manual source-backed reference cases provide the foundation for saved
+assessments and an automated demo permission path. The bounded extraction
+benchmark follows the reference dataset and does not block the deterministic
+demo. COMP8620 is the first proposed complete scenario; its fictional topic
+conditions stay separate from published evidence and existing student records.
+
+Selected Llama as requested and proposed `llama3.2:3b` through local Ollama as
+the first benchmark baseline, superseding the earlier Qwen candidate. Explained
+the separate model weights, inference runtime and application harness. Proposed
+ordinary TypeScript coordination with bounded analyst/critic passes using one
+loaded model. Kept the website, rule engine and persistence on the existing Fly
+app, with local extraction first and a separate inference service only if later
+live assistance proves useful. No runtime feature, installer, model download or
+deployment was started during this planning turn.
+
+**Verified:**
+Re-read the shared harness, earlier assessment, current diff, Fly configuration
+and published Crit 7 contract. Read-only hardware checks found 64 GiB RAM and an
+RTX 5070 Ti with 16,303 MiB VRAM; Ollama was not found on PATH or at its default
+per-user path. Checked Ollama's model package, Windows, CLI and structured-output
+documentation: the selected package is about 2 GB and uses the Llama Community
+License. Fly's official GPU tutorial now carries a deprecation notice, so it is
+not a basis for promising a Fly GPU deployment. Model performance remains
+untested. Docker Node 24 / pnpm 11.9.0 `pnpm check` passed with zero diagnostics
+and 247 tests. The scoped staged diff check passed; the existing extra blank line
+in John's unstaged `AGENTS.md` was preserved along with untracked source assets.
+
+**Commit:** [`e833cf1`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/e833cf1)
