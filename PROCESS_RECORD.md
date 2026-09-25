@@ -519,3 +519,106 @@ rejection in the wrong term and successful enrolment in the approved term.
 The user's email-verification choice superseded the earlier no-auth harness
 rule; `CLAUDE.md` now records the new contract. No external email was sent by
 the automated or browser checks, and no review is attributed to Claude.
+
+## 2026-09-25 14:46 — Locate the local mail configuration and existing requirements
+
+**Prompt:**
+
+> Ty, and the requirements, if I need to provide to you? But there are so many. And for the setup guide, where is the gitignored .env file?
+
+**Result:**
+Found that `.env` had not yet been created; the setup guide described copying
+the template. Created the root `.env` from `config/mail.env.example`, with
+placeholder values only and exclusive creation to avoid overwriting an existing
+configuration. No credentials were read or configured. Counted 17 existing
+course requirement definitions, so John does not need to supply those again;
+additional source material can be collected only for courses he wants to add.
+
+**Verified:**
+Read the current harness, setup guide and requirement definitions. Confirmed
+`.env` was absent before creation and `git check-ignore -- .env` reports it as
+ignored. No application code changed and no app tests or email sends were run.
+
+**Commit:** none — local ignored configuration scaffold and clarification only.
+
+## 2026-09-25 15:53 — Validate mail settings and identify SMTP IP rejection
+
+**Prompt:**
+
+> Then all updated, if those format is correct? And what should be next step?
+
+**Result:**
+Checked the local mail settings without displaying credential values. Rejoined
+the SMTP hostname that had been placed on a separate line and reduced
+`APP_ORIGIN` to its existing local origin, removing its page path and fragment.
+Preserved the user's credentials and sender. The local HTTP origin still does
+not satisfy the app's HTTPS requirement for remote SMTP delivery; no runtime
+configuration or deployment was changed.
+
+**Verified:**
+All environment entries use `KEY=value`, with each required setting present
+exactly once. `.env` is Git-ignored and excluded from Docker build context.
+Ran Nodemailer's SMTP connection/authentication verification from a Node 24
+Docker container against the configured Brevo host, without sending email.
+Authentication returned `EAUTH`, command `AUTH PLAIN`, response code `525`.
+Brevo's official SMTP troubleshooting documentation identifies code 525 as
+an unauthorized sending IP. Credentials, sender approval and inbox delivery
+are not yet validated. No application code changed or app test suite ran.
+
+**Commit:** none — ignored local configuration correction and diagnostic record only.
+
+**What happened:**
+The initial sandboxed Docker inspection could not access the Docker engine;
+the approved retry succeeded. The SMTP check reached Brevo but stopped at its
+IP authorization restriction. The next external step is authorizing the intended
+sending IP in Brevo, then repeating authentication and testing the full flow on
+an HTTPS app instance with the same database used for registration.
+
+## 2026-09-25 21:30 — Unblock the local walkthrough and separate planning from enrolment
+
+**Prompt:**
+
+> Currently for we cannot sign-in so later pipeline I cannot experience for now.
+>
+> And for your list, I finished in ./assets/ANU_enrollment.md. Please check it, I said in top layer, actually the rules to process is quite complicated.
+
+John also described a Machine Learning specialisation sequence: COMP6670 in
+S2 preceding two of three advanced courses in a later S1, and offered to supply
+source material as screenshots.
+
+**Result:**
+Read the supplied workflow and published Crit 7 contract. Added a workflow
+review separating proposed degree/specialisation planning from the implemented
+offering-level permission flow. The example is a conditional earliest sequence,
+not an asserted unique degree plan or verified ANU rule. Documented a small
+source collection target, year/source provenance, planned-versus-passed state,
+human review of exceptions, and a fictional transcript inconsistency: COMP6670
+recorded in S1 despite the current catalogue's S2-only offering.
+
+Added a separate Docker Compose preview on loopback port 4323 and Mailpit inbox
+on 8025, with independent persistent volumes and explicit local mail settings.
+The user can register, read captured verification mail and sign in without
+Brevo, a public role switch, or bypassing the app's verification flow. Prepared
+an unconsumed invitation for the fictional COMP8620 reviewer in that local inbox.
+The real mail configuration and existing preview containers were preserved.
+
+**Verified:**
+Docker Compose configuration validated. Docker Node 24/pnpm 11.9.0 `pnpm check`
+passed all 170 tests across 7 files, with zero type errors, warnings or hints.
+Live HTTP checks on the new preview covered local captured delivery, refusal
+of unverified login, confirmation, sign-in, the fictional profile, COMP8620 S2
+request routing to Dr Rowan Ellis, saved selections and request persistence
+after reload and an app restart. The reviewer invitation reached the captured
+inbox and opened the password-setup page without consuming the token. No real
+email was sent. Multi-semester planning remains a documented proposal; no review
+is attributed to Claude. Staged whitespace checks passed.
+
+**Commit:** [`2e21311`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/2e21311)
+
+**What happened:**
+The initial internal-only Docker network did not publish its browser ports on
+this Docker Desktop setup. Recreated only the new stack with a normal bridge
+and loopback-bound ports, retaining its volumes. The first smoke request used
+S1 for COMP8620 and was correctly rejected because its recorded offering is
+S2; corrected the test input and reran successfully. Neither issue was fixed by
+weakening the enrolment or account checks.
