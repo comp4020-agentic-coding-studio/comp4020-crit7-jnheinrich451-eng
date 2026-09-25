@@ -1311,3 +1311,71 @@ already had a request route, but the earlier catalogue-import boundary blocked
 uninterpreted courses in both the form and API. Replaced that blanket block with
 an explicit assessment request while preserving unknown evidence and keeping
 direct enrolment unavailable until a valid decision exists.
+
+## 2026-09-26 02:56 — Saved demo decisions with student explanations kept separate from facts
+
+**Prompt:**
+
+> Yes please, and one variable I just noticed, there are request message from student, which is impredicatible for model? IF we need to take it into consideration, or take a small weight on this response?
+
+**Result:**
+Implemented the agreed first automated-decision increment. Course requests now
+default to an immediate saved demo assessment; optional staff review is explicitly
+labelled as an unstaffed queue. An owner can move an existing pending request to
+automatic assessment while retaining its original checks and timeline. Reports
+save the selected offering, rule tree and digest, academic record, request reason,
+explanation, policy version, condition results and next steps. Generated migration
+0006 adds nullable report/scenario fields and an idempotency identity without
+rewriting historical decisions.
+
+Student prose receives no numeric weight. The form explicitly distinguishes
+recorded checks, record correction, equivalent study and exceptions. The latter
+three need evidence or an authorised decision; persuasive wording cannot create
+a pass, equivalence or permission. The original text is preserved as self-reported
+context, and the interface says that it is not interpreted or verified. No Llama
+call is made. Recorded statement-variation and claim-extraction cases for the
+later model benchmark in the shared implementation plan.
+
+Added `/demo/`: source-bound COMP8620 base requirements, an explicitly fictional
+COMP6670 topic condition and separate fictional record, automatic scenario
+permission, then explicit scenario enrolment confirmation. Its permission cannot
+authorise profile enrolment or alter a transcript. General unmet/unknown results
+give reasons and next actions without inventing a convenor decision or pending
+processing. Identical requests and confirmation retries preserve a single result.
+Automatic issuance requires a versioned source interpretation or the isolated
+scenario; the old 2026 first-round transcriptions cannot acquire new automatic
+approval. Historical human approvals retain their original offering scope.
+
+**Verified:**
+Re-read the published Crit 7 contract and shared harness. Final Docker Node 24 /
+pnpm 11.9.0 `pnpm check`: zero errors, warnings or hints; 287 tests across 14 files.
+Coverage includes statement variations and embedded instructions, source drift,
+unmet/disputed/unknown reports, escaped text, privacy, offering/year isolation,
+duplicate submissions, explicit confirmation, snapshot persistence after a later
+enrolment, pending-to-automatic conversion and historical database upgrades.
+Existing staff-flow tests explicitly select that supported route.
+
+A hidden Chrome profile with JavaScript disabled submitted the real scenario
+form, received permission, confirmed scenario enrolment and retained the result
+after reload. A second real form produced an incomplete record-correction report
+with no pending reminder. Inspected screenshots at 1440x1000 and 390x844; mobile
+content width stayed at 390 pixels, including opened report details. Browser
+fixtures and their local SMTP sink used a separate disposable database, not the
+preview account data. Stopped that review server afterwards.
+
+Backed up the preview SQLite volume, restarted the checked build, and confirmed
+all pre-existing user/request records were retained, with zero foreign-key
+violations. The local `/demo/` returned HTTP 200. User activity appended an
+enrolment and selections during the check; those additions were preserved.
+No deployment, push or Llama accuracy claim.
+
+**Commit:** [`2eff987`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/2eff987)
+
+**What happened:**
+The first check found two old tests assuming the staff route remained the default
+and a new privacy test expecting 200 where the application correctly returned
+404. Corrected the expectations without weakening the access boundary. A quoted
+selector in the disposable Chrome driver also needed correction. The initial
+whole-table preservation check flagged regenerated seed row IDs and later live
+user additions; inspection distinguished those from the unchanged original user
+records. No database rollback or manual record repair was needed.
