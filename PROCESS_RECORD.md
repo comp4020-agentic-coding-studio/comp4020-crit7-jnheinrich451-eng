@@ -1379,3 +1379,60 @@ selector in the disposable Chrome driver also needed correction. The initial
 whole-table preservation check flagged regenerated seed row IDs and later live
 user additions; inspection distinguished those from the unchanged original user
 records. No database rollback or manual record repair was needed.
+
+## 2026-09-26 03:15 — COMP7710 gets its actual conflict check and course codes lead request pages
+
+**Prompt:**
+
+> I tried COMP7710, but this time it doesn't work. If you are showing me about the format?
+> could you place COMP8620 bigger? Like a phrase in capital position, but it is small, not good in looking!
+
+**Result:**
+Found that COMP7710's saved page existed but had no executable interpretation.
+Its request had persisted an unknown result despite the fictional profile already
+containing a COMP6710 pass. Added the eighteenth source-bound 2027 interpretation:
+COMP1110, COMP1140 and COMP6710 exclude COMP7710 when completed or currently
+enrolled. Extended the pure evaluator to distinguish completion exclusions from
+concurrent-enrolment exclusions, with current enrolments scoped to the selected
+year and term. A compatible complete record can enrol directly; a conflict gets
+an explicit result and applicable next action. No blanket permission requirement
+or waiver is invented. Historical reports remain unchanged.
+
+Corrected the unknown-rule fallback to identify missing application coverage
+instead of implying that a rewritten student explanation can supply an absent
+rule interpretation. Incompatibility results now suggest compatible study or a
+record correction, rather than telling students to complete more prerequisites.
+Clarified in the shared harness that the complete COMP8620 scenario does not mean
+every catalogue course is encoded or that a general Llama reviewer is running.
+
+Made the course code the primary request-page heading, with the request label and
+course title beneath it. The small card-code style no longer controls the heading.
+
+**Verified:**
+Re-read the published Crit 7 contract, the supplied COMP7710 source paragraph and
+the local request's stored gate without printing account details or the statement.
+The rule binds source hash `26e64aa8e5553b48734121517dc2edf47a6de0b78f8faccb989bd6204403e046`,
+requisite block 0. Docker Node 24 / pnpm 11.9.0 `pnpm check` passed with zero
+diagnostics and 299 tests across 15 files. New checks cover each conflicting code,
+completed versus enrolled results, failed attempts, partial records, source drift,
+year/term scope, direct enrolment with reload persistence, specific rejection
+feedback and record-dispute handling. Existing rules and workflow tests remain
+green; completion-only exclusions do not gain new concurrent semantics.
+
+Submitted the real forms in isolated Chrome with JavaScript disabled. COMP7710
+reported the COMP6710 conflict and a relevant next step. Inspected request pages
+at 1440x1000 and 390x844: COMP8620 measured 60px and 40px respectively, with its
+label at 17.6px and no mobile page overflow. Browser tests used a disposable DB
+and local mail sink. Stopped the test server, refreshed the existing local preview
+without replacing its volume, and received HTTP 200 for COMP7710. No push or
+deployment.
+
+**Commit:** [`b908819`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/b908819)
+
+**What happened:**
+John's request exposed an overbroad impression from the previous increment: a
+working report workflow and one complete scenario did not provide general course
+rule coverage. The generic incomplete result also directed attention toward the
+student's evidence when the missing work was the app's interpretation. Addressed
+that distinction and the specific COMP7710 rule, without claiming all remaining
+course conditions are now implemented.
