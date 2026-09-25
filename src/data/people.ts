@@ -71,7 +71,7 @@ export const STUDENTS: SeedStudent[] = [
       ["COMP6262", "CR", "2025 S1"],
       ["COMP6442", "D", "2025 S2"],
       ["COMP6320", "HD", "2026 S1"],
-      ["COMP6670", "D", "2026 S1"],
+      ["COMP6670", "D", "2026 S2"],
     ],
     enrolled: ["COMP6466"],
     shows: "strong record: most gates open; COMP8620 still needs a code",
@@ -103,7 +103,7 @@ export const STUDENTS: SeedStudent[] = [
     results: [
       ["COMP4670", "D", "2024 S2"],
       ["COMP6710", "D", "2025 S2"],
-      ["COMP6670", "HD", "2026 S1"],
+      ["COMP6670", "HD", "2026 S2"],
     ],
     enrolled: [],
     shows: "an incompatible undergraduate course (COMP4670 vs COMP8600)",

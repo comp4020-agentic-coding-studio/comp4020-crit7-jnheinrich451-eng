@@ -33,6 +33,8 @@ export interface CourseRules {
   incompatible?: string[];
   /** Every student needs a permission code, whatever their record says. */
   permissionAlways?: true;
+  /** Limits of the automated check; retained in the request's review history. */
+  reviewNote?: string;
 }
 
 const any = (...codes: string[]): Requirement => ({

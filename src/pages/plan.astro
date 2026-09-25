@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { gateFor, liveApplication, selectionsOf, TERM_LABELS } from "../lib/store";
+import { gateFor, liveApplication, offeringFor, selectionsOf, TERM_LABELS } from "../lib/store";
 import type { Term } from "../data/courses";
 const actor = Astro.locals.actor;
 if (!actor) return Astro.redirect("/login/", 303);
@@ -36,15 +36,16 @@ const selected = selectionsOf(actor.student.id);
       const g = gateFor(actor.student, course.code, offering.term, offering.year);
       const live = liveApplication(actor.student.id, course.id, offering.term, offering.year);
       const already = g.outcome === "already";
-      const ready = !already && (g.outcome === "eligible" || live?.status === "approved");
+      const available = !!offeringFor(course.id, offering.term, offering.year);
+      const ready = available && !already && (g.outcome === "eligible" || live?.status === "approved");
       const label = already
         ? g.text
-        : ready
+        : !available ? "Offering unavailable" : ready
           ? "Ready to enrol"
           : live
             ? "Under review"
             : g.outcome === "not-recorded"
-              ? "Requirements not recorded"
+              ? "Eligibility check unavailable"
               : "Permission needed";
       const href = `/courses/${course.code}/?term=${encodeURIComponent(offering.term)}&year=${offering.year}`;
       return (
@@ -55,7 +56,7 @@ const selected = selectionsOf(actor.student.id);
               <a href={href}>{course.title}</a>
             </h2>
             <p class="meta">
-              {offering.year} · {TERM_LABELS[offering.term as Term]} · {course.units} units
+              {offering.year} · {TERM_LABELS[offering.term as Term]} · {course.unitsText}
             </p>
           </div>
           <span class={`badge badge-${ready ? "ok" : "muted"}`}>{label}</span>

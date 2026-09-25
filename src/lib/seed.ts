@@ -3,6 +3,7 @@ import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { COURSES } from "../data/courses";
 import { CONVENORS, convenorFor, STUDENTS } from "../data/people";
 import { convenors, courses, enrolments, offerings, students, transcript } from "./schema";
+import { LEGACY_YEAR } from "./academic-year";
 
 // Brings the database's reference data in line with src/data/ on every boot.
 // Convenors, courses and students are upserted by their natural keys, so ids
@@ -40,7 +41,7 @@ export function seed(db: BetterSQLite3Database): void {
         .get();
       courseIds.set(c.code, row.id);
       for (const term of c.terms) {
-        tx.insert(offerings).values({ courseId: row.id, year: 2026, term }).onConflictDoNothing().run();
+        tx.insert(offerings).values({ courseId: row.id, year: LEGACY_YEAR, term }).onConflictDoNothing().run();
       }
       unitsByCode.set(c.code, c.units);
     }
@@ -65,7 +66,7 @@ export function seed(db: BetterSQLite3Database): void {
         .run();
       for (const code of s.enrolled) {
         tx.insert(enrolments)
-          .values({ studentId: row.id, courseId: courseIds.get(code) as number, term: "S2", via: "seed" })
+          .values({ studentId: row.id, courseId: courseIds.get(code) as number, year: LEGACY_YEAR, term: "S2", via: "seed" })
           .onConflictDoNothing()
           .run();
       }

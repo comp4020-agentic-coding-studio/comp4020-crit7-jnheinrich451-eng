@@ -47,13 +47,14 @@ const preview = canApply ? firstRound(course.code, gate) : null;
       <p>
         Every student needs approval for this course.{" "}
         {gate.requisitesMet
-          ? "The recorded prerequisites are met."
+          ? gate.reviewNote ? "The recorded base prerequisites are met." : "The recorded prerequisites are met."
           : "Your fictional record also has unmet prerequisites."}
       </p>
+      {gate.reviewNote && <p>{gate.reviewNote}</p>}
     </>
   ) : (
     <>
-      <h2 id="gate-heading">Requisites not recorded here</h2>
+      <h2 id="gate-heading">Automatic eligibility check unavailable</h2>
       <p>Check the published course information. This prototype cannot determine eligibility.</p>
     </>
   )}

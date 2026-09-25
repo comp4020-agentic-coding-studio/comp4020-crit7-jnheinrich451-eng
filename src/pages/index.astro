@@ -2,19 +2,24 @@
 import Layout from "../layouts/Layout.astro";
 import { gateFor, listCourses, liveApplication, TERM_LABELS } from "../lib/store";
 import type { Term } from "../data/courses";
+import { ACTIVE_YEAR } from "../lib/academic-year";
 const actor = Astro.locals.actor;
 if (actor?.kind === "convenor" && !Astro.url.search) return Astro.redirect("/applications/", 303);
 const query = Astro.url.searchParams.get("q") ?? "";
 const subject = Astro.url.searchParams.get("subject") ?? "";
-const term = Astro.url.searchParams.get("term") ?? "S2";
-const rows = listCourses(query, subject).filter((c) => !term || c.termList.includes(term as Term));
+const year = Number(Astro.url.searchParams.get("year") ?? ACTIVE_YEAR);
+const term = Astro.url.searchParams.get("term") ?? "";
+const all = listCourses("", "", year);
+const subjects = [...new Set(all.map(c => c.code.slice(0, 4)))];
+const rows = listCourses(query, subject, year).filter((c) => !term || c.termList.includes(term as Term));
 const badge = (course: (typeof rows)[number]) => {
   if (actor?.kind !== "student") return null;
   const selectedTerm = term || course.termList[0];
-  const g = gateFor(actor.student, course.code, selectedTerm);
+  if (!selectedTerm) return { text: "No published offering", tone: "muted" };
+  const g = gateFor(actor.student, course.code, selectedTerm, year);
   if (g.outcome === "already")
     return { text: g.text.includes("passed") ? "Passed" : "Enrolled", tone: "muted" };
-  const live = selectedTerm && liveApplication(actor.student.id, course.id, selectedTerm);
+  const live = selectedTerm && liveApplication(actor.student.id, course.id, selectedTerm, year);
   if (live)
     return { text: live.status === "approved" ? "Permission approved" : "Under review", tone: "info" };
   return {
@@ -22,7 +27,7 @@ const badge = (course: (typeof rows)[number]) => {
       eligible: "Ready to enrol",
       "rules-not-met": "Permission needed",
       "permission-always": "Permission for everyone",
-      "not-recorded": "Requirements not yet recorded",
+      "not-recorded": "Eligibility check unavailable",
     }[g.outcome],
     tone: g.outcome === "eligible" ? "ok" : "muted",
   };
@@ -32,7 +37,7 @@ const badge = (course: (typeof rows)[number]) => {
 <Layout title="Find courses" actor={actor}>
   <div class="page-top">
     <div>
-      <p class="eyebrow">PLAN YOUR STUDIES · 2026</p>
+      <p class="eyebrow">PLAN YOUR STUDIES · {year}</p>
       <h1>Find your next course</h1>
       <p class="lede">Explore courses, check requirements, and build your semester in one place.</p>
     </div>
@@ -43,6 +48,7 @@ const badge = (course: (typeof rows)[number]) => {
     )}
   </div>
   <form method="get" action="/" class="search" role="search">
+    <input type="hidden" name="year" value={year} />
     <div>
       <label for="q">Course code or title</label>
       <input id="q" name="q" type="search" value={query} placeholder="COMP6528, 6528, or Computer Vision" />
@@ -51,7 +57,7 @@ const badge = (course: (typeof rows)[number]) => {
       <label for="subject">Subject</label>
       <select id="subject" name="subject">
         <option value="">All subjects</option>
-        {["COMP", "ENGN", "ENVS", "MATH"].map((s) => (
+        {subjects.map((s) => (
           <option value={s} selected={subject === s}>
             {s}
           </option>
@@ -59,7 +65,7 @@ const badge = (course: (typeof rows)[number]) => {
       </select>
     </div>
     <div>
-      <label for="term">2026 term</label>
+      <label for="term">{year} term</label>
       <select id="term" name="term">
         <option value="" selected={!term}>
           All terms
@@ -75,7 +81,7 @@ const badge = (course: (typeof rows)[number]) => {
   </form>
   <p class="muted">
     {rows.length} {rows.length === 1 ? "course" : "courses"}
-    {term ? ` · ${TERM_LABELS[term as Term] ?? term} 2026` : " · all recorded offerings"}.{" "}
+    {term ? ` · ${TERM_LABELS[term as Term] ?? term} ${year}` : ` · ${year}, including courses without published offerings`}.{" "}
     {!actor && (
       <>
         <a href="/login/">Sign in</a> to check your fictional academic record and save courses.
@@ -87,7 +93,7 @@ const badge = (course: (typeof rows)[number]) => {
       <h2>No matching courses in this term</h2>
       <p>
         Try a different term or{" "}
-        <a href={`/?q=${encodeURIComponent(query)}&subject=${encodeURIComponent(subject)}&term=`}>
+        <a href={`/?q=${encodeURIComponent(query)}&subject=${encodeURIComponent(subject)}&term=&year=${year}`}>
           search across all terms
         </a>
         .
@@ -100,13 +106,13 @@ const badge = (course: (typeof rows)[number]) => {
       return (
         <li>
           <a
-            href={`/courses/${c.code}/?term=${encodeURIComponent(term || c.termList[0] || "S2")}`}
+            href={`/courses/${c.code}/?term=${encodeURIComponent(term || c.termList[0] || "")}&year=${year}`}
             class="course-card"
           >
             <span class="code">{c.code}</span>
             <span class="title">{c.title}</span>
             <span class="meta">
-              {c.units} units ·{" "}
+              {c.unitsText} ·{" "}
               {c.termList.length ? c.termList.map((t) => TERM_LABELS[t]).join(", ") : "No offering recorded"}
             </span>
             {b && <span class={`badge badge-${b.tone}`}>{b.text}</span>}

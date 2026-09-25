@@ -2,6 +2,8 @@
 import Layout from "../layouts/Layout.astro";
 import { catalogueEntries, catalogueLink, catalogueMentions, catalogueSourcesFor, referenceLink } from "../lib/catalogue";
 import type { CatalogueKind } from "../lib/catalogue-types";
+import { ACTIVE_YEAR } from "../lib/academic-year";
+import { rulesForSource } from "../lib/course-rules";
 
 const entries = catalogueEntries();
 const params = Astro.url.searchParams;
@@ -36,7 +38,7 @@ const mentioningVersions = mentions.filter((r, i) => mentions.findIndex(other =>
     <h1>{title}</h1>
     <p class="lede">Explore courses, degree requirements and the connections between them.</p>
   </div>
-  <p class="library-notice">These saved pages describe the {years.join(", ")} catalogue. Your enrolment demo uses 2026 rules and a fictional record. Library requirements have not yet been turned into personal eligibility or a study plan.</p>
+  <p class="library-notice">Find courses and this library share the {ACTIVE_YEAR} catalogue. Enrolment checks use a fictional academic record and a limited set of interpreted course rules. Degree and specialisation requirements are published information; personal study planning is not yet available.</p>
 
   {code ? <>
     <p><a href={`/catalogue/?year=${year}`}>Back to the library</a></p>
@@ -49,8 +51,10 @@ const mentioningVersions = mentions.filter((r, i) => mentions.findIndex(other =>
       return <article class="library-entry">
         {selected.length > 1 && <h2>Source version {variant + 1}</h2>}
         <p class="entry-meta"><strong>{e.code}</strong> · {e.year} · {labels[e.kind]}{e.units ? ` · ${e.units}` : ""}</p>
+        {e.kind === "course" && e.year === ACTIVE_YEAR && <p><a class="button" href={`/courses/${e.code}/?year=${e.year}`}>View offerings and enrolment</a></p>}
         <p>{e.description}</p>
         <p class="muted">Interpretation: {entry.review.status === "unreviewed" ? "awaiting review" : entry.review.status}. Published wording is shown below.</p>
+        {rulesForSource(e.code, e.year, entry, selected.length > 1) && <p>A prototype enrolment check is available for this source. It does not assess degree or specialisation completion.</p>}
         {entry.review.notes && <p>{entry.review.notes}</p>}
         {e.issues.length > 0 && <aside class="library-notice" aria-label="Source gaps"><ul>{e.issues.map(issue => <li>{issue}</li>)}</ul></aside>}
 
@@ -83,7 +87,7 @@ const mentioningVersions = mentions.filter((r, i) => mentions.findIndex(other =>
           {e.availability === "explicit-none" && <p><strong>The page explicitly says there are no current offerings.</strong> This does not establish permanent discontinuation.</p>}
           {e.availability === "unknown" && <p>Availability is unknown from this saved page.</p>}
           {e.offerings.length > 0 && <>
-            <p class="muted">Future offerings are indicative. These dates are from the saved page and do not create an enrolment option in this demo.</p>
+            <p class="muted">Future offerings are indicative. Only recognised {ACTIVE_YEAR} sessions with a published class number are offered in the enrolment demo.</p>
             <div class="offering-scroll" tabindex="0" role="region" aria-label={`${e.code} offering dates`}>
               <table>
                 <caption>{e.code}: sessions and dates as published</caption>

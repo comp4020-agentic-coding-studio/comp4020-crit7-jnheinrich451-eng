@@ -33,11 +33,13 @@ flowchart LR
 | `catalogue_references` | Indexed mentions tied to a snapshot, section, block and exact quote. A target may be missing or have an unspecified year. |
 | `catalogue_reviews` | Review status and notes, independent of imports; initially unreviewed. No review editor or executable rule expression is implemented yet. |
 
-Offering records live in each immutable snapshot's evidence JSON. They do not
-create rows in the enrolment system's `offerings` table. The existing 2026
-catalogue, fictional transcript, permission requests and enrolled selections
-continue using their existing rules. The library is read from SQLite, rather
-than reading browser downloads on each request.
+Offering records live in each immutable snapshot's evidence JSON. At boot,
+`seedPublishedOfferings` creates 2027 offering rows only for recognised sessions
+with numeric class numbers in a single, unambiguous course snapshot. Search and
+course details read the same SQLite evidence as the library. They show all 80
+courses, including those without offerings, and preserve variable credit ranges.
+Old offering rows remain for history; each new save, request and enrolment also
+checks current source availability so retained rows cannot authorise stale offerings.
 
 Imports are additive. A changed same-code/year source is shown as another
 version, with a warning and fresh review state. No variant is automatically
@@ -93,12 +95,12 @@ lives in its Docker `app-data` volume; ordinary local development uses
   semester-by-semester path. The 2027 AI/ML discrepancy is preserved in the
   published text and audit notes; it is not a transition policy.
 
-## Recommended migration to a 2027 demo
+## Implemented 2027 enrolment alignment
 
-On 26 September John questioned keeping the active demo on 2026 while the saved
-catalogue is 2027. Recommendation: make 2027 the active enrolment and planning
-example. The current runtime is still 2026; grouping the library as Degrees,
-Specialisations and Courses does not change its rules or stored enrolments.
+On 26 September John questioned keeping the active demo on 2026 and then asked
+to share entries with Find courses. The active enrolment example now uses 2027.
+Degree and specialisation planning remains future work; a real student's
+commencement-year rules are separate from the offering year.
 
 The academic record should remain explicitly fictional. Matching the demo's
 rules and offerings to published 2027 evidence is separate from claiming access
@@ -111,19 +113,37 @@ Inspection of the current code and saved sources found:
   difference is paragraph/punctuation spacing; its topic-specific prerequisite
   clause still needs to remain visible when describing what the check covers.
 - COMP6528's saved source lists incompatibilities with ENGN6528, COMP4528 and
-  ENGN4528 that the current transcription/check omits. This is an implementation
-  gap to resolve, not proof that ANU changed the rule between years.
+  ENGN4528 that the legacy transcription/check omits. The 2027 check now enforces
+  them. This fixes an implementation gap, not a verified historical rule change.
 - After the follow-up, 68 of the 70 current course codes have a saved 2027 page.
   Their coarse semester/session sets match the current seed. ENGN6539 and
   ENGN8501 have no corresponding saved 2027 page; do not invent their offerings.
   The imported catalogue also contains twelve codes absent from the current seed.
 
-The migration should bind active rules to their 2027 source snapshots, populate
-actual 2027 offerings, centralise the active-year defaults, and give the
-fictional profile a coherent study timeline. It must preserve existing 2026
-requests, approvals and enrolments under their original year; approval for one
-year cannot grant enrolment in another. Do not merely replace displayed 2026
-labels, or automatically declare all 76 imported courses eligible.
+`src/data/enrolment-rules-2027.json` binds 17 explicit prototype interpretations
+to the inspected source hashes. Unmatched, changed or conflicting snapshots
+receive no automatic check. Published wording is still shown for every course;
+missing interpretation does not mean no prerequisites. COMP6320 and COMP8535
+retain the existing prototype's grouping interpretation, not an assertion of
+official ANU validation. COMP8620 checks base prerequisites and carries its
+topic-specific review limit into both the student page and request timeline.
+
+`ACTIVE_YEAR` centralises new defaults. Legacy rules and course identities still
+support explicitly year-scoped 2026 history. ENGN6539 and ENGN8501 are available
+only in that history, not invented as 2027 entries. The generated migration
+preserves IDs, requests, checks, decisions, events and enrolments; tests cover
+upgrade and repeated boot. Old approvals cannot grant enrolment in 2027, or vice versa.
+New fictional records place COMP6670 in 2026 S2. Existing registered records and
+accounts are untouched. Seed example enrolments retain 2026 rather than moving
+them to a new year without a student's action.
+
+The populated upgrade test caught SQLite rejecting the generated table rebuild
+when requests already had child events. `migrateDatabase` now sets foreign-key
+enforcement before Drizzle's transaction, checks all references afterwards, and
+restores enforcement before serving requests, following SQLite's
+[table-rebuild procedure](https://www.sqlite.org/lang_altertable.html#otheralter).
+The generated migrations themselves are unchanged. Tests cover rollback on
+migration failure and restored enforcement as well as preserved user data.
 
 After that alignment, encode one reviewed degree/specialisation requirement
 group with its source snapshot and an explanation of its AND/OR/counting

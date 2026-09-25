@@ -38,7 +38,7 @@ describe("published course library over HTTP", () => {
       const p = await page(`?kind=course&code=${code}&year=2027`);
       expect(p.text).toContain("explicitly says there are no current offerings");
       expect(p.doc.querySelectorAll("form[method=post]")).toHaveLength(0);
-      expect(p.text).toContain("2026 rules and a fictional record");
+      expect(p.text).toContain("share the 2027 catalogue");
     }
     expect((await page("?kind=course&code=COMP8980&year=2027")).text).toContain("MADAN");
   });

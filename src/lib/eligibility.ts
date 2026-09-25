@@ -35,6 +35,7 @@ export type Gate =
       checks: Check[];
       incompatible: string[];
       requisitesMet: boolean;
+      reviewNote?: string;
     };
 
 export function gate(courseCode: string, rules: CourseRules | undefined, s: StudentRecord): Gate {
@@ -55,7 +56,7 @@ export function gate(courseCode: string, rules: CourseRules | undefined, s: Stud
   const requisitesMet = checks.every((c) => c.met);
 
   if (rules.permissionAlways) {
-    return { outcome: "permission-always", checks, incompatible, requisitesMet };
+    return { outcome: "permission-always", checks, incompatible, requisitesMet, ...(rules.reviewNote ? { reviewNote: rules.reviewNote } : {}) };
   }
   if (!requisitesMet) return { outcome: "rules-not-met", checks, incompatible };
   return { outcome: "eligible", checks };
@@ -75,7 +76,7 @@ export function firstRound(courseCode: string, g: Gate): FirstRound {
     case "not-recorded":
       return {
         decision: "auto-reject",
-        reasons: [`${courseCode}'s requisites aren't recorded in this prototype, so it can't be checked.`],
+        reasons: [`An automatic eligibility check is unavailable for ${courseCode}. Read the published requirements.`],
       };
     case "eligible":
       return {
@@ -104,7 +105,7 @@ export function firstRound(courseCode: string, g: Gate): FirstRound {
         }
         return {
           decision: "to-convenor",
-          reasons: [`Requisites met. ${courseCode} needs a permission code from every student.`],
+          reasons: [`${g.reviewNote ? "Base prerequisites met" : "Requisites met"}. ${courseCode} needs a permission code from every student.`, ...(g.reviewNote ? [g.reviewNote] : [])],
         };
       }
       return {

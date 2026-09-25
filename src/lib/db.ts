@@ -2,11 +2,12 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { migrateDatabase } from "./migrate";
 import { seed } from "./seed";
 import catalogue from "../data/catalogue-sources.json";
 import type { CatalogueSnapshot } from "./catalogue-types";
 import { seedCatalogue } from "./seed-catalogue";
+import { seedPublishedOfferings } from "./seed-offerings";
 
 // One SQLite file is the app's whole persistent state. In production
 // fly.toml points DATABASE_PATH at the machine's volume (/data), which is
@@ -26,9 +27,10 @@ export type Db = typeof db;
 // recommended shape for SQLite on Fly, where there's no separate machine to
 // run them from. The flow: edit src/lib/schema.ts, `pnpm db:generate`,
 // commit the migration it writes to drizzle/.
-migrate(db, { migrationsFolder: "./drizzle" });
+migrateDatabase(client);
 
 // Reference data follows the migrations: idempotent, so every boot brings the
 // catalogue and seeded records in line with src/data/.
 seed(db);
 seedCatalogue(db, catalogue.snapshots as CatalogueSnapshot[]);
+seedPublishedOfferings(db);

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { int, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { ACTIVE_YEAR } from "./academic-year";
 
 // The schema is the ground truth for the database. To change it: edit here,
 // run `pnpm db:generate` to turn the diff into a migration under drizzle/,
@@ -27,7 +28,8 @@ export const courses = sqliteTable("courses", {
   id: int().primaryKey({ autoIncrement: true }),
   code: text().notNull().unique(),
   title: text().notNull(),
-  units: int().notNull(),
+  /** Null for a variable/unknown credit value; published wording stays in the source. */
+  units: int(),
   /** JSON array of Term, from src/data/courses.ts. */
   terms: text().notNull(),
   convenorId: int("convenor_id")
@@ -68,7 +70,7 @@ export const enrolments = sqliteTable(
       .notNull()
       .references(() => courses.id),
     term: text().notNull(),
-    year: int().notNull().default(2026),
+    year: int().notNull().default(ACTIVE_YEAR),
     /** "seed" (current load at boot), "direct" (gate said eligible) or
      *  "permission" (an approved application's code). */
     via: text().notNull(),
@@ -91,7 +93,7 @@ export const applications = sqliteTable("applications", {
     .notNull()
     .references(() => convenors.id),
   term: text().notNull(),
-  year: int().notNull().default(2026),
+  year: int().notNull().default(ACTIVE_YEAR),
   statement: text().notNull(),
   /** "auto-rejected" | "with-convenor" | "approved" | "rejected" */
   status: text().notNull(),

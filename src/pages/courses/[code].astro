@@ -1,15 +1,18 @@
 ---
 import GatePanel from "../../components/GatePanel.astro";
-import { REQUISITES } from "../../data/requisites";
+import { ACTIVE_YEAR } from "../../lib/academic-year";
+import { catalogueLink, catalogueEntries, referenceLink } from "../../lib/catalogue";
 import type { Term } from "../../data/courses";
 import Layout from "../../layouts/Layout.astro";
 import { gateFor, getCourse, liveApplication, offeringFor, selectionsOf, TERM_LABELS } from "../../lib/store";
 const actor = Astro.locals.actor;
-const course = getCourse(Astro.params.code ?? "");
+const year = Number(Astro.url.searchParams.get("year") ?? ACTIVE_YEAR);
+const course = getCourse(Astro.params.code ?? "", year);
 if (!course) return new Response("No such course", { status: 404 });
-const rules = REQUISITES[course.code];
-const term = Astro.url.searchParams.get("term") ?? course.termList[0] ?? "S2";
-const year = Number(Astro.url.searchParams.get("year") ?? 2026);
+const rules = course.rules;
+const evidence = course.source?.evidence;
+const entries = catalogueEntries();
+const term = Astro.url.searchParams.get("term") ?? course.termList[0] ?? "";
 const offering = offeringFor(course.id, term, year);
 const g = actor?.kind === "student" ? gateFor(actor.student, course.code, term, year) : null;
 const live = actor?.kind === "student" ? liveApplication(actor.student.id, course.id, term, year) : undefined;
@@ -19,18 +22,18 @@ const saved =
 
 <Layout title={`${course.code} ${course.title}`} actor={actor}>
   <p class="breadcrumb">
-    <a href={`/?term=${encodeURIComponent(term)}`}>Find courses</a> / {course.code}
+    <a href={`/?term=${encodeURIComponent(term)}&year=${year}`}>Find courses</a> / {course.code}
   </p>
   <p class="eyebrow">{course.code}</p>
   <h1>{course.title}</h1>
   <dl class="facts">
     <div>
       <dt>Credit</dt>
-      <dd>{course.units} units</dd>
+      <dd>{course.unitsText}</dd>
     </div>
     <div>
       <dt>Catalogue year</dt>
-      <dd>2026</dd>
+      <dd>{year}</dd>
     </div>
     <div>
       <dt>Recorded offerings</dt>
@@ -42,24 +45,26 @@ const saved =
   <div class="course-columns">
     <section aria-labelledby="information-heading">
       <h2 id="information-heading">Course information</h2>
-      <p>Review the published requirements before adding this course to your semester.</p>
-      <details>
+      {course.conflicted && <p class="warning">Conflicting saved sources need review. Compare them in the course library; enrolment is unavailable until resolved.</p>}
+      {evidence ? <>
+        <p>{evidence.description}</p>
+        {evidence.sections.map(section => <details>
+          <summary>{section.title}</summary>
+          {!section.present ? <p>This section is missing from the saved page. Its requirements are unknown.</p> :
+            section.blocks.map(block => <p>{block.text.split(/(\b[A-Z]{4}\d{4}\b)/g).map(part => {
+              const ref = block.references.find(r => r.code === part && r.year !== null);
+              const link = ref ? referenceLink(ref, entries) : null;
+              return link ? <a href={link}>{part}</a> : part;
+            })}</p>)}
+        </details>)}
+        <p class="muted">Saved ANU Programs &amp; Courses information, {year}. Future offerings are indicative. Automated checks cover only explicitly interpreted rules; your academic record is fictional.</p>
+        <p><a href={catalogueLink("course", course.code, year)}>Course library: sources, offering dates and related entries</a></p>
+      </> : <details>
         <summary>Requisites and incompatibilities</summary>
-        {rules ? (
-          <blockquote>{rules.text}</blockquote>
-        ) : (
-          <p>
-            These requirements have not been transcribed for this prototype. Eligibility cannot be determined
-            here.
-          </p>
-        )}
-      </details>
-      <p class="muted">
-        Source: ANU Programs &amp; Courses, 2026, transcribed from supplied reference material. Descriptions
-        and learning outcomes have not been imported.
-      </p>
+        {rules ? <blockquote>{rules.text}</blockquote> : <p>Requirements have not been transcribed for this historical demo.</p>}
+      </details>}
       <p>
-        <a href={`https://programsandcourses.anu.edu.au/2026/course/${course.code}`}>
+        <a href={`https://programsandcourses.anu.edu.au/${year}/course/${course.code}`}>
           Read the full published course information ↗
         </a>
       </p>
@@ -72,19 +77,20 @@ const saved =
       </details>
     </section>
     <div>
-      <form method="get" class="stack surface">
+      {course.termList.length > 0 && <form method="get" class="stack surface">
+        <input type="hidden" name="year" value={year} />
         <label for="term">Choose an offering</label>
         <select name="term" id="term">
           {course.termList.map((t: Term) => (
             <option value={t} selected={t === term}>
-              2026 · {TERM_LABELS[t]}
+              {year} · {TERM_LABELS[t]}
             </option>
           ))}
         </select>
         <button>Update offering</button>
-      </form>
+      </form>}
       {!offering ? (
-        <p class="warning">No offering is recorded for this year and term.</p>
+        <p class="warning">{evidence?.availability === "explicit-none" ? "The saved page explicitly lists no current offerings." : "No usable offering is recorded for this year and term."} You can still read the course information.</p>
       ) : actor?.kind === "student" && g ? (
         <>
           <form action="/api/selections" method="post" class="surface">

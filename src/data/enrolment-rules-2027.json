@@ -1,0 +1,481 @@
+[
+  {
+    "code": "COMP6240",
+    "year": 2027,
+    "sourceHash": "996a6a72be867cd1312287e1c9cc890ab5b9efbe8b96f73065747d4e954058a1",
+    "rules": {
+      "incompatible": [
+        "COMP2400",
+        "COMP7240"
+      ]
+    }
+  },
+  {
+    "code": "COMP6242",
+    "year": 2027,
+    "sourceHash": "bf75668796f6b42f8afe9b831f13c6fc695d52fe4e2939bd41c62444a6a070b1",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "any": [
+              {
+                "course": "COMP3670"
+              },
+              {
+                "course": "COMP6670"
+              },
+              {
+                "course": "COMP8410"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "course": "COMP1110"
+              },
+              {
+                "course": "COMP6710"
+              },
+              {
+                "course": "COMP7710"
+              },
+              {
+                "course": "COMP1730"
+              },
+              {
+                "course": "COMP6730"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "code": "COMP6262",
+    "year": 2027,
+    "sourceHash": "6a67d7acbec723dc59ee11772da2cf886670914f4557eaaf6905c22d65fd06a8",
+    "rules": {
+      "incompatible": [
+        "PHIL2080",
+        "COMP2620"
+      ]
+    }
+  },
+  {
+    "code": "COMP6320",
+    "year": 2027,
+    "sourceHash": "07675c0288c84edde843d6b3ab781df088d5c0810fe1af7cf25a96787c8e2812",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "any": [
+              {
+                "course": "COMP6710"
+              },
+              {
+                "course": "COMP7710"
+              },
+              {
+                "course": "COMP1110"
+              },
+              {
+                "program": "VCOMP"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "course": "COMP6262",
+                "orEnrolled": true
+              },
+              {
+                "course": "COMP2620",
+                "orEnrolled": true
+              }
+            ]
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3620"
+      ]
+    }
+  },
+  {
+    "code": "COMP6361",
+    "year": 2027,
+    "sourceHash": "7ca1be92818a9054484c901893791933d2446be6533780d13a821a6d764a135a",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "all": [
+              {
+                "course": "COMP6442"
+              },
+              {
+                "course": "COMP6260"
+              }
+            ]
+          },
+          {
+            "program": "VCOMP"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "code": "COMP6445",
+    "year": 2027,
+    "sourceHash": "d7241a4d92d5dd59632cb9dea01e6acacf67a060a9f6fd1f44b346a1edc13180",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "VCOMP"
+          },
+          {
+            "program": "MMLCV"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP2550",
+        "COMP4450"
+      ]
+    }
+  },
+  {
+    "code": "COMP6464",
+    "year": 2027,
+    "sourceHash": "da6648f74a805ab6304f23ea65075b5bbff38864611250c3fe9f26c9c6974218",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "MCOMP"
+          },
+          {
+            "program": "VCOMP"
+          },
+          {
+            "any": [
+              {
+                "course": "COMP6710"
+              },
+              {
+                "course": "COMP7710"
+              },
+              {
+                "course": "COMP1110"
+              },
+              {
+                "course": "COMP1140"
+              }
+            ]
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3320"
+      ]
+    }
+  },
+  {
+    "code": "COMP6466",
+    "year": 2027,
+    "sourceHash": "b53c80926be0da9b3b8211d88bbeaa2f129a0a647a090f9e6481678b335611c1",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "MCOMP"
+          },
+          {
+            "program": "VCOMP"
+          },
+          {
+            "any": [
+              {
+                "course": "COMP6710"
+              },
+              {
+                "course": "COMP7710"
+              },
+              {
+                "course": "COMP1110"
+              },
+              {
+                "course": "COMP1140"
+              }
+            ]
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3600"
+      ]
+    }
+  },
+  {
+    "code": "COMP6528",
+    "year": 2027,
+    "sourceHash": "936dd6aa62bc85c2c1837fc0bc2f470adca196fdde92324b01c9f788c64c8079",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "GDCOMP"
+          },
+          {
+            "program": "MCOMP"
+          },
+          {
+            "program": "VCOMP"
+          },
+          {
+            "program": "MMLCV"
+          }
+        ]
+      },
+      "incompatible": [
+        "ENGN6528",
+        "COMP4528",
+        "ENGN4528"
+      ]
+    }
+  },
+  {
+    "code": "COMP6540",
+    "year": 2027,
+    "sourceHash": "fc7b9931cea5903b2a9bd84f089ad6679b68d08842be36b4a69c56937be21a83",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "VCOMP"
+          },
+          {
+            "any": [
+              {
+                "course": "COMP6710"
+              },
+              {
+                "course": "COMP7710"
+              },
+              {
+                "course": "COMP1110"
+              },
+              {
+                "course": "COMP1140"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "code": "COMP8280",
+    "year": 2027,
+    "sourceHash": "b694f25cda8734961114eac4d0473f62d03289d92e44654662e1577b1769823b",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "GDCOMP"
+          },
+          {
+            "program": "MCOMP"
+          },
+          {
+            "program": "VCOMP"
+          },
+          {
+            "program": "MMLCV"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP8260",
+        "ENGN8260",
+        "ENGN8280"
+      ]
+    }
+  },
+  {
+    "code": "COMP8300",
+    "year": 2027,
+    "sourceHash": "710ac8717a4aa82ad8674eb3f851ba0edb2f330c0de17b7e6a0cd32f4694980a",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "course": "COMP6310"
+          },
+          {
+            "course": "COMP2310"
+          },
+          {
+            "course": "COMP6330"
+          },
+          {
+            "course": "COMP3300"
+          },
+          {
+            "course": "COMP6331"
+          },
+          {
+            "course": "COMP3310"
+          },
+          {
+            "course": "COMP6464"
+          },
+          {
+            "course": "ENGN6539"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP4300"
+      ]
+    }
+  },
+  {
+    "code": "COMP8410",
+    "year": 2027,
+    "sourceHash": "ec4a1254da4a213677699da0c00f647d00abbe62f2e8a8eca4b01a0abde76398",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "any": [
+              {
+                "course": "COMP7240"
+              },
+              {
+                "course": "COMP6240"
+              },
+              {
+                "course": "COMP2400"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "course": "COMP6730"
+              },
+              {
+                "course": "COMP7230"
+              },
+              {
+                "course": "COMP6710"
+              }
+            ]
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3420",
+        "COMP3425",
+        "COMP8400",
+        "COMP8910"
+      ]
+    }
+  },
+  {
+    "code": "COMP8535",
+    "year": 2027,
+    "sourceHash": "aa1e1e01d0ff7636a2f80701d4f7962a647af83b1d27aa9872415d4b4ad5ecde",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "any": [
+              {
+                "program": "VCOMP"
+              },
+              {
+                "program": "MMLCV"
+              }
+            ]
+          },
+          {
+            "units": 12,
+            "prefix": "COMP6",
+            "label": "12 units of 6000-level COMP courses"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "code": "COMP8600",
+    "year": 2027,
+    "sourceHash": "0d2d65b7015d9d7518606d41a2cefcb120aa6fd7fd9e2dbe66de5890c061f70c",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "course": "COMP6670"
+          },
+          {
+            "course": "COMP3670"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP4670"
+      ]
+    }
+  },
+  {
+    "code": "COMP8620",
+    "year": 2027,
+    "sourceHash": "76a7b02a678a1decce52c04eaef9856b11e98b17d2cd17e2f15217406eea64c6",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "course": "COMP6320"
+          },
+          {
+            "course": "COMP3620"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP4620"
+      ],
+      "permissionAlways": true,
+      "reviewNote": "Only the published base prerequisites are checked automatically. The reviewer must confirm any additional prerequisites for the announced topic before issuing permission."
+    }
+  },
+  {
+    "code": "COMP8691",
+    "year": 2027,
+    "sourceHash": "6c8610295d1e7afdc6c3f7dc451b496224347a060a5c34486527a232f23cc7ef",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "course": "COMP6320"
+          },
+          {
+            "course": "COMP3620"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP4690"
+      ]
+    }
+  }
+]

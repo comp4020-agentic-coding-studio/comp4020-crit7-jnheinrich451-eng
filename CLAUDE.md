@@ -48,13 +48,18 @@ dataset is `src/data/catalogue-sources.json`, imported into separate SQLite
 catalogue tables at boot. See `docs/catalogue-data.md` for the model and import
 workflow. Imported references mean "mentioned in this source block"; they are
 not approved prerequisite, equivalence or credit-counting rules. Preserve source
-variants and reviews on reseed. Do not wire these unreviewed 2027 records into
-the 2026 eligibility gate or convert a missing referenced page into another year.
+variants and reviews on reseed. Do not wire unreviewed source paragraphs into
+eligibility checks or convert a missing referenced page into another year.
 The library overview groups Degrees, Specialisations, then Courses. Following
-John's question about the year mismatch, 2027 is the recommended next migration
-target; the running enrolment flow still uses 2026. See the concrete migration
-scope in `docs/catalogue-data.md`. A switch must align rules, offerings and the
-fictional record, while retaining existing requests under their original year.
+John's question about the year mismatch and shared Find courses entries, the
+active enrolment flow now uses 2027. Both screens read the persistent catalogue;
+17 prototype rule interpretations are pinned to source hashes in
+`src/data/enrolment-rules-2027.json`. Other sources remain browseable and may be
+saved when offered, but cannot claim automatic eligibility. Changed or conflicting
+sources require a fresh interpretation. See `docs/catalogue-data.md`.
+Historical 2026 rules, requests, approvals and enrolments retain their year;
+approval never transfers across years. Existing registered profiles are preserved.
+New fictional profiles place COMP6670 in 2026 S2 before the 2027 example.
 The 2027 CMSY-SPEC course list names COMP8045, while its explanatory advice links
 COMP8405. Preserve that unresolved source inconsistency; do not alias the codes
 or change allowed-course membership on the assumption that it is a typo.

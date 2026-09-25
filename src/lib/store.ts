@@ -1,7 +1,10 @@
 import { randomBytes } from "node:crypto";
-import { and, asc, desc, eq, inArray, like, or, type SQL } from "drizzle-orm";
-import type { Term } from "../data/courses";
-import { REQUISITES } from "../data/requisites";
+import { and, asc, desc, eq, inArray, type SQL } from "drizzle-orm";
+import { COURSES, type Term } from "../data/courses";
+import { ACTIVE_YEAR, LEGACY_YEAR } from "./academic-year";
+import { catalogueEntries } from "./catalogue";
+import { fixedUnits, publishedTerms, TERM_LABELS } from "./course-evidence";
+import { rulesForSource } from "./course-rules";
 import { db } from "./db";
 import { type Check, firstRound, type Gate, gate, type StudentRecord } from "./eligibility";
 import { bus } from "./events";
@@ -29,14 +32,7 @@ export { actorFrom } from "./auth";
 // it's asked of src/lib/eligibility.ts — and every status change writes an
 // application event in the same transaction.
 
-export const TERM_LABELS: Record<Term, string> = {
-  Summer: "Summer Session",
-  S1: "First Semester",
-  Autumn: "Autumn Session",
-  Winter: "Winter Session",
-  S2: "Second Semester",
-  Spring: "Spring Session",
-};
+export { TERM_LABELS } from "./course-evidence";
 
 export const PASSING = new Set(["HD", "D", "CR", "P"]);
 
@@ -53,40 +49,39 @@ export function people() {
 
 // --- courses and the gate ----------------------------------------------------
 
-export type CourseRow = Course & { convenor: Convenor; termList: Term[] };
+export type CourseRow = Course & {
+  convenor: Convenor; termList: Term[]; year: number; unitsText: string;
+  source?: ReturnType<typeof catalogueEntries>[number]; conflicted: boolean;
+  rules: ReturnType<typeof rulesForSource>;
+};
 
-function withConvenor(rows: { courses: Course; convenors: Convenor }[]): CourseRow[] {
-  return rows.map((r) => ({ ...r.courses, convenor: r.convenors, termList: JSON.parse(r.courses.terms) }));
+export function listCourses(query = "", subject = "", year = ACTIVE_YEAR): CourseRow[] {
+  if (year !== ACTIVE_YEAR && year !== LEGACY_YEAR) return [];
+  const normal = query.trim().replace(/^([a-z]{4})\s+(\d)/i, "$1$2").toUpperCase();
+  // Historical checks stay on their original transcription even if additional
+  // old source pages are imported later.
+  const sources = year === ACTIVE_YEAR ? catalogueEntries().filter(e => e.kind === "course" && e.year === year) : [];
+  const rows = db.select().from(courses).innerJoin(convenors, eq(courses.convenorId, convenors.id)).orderBy(asc(courses.code)).all();
+  return rows.flatMap(({ courses: course, convenors: convenor }): CourseRow[] => {
+    const variants = sources.filter(s => s.code === course.code);
+    const source = variants[0];
+    const legacy = year === LEGACY_YEAR ? COURSES.find(c => c.code === course.code) : undefined;
+    if ((year === LEGACY_YEAR && !legacy) || (year === ACTIVE_YEAR && !source)) return [];
+    const conflicted = variants.length > 1;
+    const title = source?.evidence.title ?? legacy!.title;
+    if (normal && !course.code.includes(normal) && !title.toUpperCase().includes(normal)) return [];
+    if (subject && !course.code.startsWith(subject)) return [];
+    return [{ ...course, title, convenor, year, source, conflicted,
+      units: source ? fixedUnits(source.evidence) : legacy!.units,
+      unitsText: source?.evidence.units ?? (legacy ? `${legacy.units} units` : "Units not published"),
+      termList: source ? (conflicted ? [] : publishedTerms(source.evidence, year)) : legacy!.terms,
+      rules: rulesForSource(course.code, year, source, conflicted),
+    }];
+  }).sort((a, b) => Number(b.code === normal) - Number(a.code === normal));
 }
 
-export function listCourses(query = "", subject = ""): CourseRow[] {
-  const normal = query.trim().replace(/^([a-z]{4})\s+(\d)/i, "$1$2");
-  const q = `%${normal.replace(/[\\%_]/g, "")}%`;
-  const rows = db
-    .select()
-    .from(courses)
-    .innerJoin(convenors, eq(courses.convenorId, convenors.id))
-    .where(
-      and(
-        normal ? or(like(courses.code, q), like(courses.title, q)) : undefined,
-        /^[A-Z]{4}$/.test(subject) ? like(courses.code, `${subject}%`) : undefined,
-      ),
-    )
-    .orderBy(asc(courses.code))
-    .all();
-  return withConvenor(rows).sort(
-    (a, b) => Number(b.code === normal.toUpperCase()) - Number(a.code === normal.toUpperCase()),
-  );
-}
-
-export function getCourse(code: string): CourseRow | undefined {
-  const rows = db
-    .select()
-    .from(courses)
-    .innerJoin(convenors, eq(courses.convenorId, convenors.id))
-    .where(eq(courses.code, code.toUpperCase()))
-    .all();
-  return withConvenor(rows)[0];
+export function getCourse(code: string, year = ACTIVE_YEAR): CourseRow | undefined {
+  return listCourses(code, "", year).find(c => c.code === code.toUpperCase());
 }
 
 export function transcriptOf(studentId: number) {
@@ -111,23 +106,23 @@ export function enrolmentsOf(studentId: number) {
     .innerJoin(courses, eq(enrolments.courseId, courses.id))
     .where(eq(enrolments.studentId, studentId))
     .orderBy(asc(courses.code))
-    .all();
+    .all().map(e => ({ ...e, title: getCourse(e.code, e.year)?.title ?? e.title }));
 }
 
-export function recordOf(student: Student, term?: string, year = 2026): StudentRecord {
+export function recordOf(student: Student, term?: string, year = ACTIVE_YEAR): StudentRecord {
   const results = transcriptOf(student.id);
   return {
     program: student.program as StudentRecord["program"],
     passed: results.filter((r) => PASSING.has(r.grade)).map((r) => ({ code: r.courseCode, units: r.units })),
     failed: results.filter((r) => !PASSING.has(r.grade)).map((r) => r.courseCode),
     enrolled: enrolmentsOf(student.id)
-      .filter((e) => !term || (e.term === term && e.year === year))
+      .filter((e) => e.year === year && (!term || e.term === term))
       .map((e) => e.code),
   };
 }
 
-export function gateFor(student: Student, courseCode: string, term?: string, year = 2026): Gate {
-  return gate(courseCode, REQUISITES[courseCode], recordOf(student, term, year));
+export function gateFor(student: Student, courseCode: string, term?: string, year = ACTIVE_YEAR): Gate {
+  return gate(courseCode, getCourse(courseCode, year)?.rules, recordOf(student, term, year));
 }
 
 // --- applications ------------------------------------------------------------
@@ -151,7 +146,7 @@ function views(where: SQL) {
     .all()
     .map((r): ApplicationView => ({
       ...r.applications,
-      course: r.courses,
+      course: getCourse(r.courses.code, r.applications.year) ?? r.courses,
       student: r.students,
       convenor: r.convenors,
       checkList: JSON.parse(r.applications.checks),
@@ -183,7 +178,7 @@ export function liveApplication(
   studentId: number,
   courseId: number,
   term: string,
-  year = 2026,
+  year = ACTIVE_YEAR,
 ): Application | undefined {
   return db
     .select()
@@ -208,9 +203,9 @@ export function submitApplication(input: {
   year?: number;
   dispute?: boolean;
 }): Application {
-  const course = getCourse(input.courseCode);
+  const year = input.year ?? ACTIVE_YEAR;
+  const course = getCourse(input.courseCode, year);
   if (!course) throw new UserError("That course isn't in the catalogue.");
-  const year = input.year ?? 2026;
   const offering = offeringFor(course.id, input.term, year);
   if (!offering) {
     throw new UserError(`${course.code} isn't offered in that term.`);
@@ -254,7 +249,7 @@ export function submitApplication(input: {
       "student",
       input.student.name,
       "submitted",
-      `Requested a permission code for ${course.code}, ${TERM_LABELS[input.term as Term]}.`,
+      `Requested a permission code for ${course.code}, ${year} ${TERM_LABELS[input.term as Term]}.`,
     );
     if (input.dispute)
       event(
@@ -334,9 +329,9 @@ export function enrol(input: {
   term: string;
   year?: number;
 }): "direct" | "permission" {
-  const course = getCourse(input.courseCode);
+  const year = input.year ?? ACTIVE_YEAR;
+  const course = getCourse(input.courseCode, year);
   if (!course) throw new UserError("That course isn't in the catalogue.");
-  const year = input.year ?? 2026;
   const offering = offeringFor(course.id, input.term, year);
   if (!offering) {
     throw new UserError(`${course.code} isn't offered in that term.`);
@@ -356,6 +351,7 @@ export function enrol(input: {
     .get();
   const g = gateFor(input.student, course.code, input.term, year);
   if (g.outcome === "already") throw new UserError(g.text);
+  if (!approved && g.outcome === "not-recorded") throw new UserError(firstRound(course.code, g).reasons.join(" "));
   const via = approved ? "permission" : g.outcome === "eligible" ? "direct" : null;
   if (!via) throw new UserError(`You need a permission code for ${course.code}.`);
 
@@ -374,7 +370,7 @@ export function enrol(input: {
           actor: "student",
           actorName: input.student.name,
           kind: "enrolled",
-          detail: `Enrolled in ${course.code}, ${TERM_LABELS[input.term as Term]}, with code ${approved.permissionCode}.`,
+          detail: `Enrolled in ${course.code}, ${year} ${TERM_LABELS[input.term as Term]}, with code ${approved.permissionCode}.`,
         })
         .run();
     }
@@ -389,7 +385,9 @@ export function enrol(input: {
   return via;
 }
 
-export function offeringFor(courseId: number, term: string, year = 2026) {
+export function offeringFor(courseId: number, term: string, year = ACTIVE_YEAR) {
+  const course = db.select().from(courses).where(eq(courses.id, courseId)).get();
+  if (!course || !getCourse(course.code, year)?.termList.includes(term as Term)) return undefined;
   return db
     .select()
     .from(offerings)
@@ -398,7 +396,8 @@ export function offeringFor(courseId: number, term: string, year = 2026) {
 }
 
 export function saveSelection(studentId: number, offeringId: number): void {
-  if (!db.select().from(offerings).where(eq(offerings.id, offeringId)).get())
+  const offering = db.select().from(offerings).where(eq(offerings.id, offeringId)).get();
+  if (!offering || !offeringFor(offering.courseId, offering.term, offering.year))
     throw new UserError("That course offering is unavailable.");
   db.insert(selections).values({ studentId, offeringId }).onConflictDoNothing().run();
 }
@@ -416,7 +415,7 @@ export function selectionsOf(studentId: number) {
     .innerJoin(offerings, eq(selections.offeringId, offerings.id))
     .innerJoin(courses, eq(offerings.courseId, courses.id))
     .where(eq(selections.studentId, studentId))
-    .all();
+    .all().map(r => ({ ...r, course: getCourse(r.course.code, r.offering.year) ?? { ...r.course, unitsText: r.course.units === null ? "Units not published" : `${r.course.units} units` } }));
 }
 
 // --- the demo state ----------------------------------------------------------

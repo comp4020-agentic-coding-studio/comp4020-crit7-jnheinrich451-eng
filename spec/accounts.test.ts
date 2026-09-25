@@ -201,6 +201,15 @@ describe("authentication failure handling", () => {
 });
 
 describe("search and offering boundaries", () => {
+  it("preserves a historical approval without granting permission for 2027", async () => {
+    const student = fixtures["Historical approval student"];
+    expect(await (await get("/courses/COMP6240/?year=2026&term=S1", student)).text()).toContain("Permission approved");
+    const wrongYear = await post("/api/enrol", { courseCode: "COMP6240", year: "2027", term: "S1" }, student);
+    expect(message(wrongYear)).toContain("need+a+permission+code");
+    const historical = await post("/api/enrol", { courseCode: "COMP6240", year: "2026", term: "S1" }, student);
+    expect(message(historical)).toContain("with+your+permission+code");
+    expect(await (await get("/record/", student)).text()).toContain("2026 First Semester");
+  });
   it("accepts spaced and numeric codes without confusing subjects", async () => {
     const all = await (await get("/?q=6528&term=")).text();
     expect(all).toContain("COMP6528");
@@ -211,7 +220,7 @@ describe("search and offering boundaries", () => {
     expect(await (await get("/?q=COMP%206528&term=")).text()).toContain("Computer Vision");
     expect(await (await get("/?q=COMP6528&term=S2")).text()).toContain("No matching courses");
   });
-  it("an approval is valid only for its requested term", async () => {
+  it("an approval is valid only for its requested year and term", async () => {
     const student = fixtures["Offering test student"];
     const req = await post(
       "/api/applications",
@@ -230,11 +239,13 @@ describe("search and offering boundaries", () => {
       { decision: "approve", note: "This offering only" },
       fixtures["Dr Leo Brandt"],
     );
-    expect(await (await get(path, student)).text()).toContain("2026 First Semester");
-    const wrongTerm = await post("/api/enrol", { courseCode: "COMP6240", term: "S2", year: "2026" }, student);
+    expect(await (await get(path, student)).text()).toContain("2027 First Semester");
+    const wrongYear = await post("/api/enrol", { courseCode: "COMP6240", term: "S1", year: "2026" }, student);
+    expect(message(wrongYear)).toContain("need+a+permission+code");
+    const wrongTerm = await post("/api/enrol", { courseCode: "COMP6240", term: "S2", year: "2027" }, student);
     expect(message(wrongTerm)).toContain("need+a+permission+code");
-    const rightTerm = await post("/api/enrol", { courseCode: "COMP6240", term: "S1", year: "2026" }, student);
+    const rightTerm = await post("/api/enrol", { courseCode: "COMP6240", term: "S1", year: "2027" }, student);
     expect(message(rightTerm)).toContain("with+your+permission+code");
-    expect(await (await get("/record/", student)).text()).toContain("2026 First Semester");
+    expect(await (await get("/record/", student)).text()).toContain("2027 First Semester");
   });
 });

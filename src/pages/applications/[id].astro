@@ -89,7 +89,7 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
         <div>
           <dt>Course</dt>
           <dd>
-            <a href={`/courses/${app.course.code}/`}>
+            <a href={`/courses/${app.course.code}/?year=${app.year}&term=${encodeURIComponent(app.term)}`}>
               {app.course.code} {app.course.title}
             </a>
           </dd>

@@ -84,7 +84,7 @@ const VIA: Record<string, string> = {
           <ul class="plain">
             {current.map((e) => (
               <li>
-                <a href={`/courses/${e.code}/`}>
+                <a href={`/courses/${e.code}/?year=${e.year}&term=${encodeURIComponent(e.term)}`}>
                   {e.code} {e.title}
                 </a>
                 , {`${e.year} ${TERM_LABELS[e.term as Term]}`} ({VIA[e.via]})

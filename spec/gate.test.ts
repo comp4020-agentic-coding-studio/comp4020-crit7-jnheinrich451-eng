@@ -75,12 +75,12 @@ describe("the gate shows three outcomes, each with its own message", () => {
   it("required for all: COMP8620 is about the course, not a failed requisite", async () => {
     const page = await get("/courses/COMP8620/", as("Mei Lin"));
     onlyHeading(page.text, "Permission code required for all students");
-    expect(page.text).toContain("recorded prerequisites are met");
+    expect(page.text).toContain("recorded base prerequisites are met");
   });
 
   it("courses without transcribed rules say so instead of guessing", async () => {
     const page = await get("/courses/COMP6120/", as("Mei Lin"));
-    expect(page.text).toContain("Requisites not recorded here");
+    expect(page.text).toContain("Automatic eligibility check unavailable");
     for (const h of HEADINGS) expect(page.text).not.toContain(h);
   });
 
@@ -90,7 +90,7 @@ describe("the gate shows three outcomes, each with its own message", () => {
       "Ready to enrol",
       "Permission needed",
       "Permission for everyone",
-      "Requirements not yet recorded",
+      "Eligibility check unavailable",
     ]) {
       expect(page.text).toContain(badge);
     }
@@ -152,7 +152,7 @@ describe("a request reaches the picked course's convenor and survives a reload",
     expect(page.text).toMatch(/COMP8620-[A-Z0-9]{6}/);
     for (const step of [
       "Requested a permission code",
-      "Requisites met",
+      "Base prerequisites met",
       "Sent to Dr Rowan Ellis",
       "Welcome aboard.",
     ]) {
@@ -164,7 +164,7 @@ describe("a request reaches the picked course's convenor and survives a reload",
     const res = await post("/api/enrol", as("Mei Lin"), { courseCode: "COMP8620", term: "S2" });
     expect(message(res)).toContain("with your permission code");
     expect((await get("/record/", as("Mei Lin"))).text).toContain(
-      "COMP8620 Advanced Topics in Artificial Intelligence",
+      "COMP8620 Advanced Topics in Artificial intelligence",
     );
   });
 });
