@@ -1497,3 +1497,65 @@ matching, confirmed by a separate diagnostic; now the test asserts the attribute
 directly. The browser harness initially treated the ordinary 15px desktop scrollbar
 as a width failure. Corrected that assertion to detect overflow rather than demand
 equal widths, then completed the browser check with another isolated fixture.
+
+## 2026-09-26 04:47 — Source-bound eligibility across all 80 courses
+
+**Prompt:**
+
+> Ty, and if we can propagate to all courses? You mentioned many courses info is not get encoded?
+
+**Result:**
+Expanded the 2027 rule dataset from 18 to all 80 supplied course versions, retaining
+the original 18 rule trees. There are 62 fully encoded prototype interpretations,
+16 containing specific unknown conditions or ambiguous groups, and two missing
+requisite sections (MGMT7020 and REGN8014). Each interpretation retains its source
+hash and a note explaining its boundaries. Missing text never becomes an empty
+successful checklist. Raw downloads and duplicate provenance remain untouched.
+
+Extended the shared evaluator with conditional permission, corequisite use in
+the new course rules, explicit credit-choice groups, distinct-course counts,
+program exclusions and postgraduate career. Duplicate completion rows cannot
+manufacture additional credit. Ambiguous AND/OR wording retains plausible readings:
+the result is definite only when those readings agree. Unknown GPA, exact marks,
+topic announcements, equivalence, project approval or competitive selection keeps
+its own explanation and next action. No model interprets student statements or
+issues decisions. Offered-course checks still prevent unavailable enrolments.
+
+The course library and enrolment pages show coverage, and nested requirements can
+be expanded. Ordinary source-bound permission courses now complete the profile
+workflow under demo-permission-v2 when all recorded conditions are met. Conditional
+permission is distinguished from permission required for everyone. Historical v1
+reports, staff requests and the separate COMP8620 scenario remain unchanged.
+
+**Verified:**
+Read the shared harness, published Crit 7 contract and saved source paragraphs.
+Docker Node 24 / pnpm 11.9.0 `pnpm check` passed: zero errors, warnings or hints
+across 83 files; 413 tests across 18 test files. Coverage tests check all 80 source
+identities and explicit course mentions, 91 manually authored record examples,
+unknown propagation, ambiguous readings and conditional permission. HTTP tests
+cover COMP6120's same-offering corequisite, preservation of an earlier denial,
+COMP8820 approval before versus after confirmation, student/term isolation and
+unavailable COMP8712. Compared the previous 18 rule trees with the expanded file:
+all 18 remain semantically identical. The staged diff passed whitespace checks.
+
+Used real Chrome forms with JavaScript disabled against a disposable database and
+local email sink. Confirmed COMP6120's unmet-record denial, COMP8820's ordinary
+permission and confirmed profile enrolment after reload, and MATH6005's unresolved
+college evidence. Expanded COMP8800's nested conditions and inspected the missing
+MGMT7020 source explanation. Desktop 1440x1000 and phone 390x844 checks passed;
+the mobile pages had no horizontal page overflow. Inspected profile and assessment
+screenshots. Stopped the disposable preview, refreshed the existing local preview
+at 127.0.0.1:4323 and verified the updated guide returned HTTP 200. Read-only checks
+confirmed existing requests, events and scenario confirmation were preserved.
+No push or deployment, and no Claude review was performed.
+
+**Commit:** [`33722e3`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/33722e3)
+
+**What happened:**
+Typechecking caught an insufficient undefined guard in the missing-source loader;
+made the guard explicit. An HTTP test initially assumed COMP6120 was offered in
+Semester 1. The application correctly refused that request: the saved page offers
+Semester 2. Corrected the fixture and tested that a Semester 1 corequisite does not
+qualify a Semester 2 request, keeping the availability and term boundaries intact.
+Several old tests used newly encoded courses as missing-rule examples; replaced
+those examples with actual source gaps or explicit unresolved evidence conditions.
