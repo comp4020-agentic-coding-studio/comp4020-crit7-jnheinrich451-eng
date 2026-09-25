@@ -1262,3 +1262,52 @@ page returned HTTP 200. No deployment or push.
 The first health request immediately after restarting the preview hit a closed
 connection during startup. A subsequent request succeeded without another
 restart or configuration change.
+
+## 2026-09-26 02:21 — Open the general assessment route and show pending-request reminders
+
+**Prompt:**
+
+> the 8620 is the case of all students required permission code, and yet rest courses, either cannot decide, either passed, either declined, either do not offer.
+> Which means actually except global permission code requirement, actually there is no way to send request!
+> we can add a reminder of those have already submitted courses, with "You have a processing request, resend requests might slow the process."
+> And if the request has a result, no matter declined or approved, then the reminder vanishes.
+
+**Result:**
+Corrected request access for offered courses with uninterpreted rules. They now
+offer Request assessment and accept it through the same eligibility guard used
+by the interface. The first round records unknown conditions and source
+references instead of blocking submission or asserting a failed prerequisite.
+Known unmet requirements retain their request/dispute route, eligible students
+still confirm enrolment directly, and unavailable offerings cannot accept a
+request. Updated the shared plan to cover all these cases beyond COMP8620.
+
+Added the pending reminder to the course, request, My requests and My semester
+views. It is scoped by the existing student/course/year/term request and rendered
+only for pending status. Approval, reviewer rejection and automatic rejection
+remove it on the next page load. Duplicate or stale submissions return the
+existing pending/approved request without new events, even if a retry contains
+an empty explanation. A rejected request stays in history when a new one is
+submitted. Requests still use the existing assigned-reviewer route; no automated
+final judgement or Llama rule extraction was claimed or added in this turn.
+
+**Verified:**
+Re-read the published Crit 7 contract and inspected the request form, pure gate,
+submission guard, offering checks and stored request states. Docker Node 24 /
+pnpm 11.9.0 `pnpm check` passed after the final changes: zero diagnostics,
+272 tests across 13 files. New real-HTTP cases cover unknown-course submission,
+source/check persistence, simultaneous duplicate retries, unchanged event counts,
+student isolation, pending notices on all four views, disappearance after both
+decision outcomes, fresh requests after rejection and automatic rejection.
+Existing year-scope, authentication, historical approval and offering checks
+remain green. Restarted the mounted local preview without replacing its volume;
+ENGN6627 returned HTTP 200. No interactive browser walkthrough, deployment or
+push was performed.
+
+**Commit:** [`436b4d0`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/436b4d0)
+
+**What happened:**
+John exposed a gap beyond the permission-always example. Known failed checks
+already had a request route, but the earlier catalogue-import boundary blocked
+uninterpreted courses in both the form and API. Replaced that blanket block with
+an explicit assessment request while preserving unknown evidence and keeping
+direct enrolment unavailable until a valid decision exists.
