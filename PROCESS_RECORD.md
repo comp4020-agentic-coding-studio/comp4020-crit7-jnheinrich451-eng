@@ -872,3 +872,48 @@ review also exposed an inherited three-column page heading that cramped the
 title; corrected the library heading layout and rechecked the final build.
 No ANU pages were fetched, no source scripts executed, and no deployment or push
 was performed. This turn did not receive a Claude review.
+
+## 2026-09-26 00:10 — Put degrees before specialisations and courses
+
+**Prompt:**
+
+> Could you make like top are degrees, and specializations and courses? The top-down arrangement I think matches intuition.
+>
+> Oh for we are building 2026 version, if can transferred to 2027? For our data are 2027, it is stupid to use fictional 2026 info? What is your opinion?
+
+**Result:**
+Grouped the course-library overview into Degrees, Specialisations and Courses,
+in that order, with counts and matching entry-type filter order. Search and
+filters retain the grouping and omit empty sections. This is a presentation
+change; the persistent catalogue and enrolment flow are not rewritten.
+
+Recommended moving the active demo to 2027 to match the supplied evidence,
+while keeping the academic record explicitly fictional. Inspected the migration
+scope instead of relabelling old decisions: all 17 implemented rule courses have
+2027 pages, 15 source paragraphs match after whitespace normalization, COMP8620
+differs in paragraph/punctuation spacing, and COMP6528's saved source contains
+three incompatibilities missing from the existing check. The 66 shared courses
+have matching coarse offering-session sets; four current course codes lack a
+saved 2027 source. Recorded the concrete year/rule/offering/profile migration
+boundary in `docs/catalogue-data.md` and `CLAUDE.md`. The runtime remains 2026;
+the recommendation is not an implemented migration or an approval to reinterpret
+existing 2026 permission decisions for 2027.
+
+**Verified:**
+Re-read the published Crit 7 contract. Compared current course/requisite data
+with the imported local 2027 snapshots without fetching ANU course pages.
+Node 24 / pnpm 11.9.0 Docker `pnpm check` passed: zero type errors, warnings or
+hints and 213 tests. Restarted the local preview and checked Chrome at 1440px
+and 390px with JavaScript disabled. Confirmed section order and counts 3/7/76,
+specialisation-only filtering, spaced-code search returning one course section,
+and no horizontal overflow. Inspected desktop/mobile screenshots; browser
+evidence is saved in `.data/catalogue-groups-browser.json` and `.data/screenshots/`.
+
+**Commit:** [`a796061`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/a796061)
+
+**What happened:**
+John found the mixed catalogue order unintuitive and challenged the visible
+2026/2027 mismatch. The previous flat code sort mixed entry types, while the
+year boundary preserved his earlier 2026 cohort choice. The layout now follows
+his requested hierarchy, and 2027 is documented as the recommended next demo
+target. No push or deployment was performed.
