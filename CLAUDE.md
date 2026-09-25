@@ -145,6 +145,12 @@ and record-correction requests even when recorded checks fail. Keep those checks
 unchanged and save the selected reason in a student event; routing is not approval.
 The reason remains selected if the student switches back to automatic assessment.
 Public registration stays student-only; local reviewers activate emailed invitations.
+Verification links opened during an existing session show the current identity
+and require explicit sign-out before activation. Preserve the token through that
+POST without accepting arbitrary return URLs. Reviewer sign-in lands on the queue;
+the course catalogue itself must stay browseable. John selected real @anu.edu.au
+email invitations for markers. Document that deployment needs working SMTP and
+unused reviewer addresses; local captured mail does not prove remote delivery.
 
 ## Rules
 

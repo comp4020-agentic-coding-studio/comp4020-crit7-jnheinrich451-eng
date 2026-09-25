@@ -1,9 +1,9 @@
 import type { APIRoute } from "astro";
-import { login, logout, register, resend, setSession, verifyEmail } from "../../../lib/auth";
+import { actorFrom, login, logout, register, resend, setSession, verifyEmail } from "../../../lib/auth";
 import { back } from "../../../lib/http";
 import { UserError } from "../../../lib/errors";
 
-export const POST: APIRoute = async ({ request, cookies, params, url }) => {
+export const POST: APIRoute = async ({ request, cookies, params, url, locals }) => {
   const action = params.action;
   if (!["register", "login", "logout", "resend", "verify"].includes(action ?? ""))
     return new Response("Not found", { status: 404 });
@@ -23,16 +23,22 @@ export const POST: APIRoute = async ({ request, cookies, params, url }) => {
       });
     }
     if (action === "verify") {
+      if (locals.actor) return back(`/verify/?token=${encodeURIComponent(field("token"))}`, {
+        error: "Sign out of your current account before activating this account. Your verification link has not been used.",
+      });
       await verifyEmail(field("token"), field("password"));
       return back("/login/", { ok: "Email verified. You can now sign in." });
     }
     if (action === "logout") {
       logout(cookies);
+      // Preserve only a verification token, never a browser-supplied return URL.
+      const verificationToken = field("verificationToken");
+      if (/^[a-f0-9]{64}$/.test(verificationToken)) return back(`/verify/?token=${verificationToken}`);
       return back("/login/", { ok: "You have signed out." });
     }
     const token = await login(field("email"), field("password"));
     setSession(cookies, token, url);
-    return back("/");
+    return back(actorFrom(token)?.kind === "convenor" ? "/applications/" : "/");
   } catch (err) {
     if (!(err instanceof UserError)) throw err;
     const page =

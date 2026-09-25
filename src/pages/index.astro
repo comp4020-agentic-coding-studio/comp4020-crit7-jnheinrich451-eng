@@ -4,7 +4,7 @@ import { gateFor, listCourses, liveApplication, TERM_LABELS } from "../lib/store
 import type { Term } from "../data/courses";
 import { ACTIVE_YEAR } from "../lib/academic-year";
 const actor = Astro.locals.actor;
-if (actor?.kind === "convenor" && !Astro.url.search) return Astro.redirect("/applications/", 303);
+const isReviewer = actor?.kind === "convenor";
 const query = Astro.url.searchParams.get("q") ?? "";
 const subject = Astro.url.searchParams.get("subject") ?? "";
 const year = Number(Astro.url.searchParams.get("year") ?? ACTIVE_YEAR);
@@ -36,12 +36,12 @@ const badge = (course: (typeof rows)[number]) => {
 };
 ---
 
-<Layout title="Find courses" actor={actor}>
+<Layout title={isReviewer ? "Course catalogue" : "Find courses"} actor={actor}>
   <div class="page-top">
     <div>
-      <p class="eyebrow">PLAN YOUR STUDIES · {year}</p>
-      <h1>Find your next course</h1>
-      <p class="lede">Explore courses, check requirements, and build your semester in one place.</p>
+      <p class="eyebrow">{isReviewer ? "COURSE INFORMATION" : "PLAN YOUR STUDIES"} · {year}</p>
+      <h1>{isReviewer ? "Course catalogue" : "Find your next course"}</h1>
+      <p class="lede">{isReviewer ? "Browse published requirements and offerings. Manage student requests in your review queue." : "Explore courses, check requirements, and build your semester in one place."}</p>
     </div>
     {actor?.kind === "student" && (
       <a class="button" href="/plan/">

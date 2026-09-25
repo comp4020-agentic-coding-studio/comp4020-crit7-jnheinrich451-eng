@@ -142,6 +142,48 @@ is no connection to real ANU staff or an automatically staffed university queue.
 with the project's dependencies and the intended database mounted, not the lean
 production image. No preset public staff credentials are shipped.
 
+## Teaching-team access after deployment
+
+John selected individual invitations to the markers' real `@anu.edu.au` inboxes.
+Local captured email is only a development aid: an arbitrary address will not
+give access on Fly. The marker must receive the invitation, set a prototype
+password and verify it. No public staff sign-up or shared reviewer password is
+provided.
+
+Before the marking session, the project owner should:
+
+1. Configure the deployed HTTPS origin and SMTP service, then confirm an actual
+   invitation arrives in an intended test inbox. Local SMTP tests do not establish
+   production delivery.
+2. Arrange each marker's reviewer address before they register it as a student.
+   The current model allows one role per email and one account per fictional
+   convenor. Assign an unused convenor and tell the marker which courses it owns.
+   The same email cannot also be a student account; testing both roles needs a
+   separate student account/session.
+3. Run `scripts/invite-staff.ts` against the **deployed** database and mail
+   environment using an administrative environment with the development
+   dependencies. The normal production image does not include `tsx` or this
+   source script; do not claim that a local invitation provisions the Fly account.
+4. Share the deployed `/guide/#reviewers` link through the submission/teaching-team
+   channel, together with the assigned fictional reviewer and a matching course.
+   An invitation expires after 30 minutes; the invited recipient can request a
+   new one through **Resend verification email** without repeating provisioning.
+5. Prepare a fictional student's request for that assigned course using
+   **Optional staff review → Send to convenor**, or walk through its creation.
+   An automatic report does not populate a human queue. The marker can approve
+   or reject, then the student confirms an approved offering and reloads the page.
+
+The public Help and sign-in pages now explain this access route. Sending marker
+invitations still needs their actual addresses and the working deployed mail
+service. This turn did not provision or send any production invitation.
+
+Opening a live invitation while signed in now shows the current identity and a
+**Sign out and continue** button. That POST revokes the old session and returns
+to the same unused verification link. Activation requires being signed out;
+it does not silently switch identities. A private window remains an alternative.
+Reviewer sign-in opens the queue, while **Course catalogue** opens the searchable
+catalogue. The queue also lists the reviewer's assigned courses.
+
 ## Data and persistence
 
 - `src/data/catalogue-sources.json`: the saved 2027 course, degree and

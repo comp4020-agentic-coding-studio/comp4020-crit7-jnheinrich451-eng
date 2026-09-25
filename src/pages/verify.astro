@@ -3,12 +3,25 @@ import Layout from "../layouts/Layout.astro";
 import { verificationInfo } from "../lib/auth";
 const token = Astro.url.searchParams.get("token") ?? "";
 const info = verificationInfo(token);
+const actor = Astro.locals.actor;
+const currentName = actor?.kind === "student" ? actor.student.name : actor?.convenor.name;
 ---
 
-<Layout title="Verify your email" actor={null}>
+<Layout title="Verify your email" actor={actor}>
   <div class="auth-card">
     <h1>Verify your email</h1>
-    {info ? (
+    {info && actor ? (
+      <section aria-labelledby="switch-account-heading" data-account-switch>
+        <h2 id="switch-account-heading">Sign out to continue</h2>
+        <p>You are signed in as <strong>{currentName}</strong> ({actor.kind === "student" ? "student" : "reviewer"}). This link sets up another account; it does not switch your current session.</p>
+        <p>Sign out here to continue with this invitation or verification link. To keep both accounts open, use the link in a private browser window instead.</p>
+        <form method="post" action="/api/auth/logout" class="stack">
+          <input type="hidden" name="verificationToken" value={token} />
+          <button class="primary">Sign out and continue</button>
+        </form>
+        <p><a href={actor.kind === "student" ? "/plan/" : "/applications/"}>Keep using my current account</a></p>
+      </section>
+    ) : info ? (
       <>
         <p>
           {info.purpose === "invite"
@@ -36,10 +49,13 @@ const info = verificationInfo(token);
         </form>
       </>
     ) : (
-      <p>
-        This link is invalid, expired, or already used.{" "}
-        <a href="/login/">Sign in or request another verification email</a>.
-      </p>
+      <>
+        <p>This link is invalid, expired, or already used.</p>
+        {actor ? <section data-current-session>
+          <p>You are still signed in as <strong>{currentName}</strong>. If you already activated the other account, sign out here and sign in with its email and password. Otherwise, request another verification email after signing out.</p>
+          <form method="post" action="/api/auth/logout"><button>Sign out to use another account</button></form>
+        </section> : <p><a href="/login/">Sign in or request another verification email</a>.</p>}
+      </>
     )}
   </div>
 </Layout>

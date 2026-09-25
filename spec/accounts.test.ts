@@ -151,14 +151,58 @@ describe("reviewer invitations", () => {
     const invitationPage = await get(`/verify/?token=${token}`);
     expect(invitationPage.headers.get("referrer-policy")).toBe("strict-origin");
     expect(await invitationPage.text()).toContain("invited reviewer");
+    const studentLogin = await post("/api/auth/login", { email: "new-student@anu.edu.au", password });
+    const studentCookie = studentLogin.headers.get("set-cookie")!.split(";")[0];
+    for (const signedIn of [studentCookie, fixtures["Dr Rowan Ellis"]]) {
+      const switchPage = await get(`/verify/?token=${token}`, signedIn);
+      const doc = new JSDOM(await switchPage.text()).window.document;
+      expect(doc.querySelector("[data-account-switch]")?.textContent).toContain("Sign out and continue");
+      expect(doc.querySelector('form[action="/api/auth/verify"]')).toBeNull();
+      expect(message(await post("/api/auth/verify", { token, password }, signedIn))).toContain("Sign+out+of+your+current+account");
+    }
+    expect((await get("/record/", studentCookie)).status).toBe(200);
+    const expiredWhileSignedIn = new JSDOM(await (await get("/verify/?token=expired", studentCookie)).text()).window.document;
+    expect(expiredWhileSignedIn.querySelector("[data-current-session]")?.textContent).toContain("Sign out to use another account");
+    expect(expiredWhileSignedIn.querySelector('form[action="/api/auth/verify"]')).toBeNull();
+    expect(message(await post("/api/auth/login", { email: "invited-reviewer@anu.edu.au", password }))).toContain("Email+or+password+is+incorrect");
+    expect((await post("/api/auth/logout", { verificationToken: token }, studentCookie, "https://unrelated.test")).status).toBe(403);
+    const signedOut = await post("/api/auth/logout", { verificationToken: token, returnTo: "https://unrelated.test" }, studentCookie);
+    expect(signedOut.headers.get("location")).toBe(`/verify/?token=${token}`);
+    expect((await get("/record/", studentCookie)).status).toBe(303);
+    expect(await (await get(signedOut.headers.get("location")!)).text()).toContain("invited reviewer");
     expect(message(await post("/api/auth/verify", { token, password: "short" }))).toContain("15–128");
     expect(message(await post("/api/auth/verify", { token, password }))).toContain("Email+verified");
     const session = await post("/api/auth/login", { email: "invited-reviewer@anu.edu.au", password });
+    expect(session.headers.get("location")).toBe("/applications/");
     const cookie = session.headers.get("set-cookie")!.split(";")[0];
     const page = await (await get("/applications/", cookie)).text();
     expect(page).toContain("Invitation test reviewer");
     expect(page).not.toContain("Olivia Park");
     expect((await post("/api/selections", { action: "add", offeringId: "1" }, cookie)).status).toBe(403);
+  });
+
+  it("lets reviewers browse and search the catalogue without returning to their queue", async () => {
+    const cookie = fixtures["Dr Hana Okafor"];
+    const queue = new JSDOM(await (await get("/applications/", cookie)).text()).window.document;
+    const catalogueLink = [...queue.querySelectorAll("nav a")].find(a => a.textContent?.trim() === "Course catalogue")!;
+    const response = await get(catalogueLink.getAttribute("href")!, cookie);
+    expect(response.status).toBe(200);
+    const catalogue = new JSDOM(await response.text()).window.document;
+    expect(catalogue.querySelector("h1")?.textContent).toBe("Course catalogue");
+    const search = await get("/?q=7710&year=2027", cookie);
+    expect(search.status).toBe(200);
+    expect(await search.text()).toContain("COMP7710");
+    const course = new JSDOM(await (await get("/courses/COMP7710/?year=2027", cookie)).text()).window.document;
+    expect(course.querySelector("main")?.textContent).toContain("Reviewer view");
+    expect(course.querySelector('form[action="/api/applications"]')).toBeNull();
+    expect(queue.querySelector("[data-assigned-courses]")?.textContent).toContain("COMP7710");
+    expect(queue.querySelector("[data-assigned-courses]")?.textContent).not.toContain("COMP8620");
+    // A separate reviewer fixture has no courses or requests, regardless of parallel tests.
+    const emptyLogin = await post("/api/auth/login", { email: "invited-reviewer@anu.edu.au", password });
+    const emptyCookie = emptyLogin.headers.get("set-cookie")!.split(";")[0];
+    const emptyQueue = await (await get("/applications/", emptyCookie)).text();
+    expect(emptyQueue).toContain("Automatic demo assessments do not enter this queue");
+    expect(emptyQueue).toContain("Nothing is waiting for you");
   });
 });
 

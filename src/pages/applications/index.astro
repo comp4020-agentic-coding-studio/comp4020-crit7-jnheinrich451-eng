@@ -1,7 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import PendingRequestNotice from "../../components/PendingRequestNotice.astro";
-import { type ApplicationView, applicationsOfStudent, queueOf, TERM_LABELS } from "../../lib/store";
+import { type ApplicationView, applicationsOfStudent, listCourses, queueOf, TERM_LABELS } from "../../lib/store";
 import type { Term } from "../../data/courses";
 import { applicationStatus } from "../../lib/application-status";
 
@@ -39,6 +39,7 @@ if (actor.kind === "student") {
 }
 const title = actor.kind === "student" ? "My requests" : "Request queue";
 const watch = actor.kind === "student" ? { studentId: actor.student.id } : { convenorId: actor.convenor.id };
+const assignedCourses = actor.kind === "convenor" ? listCourses().filter(c => c.convenor.id === actor.convenor.id) : [];
 ---
 
 <Layout title={title} actor={actor} watch={watch}>
@@ -62,11 +63,18 @@ const watch = actor.kind === "student" ? { studentId: actor.student.id } : { con
     </p>
   )}
 
+  {actor.kind === "convenor" && <details data-assigned-courses>
+    <summary>Your assigned courses ({assignedCourses.length})</summary>
+    <ul>{assignedCourses.map(course => <li><a href={`/courses/${course.code}/?year=${course.year}`}>{course.code} — {course.title}</a></li>)}</ul>
+  </details>}
   {sections.map((s, i) => (
     <section aria-labelledby={`section-${i}`}>
       <h2 id={`section-${i}`}>{s.heading}</h2>
       {s.rows.length === 0 ? (
-        <p class="muted">{s.empty}</p>
+        <>
+          <p class="muted">{s.empty}</p>
+          {actor.kind === "convenor" && i === 0 && <p class="muted">Students send requests from an assigned course using <strong>Optional staff review → Send to convenor</strong>. Automatic demo assessments do not enter this queue.</p>}
+        </>
       ) : (
         <ul class="request-list">
           {s.rows.map((a) => (
