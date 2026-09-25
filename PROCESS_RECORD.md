@@ -1683,3 +1683,93 @@ John found both through actual use after the previous checks had passed. Extende
 coverage around those paths. After the first green suite, added the already-used
 link case and reran the full check on the final code. The first local readiness
 probe raced the server restart; a subsequent probe returned HTTP 200.
+
+## 2026-09-26 06:06 — Count enrolled units and assess overload separately
+
+**Prompt:**
+
+> I just recall the ANU has a limitation of 24 credits per semester, which equals
+> to 4 courses. So we cannot choose unlimitedly. And there is another overload
+> section, but needs approval. I saved the overload page into the ./assets/Overload
+> Spec, could you check and add this function?
+
+John selected **Immediate assessment plus optional human review.** He asked for
+the normal fifth-course block and a short explanation instead of a separate
+lengthy application.
+
+**Result:**
+Read the saved information page and encoded a versioned interpretation, preserving
+its hash and source clauses. Its rules are more than a four-course counter: 24
+units per semester/half-year, non-standard-session overlap, a 36-unit ceiling,
+UG/PG completed-unit and average thresholds, late-enrolment discretion, and a
+special final-30-unit completion request. The linked full policy and appeals
+procedure were not imported. No live ANU crawl or future-policy verification is
+claimed; the source interpretation and limits are in `docs/overload-design.md`.
+
+Confirmed enrolments now share a transactional load guard, including those with
+course permission codes. Saved candidates remain available for planning. Semester
+groups, date overlap and credit values are computed separately from academic
+eligibility. A 12-unit course counts correctly. COMP8820's 6–24-unit range now
+requires an explicit validated credit value; the whole-unit range picker is a
+labelled prototype convention, not a claim about the teaching team's class
+options. Unknown historical variable-unit loads are not silently filled in.
+
+Added Study load, a short request form, immutable automatic reports, an optional
+human-review action, status history and scoped 30/36-unit approvals. Dr Avery Hart
+is the separate fictional program-load reviewer, invited through the existing
+email flow and landing on the overload queue. Course convenors cannot decide
+these requests. Approval still requires the student to return and explicitly
+confirm the course. Pending retries reuse the current half-year request and
+decisions remove the pending notice.
+
+Generated migration 0007 adds the new requests/events, reviewer purpose, saved
+enrolment units and nullable exact-mark/program/institution evidence. Existing
+fictional grades were not converted to fabricated marks. Missing evidence stays
+visible; a student message cannot change academic facts. Current grade-only
+profiles therefore often need evidence or discretionary review. Cross-institutional
+imports, degree-completion auditing, evidence editing and appeals remain absent.
+No model makes overload decisions.
+
+**Verified:**
+Read CLAUDE.md, AGENTS.md, the published Crit 7 contract and the supplied overload
+page. Docker Node 24 / pnpm 11.9.0 `pnpm check` passed with zero diagnostics across
+94 files and 449 tests across 20 files. New pure checks cover 24/30/36 boundaries,
+12-unit courses, half-year/year scope, non-overlap and uncertain dates, missing
+marks, NCN/WN, credit attribution, repeats, UG/PG thresholds, weighting ambiguity,
+late evidence and final-30 discretion. HTTP checks cover blocked direct/permission
+enrolment, immutable reports, explicit review, role isolation, required decision
+notes, automatic approval, later confirmation, reloads and competing submissions.
+The populated historical migration test preserves existing state; all new pages
+remain in the accessibility invariants. Staged whitespace checks passed.
+
+Chrome with JavaScript disabled, a disposable database and captured SMTP mail:
+verified and signed in a student with a 24-unit fixture; blocked COMP6800; submitted
+an overload explanation; received an evidence-needed report; sent it for review;
+activated and signed in the invited Avery account; approved 30 units; returned as
+the student and explicitly confirmed COMP6800. All eight native POSTs returned
+303 with the expected Origin and no token in Referer. A later six-unit COMP8820
+selection showed 36 units against the approved 30-unit cap. Screenshots covered
+form, report, queue and confirmation at 1440x1000 and 390x844, with no horizontal
+page overflow; inspected desktop form/queue and mobile report visually.
+
+Backed up the real local preview database before migration. After catalogue
+initialisation, hashes confirmed preservation of all 10 accounts, 10 course
+requests, 32 request events, three non-seed enrolments, eight registered profiles,
+48 registered transcript rows and eight selections; foreign-key check returned
+zero errors. Local `/` and `/guide/` returned 200 with the new guidance. Avery is
+available but uninvited in this local database. Stopped the disposable browser
+server. No production invitations, deployment, push or Claude review occurred.
+
+**Commit:** [`88f6f50`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/88f6f50)
+
+**What happened:**
+The first full check passed 446 tests and failed three. One existing permission
+flow exposed the previously unselected variable credit value on COMP8820; added
+the explicit range choice instead of assuming six units. Two new checks had
+incorrect fixture assumptions: the blocked form is absent rather than disabled,
+and COMP6780 has no recorded 2027 offering. Corrected the assertions and used
+actual offered courses before accepting the 449-test run. The first backup
+attempt could not write through the preview's read-only source mount; the backup
+succeeded through a helper with the data volume read-only and ignored backup
+directory writable. The Help route did not initialise the lazy database module;
+loading the catalogue applied migration/seed before the preservation check.
