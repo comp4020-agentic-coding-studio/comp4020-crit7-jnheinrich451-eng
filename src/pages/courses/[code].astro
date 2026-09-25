@@ -1,61 +1,114 @@
 ---
 import GatePanel from "../../components/GatePanel.astro";
 import { REQUISITES } from "../../data/requisites";
+import type { Term } from "../../data/courses";
 import Layout from "../../layouts/Layout.astro";
-import { actorFrom, gateFor, getCourse, liveApplication, queueOf, TERM_LABELS } from "../../lib/store";
-
-const actor = actorFrom(Astro.cookies.get("as")?.value);
+import { gateFor, getCourse, liveApplication, offeringFor, selectionsOf, TERM_LABELS } from "../../lib/store";
+const actor = Astro.locals.actor;
 const course = getCourse(Astro.params.code ?? "");
 if (!course) return new Response("No such course", { status: 404 });
-
 const rules = REQUISITES[course.code];
-const g = actor.kind === "student" ? gateFor(actor.student, course.code) : null;
-const live = actor.kind === "student" ? liveApplication(actor.student.id, course.id) : undefined;
-const waiting =
-  actor.kind === "convenor" && actor.convenor.id === course.convenorId
-    ? queueOf(actor.convenor.id).filter((a) => a.courseId === course.id && a.status === "with-convenor").length
-    : 0;
+const term = Astro.url.searchParams.get("term") ?? course.termList[0] ?? "S2";
+const year = Number(Astro.url.searchParams.get("year") ?? 2026);
+const offering = offeringFor(course.id, term, year);
+const g = actor?.kind === "student" ? gateFor(actor.student, course.code, term, year) : null;
+const live = actor?.kind === "student" ? liveApplication(actor.student.id, course.id, term, year) : undefined;
+const saved =
+  actor?.kind === "student" && selectionsOf(actor.student.id).some((s) => s.offering.id === offering?.id);
 ---
 
-<Layout title={course.code} actor={actor}>
-  <p class="breadcrumb"><a href="/">Courses</a> / {course.code}</p>
-  <h1><span class="code">{course.code}</span> {course.title}</h1>
+<Layout title={`${course.code} ${course.title}`} actor={actor}>
+  <p class="breadcrumb">
+    <a href={`/?term=${encodeURIComponent(term)}`}>Find courses</a> / {course.code}
+  </p>
+  <p class="eyebrow">{course.code}</p>
+  <h1>{course.title}</h1>
   <dl class="facts">
-    <div><dt>Units</dt><dd>{course.units}</dd></div>
     <div>
-      <dt>Offered</dt>
-      <dd>{course.termList.length ? course.termList.map((t) => TERM_LABELS[t]).join(", ") : "No offering listed"}</dd>
+      <dt>Credit</dt>
+      <dd>{course.units} units</dd>
     </div>
-    <div><dt>Convenor</dt><dd>{course.convenor.name}</dd></div>
+    <div>
+      <dt>Catalogue year</dt>
+      <dd>2026</dd>
+    </div>
+    <div>
+      <dt>Recorded offerings</dt>
+      <dd>
+        {course.termList.length ? course.termList.map((t) => TERM_LABELS[t]).join(", ") : "None recorded"}
+      </dd>
+    </div>
   </dl>
-
-  {g && <GatePanel course={course} gate={g} live={live} />}
-  {
-    actor.kind === "convenor" && (
-      <p class="gate gate-muted">
-        {actor.convenor.id === course.convenorId ? (
-          <>
-            You convene {course.code}. {waiting} {waiting === 1 ? "request is" : "requests are"} waiting in your{" "}
-            <a href="/applications/">queue</a>.
-          </>
-        ) : (
-          <>Requests for {course.code} go to {course.convenor.name}, not to you. Switch to a student to see the gate.</>
-        )}
-      </p>
-    )
-  }
-
-  <section aria-labelledby="rules-heading" class="rules">
-    <h2 id="rules-heading">Requisite and Incompatibility</h2>
-    {
-      rules ? (
-        <>
+  <div class="course-columns">
+    <section aria-labelledby="information-heading">
+      <h2 id="information-heading">Course information</h2>
+      <p>Review the published requirements before adding this course to your semester.</p>
+      <details>
+        <summary>Requisites and incompatibilities</summary>
+        {rules ? (
           <blockquote>{rules.text}</blockquote>
-          <p class="muted">As published on ANU Programs &amp; Courses, transcribed by hand.</p>
+        ) : (
+          <p>
+            These requirements have not been transcribed for this prototype. Eligibility cannot be determined
+            here.
+          </p>
+        )}
+      </details>
+      <p class="muted">
+        Source: ANU Programs &amp; Courses, 2026, transcribed from supplied reference material. Descriptions
+        and learning outcomes have not been imported.
+      </p>
+      <p>
+        <a href={`https://programsandcourses.anu.edu.au/2026/course/${course.code}`}>
+          Read the full published course information ↗
+        </a>
+      </p>
+      <details>
+        <summary>Who reviews permission requests?</summary>
+        <p>
+          {course.convenor.name} is the fictional reviewer assigned to {course.code} in this prototype. The
+          selected course determines where a request goes.
+        </p>
+      </details>
+    </section>
+    <div>
+      <form method="get" class="stack surface">
+        <label for="term">Choose an offering</label>
+        <select name="term" id="term">
+          {course.termList.map((t: Term) => (
+            <option value={t} selected={t === term}>
+              2026 · {TERM_LABELS[t]}
+            </option>
+          ))}
+        </select>
+        <button>Update offering</button>
+      </form>
+      {!offering ? (
+        <p class="warning">No offering is recorded for this year and term.</p>
+      ) : actor?.kind === "student" && g ? (
+        <>
+          <form action="/api/selections" method="post" class="surface">
+            <input type="hidden" name="offeringId" value={offering.id} />
+            <button class="primary" name="action" value="add">
+              {saved ? "View in my semester" : "Add to my semester"}
+            </button>
+            <p class="field-help">Saving a course does not enrol you.</p>
+          </form>
+          <GatePanel course={course} gate={g} live={live} term={term} year={year} />
         </>
       ) : (
-        <p class="muted">Not transcribed for this prototype.</p>
-      )
-    }
-  </section>
+        <div class="surface">
+          <h2>{actor ? "Reviewer view" : "Make this part of your semester"}</h2>
+          <p>
+            {actor
+              ? "Review requests for your assigned courses in your queue."
+              : "Sign in to check your fictional academic record, save this offering, and request permission if needed."}
+          </p>
+          <a class="button primary" href={actor ? "/applications/" : "/login/"}>
+            {actor ? "Open request queue" : "Sign in"}
+          </a>
+        </div>
+      )}
+    </div>
+  </div>
 </Layout>

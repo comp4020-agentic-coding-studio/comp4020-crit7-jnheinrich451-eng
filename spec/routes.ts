@@ -13,4 +13,8 @@ export const ROUTES = [
   "/applications/",
   "/applications/1/",
   "/record/",
+  "/plan/",
+  "/login/",
+  "/register/",
+  "/verify/",
 ];

@@ -1,12 +1,14 @@
 import type { APIRoute } from "astro";
 import { bus, type Change } from "../../lib/events";
+import { actorFrom, SESSION_COOKIE } from "../../lib/auth";
 
 // Server-sent events: a long-lived response the browser reads with
 // `new EventSource("/api/events")`. Each application change goes out as one
 // `data:` line; an open timeline or queue that it concerns re-renders from
 // the database. The pages work without it — this is only how a second tab
 // finds out without a manual reload.
-export const GET: APIRoute = () => {
+export const GET: APIRoute = ({ locals, cookies }) => {
+  if (!locals.actor) return new Response("Sign in required", { status: 401 });
   let onChange: (change: Change) => void;
   let heartbeat: ReturnType<typeof setInterval>;
 
@@ -18,7 +20,14 @@ export const GET: APIRoute = () => {
       controller.enqueue(": connected\n\n");
       heartbeat = setInterval(() => controller.enqueue(": ping\n\n"), 30_000);
       onChange = (change) => {
-        controller.enqueue(`data: ${JSON.stringify(change)}\n\n`);
+        const current = actorFrom(cookies.get(SESSION_COOKIE)?.value);
+        if (!current) return;
+        const relevant =
+          current.kind === "student"
+            ? change.studentId === current.student.id
+            : change.convenorId === current.convenor.id;
+        if (relevant)
+          controller.enqueue(`data: ${JSON.stringify({ applicationId: change.applicationId })}\n\n`);
       };
       bus.on("change", onChange);
     },

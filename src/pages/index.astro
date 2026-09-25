@@ -1,77 +1,118 @@
 ---
-import { REQUISITES } from "../data/requisites";
 import Layout from "../layouts/Layout.astro";
-import { gate } from "../lib/eligibility";
-import { actorFrom, applicationsOfStudent, listCourses, recordOf, TERM_LABELS } from "../lib/store";
-
-// The catalogue. For a student, every row carries its gate outcome, so the
-// courses that need a permission code are visible before anyone opens one.
-const actor = actorFrom(Astro.cookies.get("as")?.value);
+import { gateFor, listCourses, liveApplication, TERM_LABELS } from "../lib/store";
+import type { Term } from "../data/courses";
+const actor = Astro.locals.actor;
+if (actor?.kind === "convenor" && !Astro.url.search) return Astro.redirect("/applications/", 303);
 const query = Astro.url.searchParams.get("q") ?? "";
-const rows = listCourses(query);
-
-const record = actor.kind === "student" ? recordOf(actor.student) : null;
-const requests = actor.kind === "student" ? applicationsOfStudent(actor.student.id) : [];
-const badge = (code: string): { label: string; tone: string } | null => {
-  if (!record) return null;
-  const open = requests.find((a) => a.course.code === code && ["with-convenor", "approved"].includes(a.status));
-  if (open) return { label: open.status === "approved" ? "Code approved" : "Requested", tone: "info" };
-  const g = gate(code, REQUISITES[code], record);
-  switch (g.outcome) {
-    case "eligible":
-      return { label: "Enrol directly", tone: "ok" };
-    case "rules-not-met":
-      return { label: "Code needed", tone: "warn" };
-    case "permission-always":
-      return { label: "Code for everyone", tone: "always" };
-    case "not-recorded":
-      return { label: "Not recorded", tone: "muted" };
-    case "already":
-      return { label: g.text.includes("passed") ? "Passed" : "Enrolled", tone: "muted" };
-  }
+const subject = Astro.url.searchParams.get("subject") ?? "";
+const term = Astro.url.searchParams.get("term") ?? "S2";
+const rows = listCourses(query, subject).filter((c) => !term || c.termList.includes(term as Term));
+const badge = (course: (typeof rows)[number]) => {
+  if (actor?.kind !== "student") return null;
+  const selectedTerm = term || course.termList[0];
+  const g = gateFor(actor.student, course.code, selectedTerm);
+  if (g.outcome === "already")
+    return { text: g.text.includes("passed") ? "Passed" : "Enrolled", tone: "muted" };
+  const live = selectedTerm && liveApplication(actor.student.id, course.id, selectedTerm);
+  if (live)
+    return { text: live.status === "approved" ? "Permission approved" : "Under review", tone: "info" };
+  return {
+    text: {
+      eligible: "Ready to enrol",
+      "rules-not-met": "Permission needed",
+      "permission-always": "Permission for everyone",
+      "not-recorded": "Requirements not yet recorded",
+    }[g.outcome],
+    tone: g.outcome === "eligible" ? "ok" : "muted",
+  };
 };
 ---
 
-<Layout title="Courses" actor={actor}>
-  <h1>Courses</h1>
-  <p class="lede">
-    {
-      actor.kind === "student" ? (
-        <>
-          Every course shows whether you can enrol straight away or need a permission code, checked against your
-          record. New here? The <a href="/guide/">guide</a> has five short tours.
-        </>
-      ) : (
-        <>You're acting as a convenor. Switch to a student to see the gate, or go to your <a href="/applications/">request queue</a>.</>
-      )
-    }
-  </p>
-
+<Layout title="Find courses" actor={actor}>
+  <div class="page-top">
+    <div>
+      <p class="eyebrow">PLAN YOUR STUDIES · 2026</p>
+      <h1>Find your next course</h1>
+      <p class="lede">Explore courses, check requirements, and build your semester in one place.</p>
+    </div>
+    {actor?.kind === "student" && (
+      <a class="button" href="/plan/">
+        View my semester →
+      </a>
+    )}
+  </div>
   <form method="get" action="/" class="search" role="search">
-    <label for="q">Find a course</label>
-    <input id="q" name="q" type="search" value={query} placeholder="Code or title, e.g. COMP8620 or vision" />
-    <button>Search</button>
+    <div>
+      <label for="q">Course code or title</label>
+      <input id="q" name="q" type="search" value={query} placeholder="COMP6528, 6528, or Computer Vision" />
+    </div>
+    <div>
+      <label for="subject">Subject</label>
+      <select id="subject" name="subject">
+        <option value="">All subjects</option>
+        {["COMP", "ENGN", "ENVS", "MATH"].map((s) => (
+          <option value={s} selected={subject === s}>
+            {s}
+          </option>
+        ))}
+      </select>
+    </div>
+    <div>
+      <label for="term">2026 term</label>
+      <select id="term" name="term">
+        <option value="" selected={!term}>
+          All terms
+        </option>
+        {Object.entries(TERM_LABELS).map(([value, label]) => (
+          <option value={value} selected={term === value}>
+            {label}
+          </option>
+        ))}
+      </select>
+    </div>
+    <button class="primary">Find courses</button>
   </form>
-
-  {query && <p class="muted">{rows.length} {rows.length === 1 ? "course matches" : "courses match"} “{query}”. <a href="/">Show all</a></p>}
-
+  <p class="muted">
+    {rows.length} {rows.length === 1 ? "course" : "courses"}
+    {term ? ` · ${TERM_LABELS[term as Term] ?? term} 2026` : " · all recorded offerings"}.{" "}
+    {!actor && (
+      <>
+        <a href="/login/">Sign in</a> to check your fictional academic record and save courses.
+      </>
+    )}
+  </p>
+  {rows.length === 0 && (
+    <div class="empty">
+      <h2>No matching courses in this term</h2>
+      <p>
+        Try a different term or{" "}
+        <a href={`/?q=${encodeURIComponent(query)}&subject=${encodeURIComponent(subject)}&term=`}>
+          search across all terms
+        </a>
+        .
+      </p>
+    </div>
+  )}
   <ul class="course-list">
-    {
-      rows.map((c) => {
-        const b = badge(c.code);
-        return (
-          <li>
-            <a href={`/courses/${c.code}/`} class="course-card">
-              <span class="code">{c.code}</span>
-              <span class="title">{c.title}</span>
-              <span class="meta">
-                {c.units} units · {c.termList.length ? c.termList.map((t) => TERM_LABELS[t]).join(", ") : "no offering listed"}
-              </span>
-              {b && <span class={`badge badge-${b.tone}`}>{b.label}</span>}
-            </a>
-          </li>
-        );
-      })
-    }
+    {rows.map((c) => {
+      const b = badge(c);
+      return (
+        <li>
+          <a
+            href={`/courses/${c.code}/?term=${encodeURIComponent(term || c.termList[0] || "S2")}`}
+            class="course-card"
+          >
+            <span class="code">{c.code}</span>
+            <span class="title">{c.title}</span>
+            <span class="meta">
+              {c.units} units ·{" "}
+              {c.termList.length ? c.termList.map((t) => TERM_LABELS[t]).join(", ") : "No offering recorded"}
+            </span>
+            {b && <span class={`badge badge-${b.tone}`}>{b.text}</span>}
+          </a>
+        </li>
+      );
+    })}
   </ul>
 </Layout>

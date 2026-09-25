@@ -2,12 +2,13 @@
 import type { Term } from "../data/courses";
 import { PROGRAMS, type ProgramKey } from "../data/requisites";
 import Layout from "../layouts/Layout.astro";
-import { actorFrom, enrolmentsOf, PASSING, TERM_LABELS, transcriptOf } from "../lib/store";
+import { enrolmentsOf, PASSING, TERM_LABELS, transcriptOf } from "../lib/store";
 
 // The record the gate reads. Nothing on it is typed by the student, which is
 // what keeps a request's checks honest: the convenor sees what the record
 // says, not what the student claims.
-const actor = actorFrom(Astro.cookies.get("as")?.value);
+const actor = Astro.locals.actor;
+if (!actor) return Astro.redirect("/login/", 303);
 const student = actor.kind === "student" ? actor.student : null;
 const results = student ? transcriptOf(student.id) : [];
 const current = student ? enrolmentsOf(student.id) : [];
@@ -18,64 +19,80 @@ const VIA: Record<string, string> = {
 };
 ---
 
-<Layout title="My record" actor={actor}>
-  <h1>My record</h1>
-  {
-    !student ? (
-      <p>You're acting as a convenor. Switch to a student to see a record.</p>
-    ) : (
-      <>
-        <p class="lede">
-          This is what the gate checks. It comes from the university's records, not from anything you type, so a
-          request can't drift from the facts.
-        </p>
-        <dl class="facts">
-          <div><dt>Name</dt><dd>{student.name}</dd></div>
-          <div><dt>uID</dt><dd>{student.uid}</dd></div>
-          <div><dt>Program</dt><dd>{PROGRAMS[student.program as ProgramKey]}</dd></div>
-        </dl>
+<Layout title="My profile" actor={actor}>
+  <h1>My profile</h1>
+  {!student ? (
+    <p>Student profiles are private. Review relevant eligibility evidence in your assigned requests.</p>
+  ) : (
+    <>
+      <p class="lede">
+        {student.recordSource}. Your account has a generated academic scenario for trying the enrolment flow.
+        It is not connected to university records.
+      </p>
+      <dl class="facts">
+        <div>
+          <dt>Name</dt>
+          <dd>{student.name}</dd>
+        </div>
+        <div>
+          <dt>Profile</dt>
+          <dd>Fictional academic scenario</dd>
+        </div>
+        <div>
+          <dt>Program</dt>
+          <dd>{PROGRAMS[student.program as ProgramKey]}</dd>
+        </div>
+      </dl>
 
-        <section aria-labelledby="results-heading">
-          <h2 id="results-heading">Results</h2>
-          {results.length === 0 ? (
-            <p class="muted">No results yet.</p>
-          ) : (
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr><th scope="col">Course</th><th scope="col">Term</th><th scope="col">Grade</th><th scope="col">Units</th><th scope="col">Counts as passed</th></tr>
-                </thead>
-                <tbody>
-                  {results.map((r) => (
-                    <tr>
-                      <td>{r.courseCode}</td>
-                      <td>{r.term}</td>
-                      <td>{r.grade}</td>
-                      <td>{r.units}</td>
-                      <td>{PASSING.has(r.grade) ? "Yes" : "No"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+      <section aria-labelledby="results-heading">
+        <h2 id="results-heading">Results</h2>
+        {results.length === 0 ? (
+          <p class="muted">No results yet.</p>
+        ) : (
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Course</th>
+                  <th scope="col">Term</th>
+                  <th scope="col">Grade</th>
+                  <th scope="col">Units</th>
+                  <th scope="col">Counts as passed</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.map((r) => (
+                  <tr>
+                    <td>{r.courseCode}</td>
+                    <td>{r.term}</td>
+                    <td>{r.grade}</td>
+                    <td>{r.units}</td>
+                    <td>{PASSING.has(r.grade) ? "Yes" : "No"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
-        <section aria-labelledby="current-heading">
-          <h2 id="current-heading">Current enrolments</h2>
-          {current.length === 0 ? (
-            <p class="muted">Not enrolled in anything yet.</p>
-          ) : (
-            <ul class="plain">
-              {current.map((e) => (
-                <li>
-                  <a href={`/courses/${e.code}/`}>{e.code} {e.title}</a>, {TERM_LABELS[e.term as Term]} ({VIA[e.via]})
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </>
-    )
-  }
+      <section aria-labelledby="current-heading">
+        <h2 id="current-heading">Current enrolments</h2>
+        {current.length === 0 ? (
+          <p class="muted">Not enrolled in anything yet.</p>
+        ) : (
+          <ul class="plain">
+            {current.map((e) => (
+              <li>
+                <a href={`/courses/${e.code}/`}>
+                  {e.code} {e.title}
+                </a>
+                , {`${e.year} ${TERM_LABELS[e.term as Term]}`} ({VIA[e.via]})
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </>
+  )}
 </Layout>

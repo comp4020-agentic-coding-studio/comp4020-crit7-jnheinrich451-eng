@@ -1,0 +1,39 @@
+---
+import Layout from "../layouts/Layout.astro";
+if (Astro.locals.actor)
+  return Astro.redirect(Astro.locals.actor.kind === "convenor" ? "/applications/" : "/plan/", 303);
+---
+
+<Layout title="Sign in" actor={null}>
+  <div class="auth-card">
+    <p class="eyebrow">COURSE ENROLMENT · PROTOTYPE</p>
+    <h1>Welcome back</h1>
+    <p>Sign in to your saved courses and permission requests.</p>
+    <form method="post" action="/api/auth/login" class="stack">
+      <label for="email">ANU email</label>
+      <input id="email" name="email" type="email" autocomplete="username" required maxlength="254" />
+      <label for="password">Prototype password</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        required
+        maxlength="128"
+      />
+      <button class="primary">Sign in</button>
+    </form>
+    <p>
+      New here? <a href="/register/">Create a student account</a>
+    </p>
+    <details>
+      <summary>Resend verification email</summary>
+      <form method="post" action="/api/auth/resend" class="stack">
+        <label for="resend-email">ANU email</label>
+        <input id="resend-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+        <button>Resend verification</button>
+      </form>
+    </details>
+    <p class="muted">Staff accounts are invitation-only. This prototype has separate credentials from ANU.</p>
+  </div>
+</Layout>

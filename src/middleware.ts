@@ -1,0 +1,35 @@
+import { defineMiddleware } from "astro:middleware";
+import { actorFrom, SESSION_COOKIE, throttle } from "./lib/auth";
+import { UserError } from "./lib/errors";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.locals.actor = actorFrom(context.cookies.get(SESSION_COOKIE)?.value);
+  const path = context.url.pathname;
+  const privatePage = /^\/(applications|record|plan)(\/|$)/.test(path);
+  const privateApi = /^\/api\/(enrol|applications|selections|events)(\/|$)/.test(path);
+  if ((privatePage || privateApi) && !context.locals.actor) {
+    if (privateApi) return new Response("Sign in required", { status: 401 });
+    return context.redirect("/login/", 303);
+  }
+  if (context.request.method === "POST") {
+    // Explicit origin check also covers auth endpoints, including bare POSTs.
+    if (context.request.headers.get("origin") !== context.url.origin)
+      return new Response("Forbidden", { status: 403 });
+    if (Number(context.request.headers.get("content-length") ?? 0) > 16_384)
+      return new Response("Form too large", { status: 413 });
+    if (path.startsWith("/api/auth/")) {
+      try {
+        throttle("auth:global", 120);
+      } catch (err) {
+        if (err instanceof UserError) return new Response(err.message, { status: 429 });
+        throw err;
+      }
+    }
+  }
+  const response = await next();
+  response.headers.set("Referrer-Policy", path.startsWith("/verify") ? "no-referrer" : "same-origin");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  if (context.locals.actor || path.startsWith("/verify") || path.startsWith("/api/auth"))
+    response.headers.set("Cache-Control", "no-store");
+  return response;
+});

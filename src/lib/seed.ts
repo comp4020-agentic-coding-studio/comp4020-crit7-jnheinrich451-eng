@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { COURSES } from "../data/courses";
 import { CONVENORS, convenorFor, STUDENTS } from "../data/people";
-import { convenors, courses, enrolments, students, transcript } from "./schema";
+import { convenors, courses, enrolments, offerings, students, transcript } from "./schema";
 
 // Brings the database's reference data in line with src/data/ on every boot.
 // Convenors, courses and students are upserted by their natural keys, so ids
@@ -39,6 +39,9 @@ export function seed(db: BetterSQLite3Database): void {
         .returning({ id: courses.id })
         .get();
       courseIds.set(c.code, row.id);
+      for (const term of c.terms) {
+        tx.insert(offerings).values({ courseId: row.id, year: 2026, term }).onConflictDoNothing().run();
+      }
       unitsByCode.set(c.code, c.units);
     }
 

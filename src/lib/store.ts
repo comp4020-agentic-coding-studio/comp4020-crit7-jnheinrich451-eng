@@ -18,7 +18,12 @@ import {
   type Student,
   students,
   transcript,
+  offerings,
+  selections,
 } from "./schema";
+import { UserError } from "./errors";
+export { UserError } from "./errors";
+export { actorFrom } from "./auth";
 
 // Everything the pages read and write. Eligibility is never decided here —
 // it's asked of src/lib/eligibility.ts — and every status change writes an
@@ -35,29 +40,9 @@ export const TERM_LABELS: Record<Term, string> = {
 
 export const PASSING = new Set(["HD", "D", "CR", "P"]);
 
-export class UserError extends Error {}
-
 // --- who's acting ----------------------------------------------------------
 
 export type Actor = { kind: "student"; student: Student } | { kind: "convenor"; convenor: Convenor };
-
-/** No login (CLAUDE.md): an "act as" cookie of the form `s:<id>` or `c:<id>`,
- *  defaulting to the first seeded student. */
-export function actorFrom(cookie: string | undefined): Actor {
-  const [kind, raw] = (cookie ?? "").split(":");
-  const id = Number(raw);
-  if (kind === "c" && id) {
-    const convenor = db.select().from(convenors).where(eq(convenors.id, id)).get();
-    if (convenor) return { kind: "convenor", convenor };
-  }
-  if (kind === "s" && id) {
-    const student = db.select().from(students).where(eq(students.id, id)).get();
-    if (student) return { kind: "student", student };
-  }
-  const student = db.select().from(students).orderBy(asc(students.id)).get();
-  if (!student) throw new Error("no seeded students");
-  return { kind: "student", student };
-}
 
 export function people() {
   return {
@@ -74,16 +59,24 @@ function withConvenor(rows: { courses: Course; convenors: Convenor }[]): CourseR
   return rows.map((r) => ({ ...r.courses, convenor: r.convenors, termList: JSON.parse(r.courses.terms) }));
 }
 
-export function listCourses(query = ""): CourseRow[] {
-  const q = `%${query.trim()}%`;
+export function listCourses(query = "", subject = ""): CourseRow[] {
+  const normal = query.trim().replace(/^([a-z]{4})\s+(\d)/i, "$1$2");
+  const q = `%${normal.replace(/[\\%_]/g, "")}%`;
   const rows = db
     .select()
     .from(courses)
     .innerJoin(convenors, eq(courses.convenorId, convenors.id))
-    .where(query.trim() ? or(like(courses.code, q), like(courses.title, q)) : undefined)
+    .where(
+      and(
+        normal ? or(like(courses.code, q), like(courses.title, q)) : undefined,
+        /^[A-Z]{4}$/.test(subject) ? like(courses.code, `${subject}%`) : undefined,
+      ),
+    )
     .orderBy(asc(courses.code))
     .all();
-  return withConvenor(rows);
+  return withConvenor(rows).sort(
+    (a, b) => Number(b.code === normal.toUpperCase()) - Number(a.code === normal.toUpperCase()),
+  );
 }
 
 export function getCourse(code: string): CourseRow | undefined {
@@ -97,12 +90,23 @@ export function getCourse(code: string): CourseRow | undefined {
 }
 
 export function transcriptOf(studentId: number) {
-  return db.select().from(transcript).where(eq(transcript.studentId, studentId)).orderBy(asc(transcript.id)).all();
+  return db
+    .select()
+    .from(transcript)
+    .where(eq(transcript.studentId, studentId))
+    .orderBy(asc(transcript.id))
+    .all();
 }
 
 export function enrolmentsOf(studentId: number) {
   return db
-    .select({ code: courses.code, title: courses.title, term: enrolments.term, via: enrolments.via })
+    .select({
+      code: courses.code,
+      title: courses.title,
+      year: enrolments.year,
+      term: enrolments.term,
+      via: enrolments.via,
+    })
     .from(enrolments)
     .innerJoin(courses, eq(enrolments.courseId, courses.id))
     .where(eq(enrolments.studentId, studentId))
@@ -110,18 +114,20 @@ export function enrolmentsOf(studentId: number) {
     .all();
 }
 
-export function recordOf(student: Student): StudentRecord {
+export function recordOf(student: Student, term?: string, year = 2026): StudentRecord {
   const results = transcriptOf(student.id);
   return {
     program: student.program as StudentRecord["program"],
     passed: results.filter((r) => PASSING.has(r.grade)).map((r) => ({ code: r.courseCode, units: r.units })),
     failed: results.filter((r) => !PASSING.has(r.grade)).map((r) => r.courseCode),
-    enrolled: enrolmentsOf(student.id).map((e) => e.code),
+    enrolled: enrolmentsOf(student.id)
+      .filter((e) => !term || (e.term === term && e.year === year))
+      .map((e) => e.code),
   };
 }
 
-export function gateFor(student: Student, courseCode: string): Gate {
-  return gate(courseCode, REQUISITES[courseCode], recordOf(student));
+export function gateFor(student: Student, courseCode: string, term?: string, year = 2026): Gate {
+  return gate(courseCode, REQUISITES[courseCode], recordOf(student, term, year));
 }
 
 // --- applications ------------------------------------------------------------
@@ -143,15 +149,13 @@ function views(where: SQL) {
     .where(where)
     .orderBy(desc(applications.id))
     .all()
-    .map(
-      (r): ApplicationView => ({
-        ...r.applications,
-        course: r.courses,
-        student: r.students,
-        convenor: r.convenors,
-        checkList: JSON.parse(r.applications.checks),
-      }),
-    );
+    .map((r): ApplicationView => ({
+      ...r.applications,
+      course: r.courses,
+      student: r.students,
+      convenor: r.convenors,
+      checkList: JSON.parse(r.applications.checks),
+    }));
 }
 
 export function applicationsOfStudent(studentId: number): ApplicationView[] {
@@ -175,7 +179,12 @@ export function getApplication(id: number): (ApplicationView & { events: Applica
 }
 
 /** The application a student already has open (or approved) for a course. */
-export function liveApplication(studentId: number, courseId: number): Application | undefined {
+export function liveApplication(
+  studentId: number,
+  courseId: number,
+  term: string,
+  year = 2026,
+): Application | undefined {
   return db
     .select()
     .from(applications)
@@ -183,6 +192,8 @@ export function liveApplication(studentId: number, courseId: number): Applicatio
       and(
         eq(applications.studentId, studentId),
         eq(applications.courseId, courseId),
+        eq(applications.term, term),
+        eq(applications.year, year),
         inArray(applications.status, ["with-convenor", "approved"]),
       ),
     )
@@ -194,24 +205,33 @@ export function submitApplication(input: {
   courseCode: string;
   term: string;
   statement: string;
+  year?: number;
+  dispute?: boolean;
 }): Application {
   const course = getCourse(input.courseCode);
   if (!course) throw new UserError("That course isn't in the catalogue.");
-  if (!course.termList.includes(input.term as Term)) {
+  const year = input.year ?? 2026;
+  const offering = offeringFor(course.id, input.term, year);
+  if (!offering) {
     throw new UserError(`${course.code} isn't offered in that term.`);
   }
   const statement = input.statement.trim().slice(0, 2000);
   if (!statement) throw new UserError("Tell the convenor why you're applying.");
-  if (liveApplication(input.student.id, course.id)) {
-    throw new UserError(`You already have an open or approved request for ${course.code}.`);
-  }
+  const existing = liveApplication(input.student.id, course.id, input.term, year);
+  if (existing) return existing;
 
-  const g = gateFor(input.student, course.code);
+  const g = gateFor(input.student, course.code, input.term, year);
   const round = firstRound(course.code, g);
   const checks: Check[] = "checks" in g ? g.checks : [];
-  const status = round.decision === "auto-reject" ? "auto-rejected" : "with-convenor";
+  if (g.outcome === "already" || g.outcome === "not-recorded" || g.outcome === "eligible")
+    throw new UserError(round.reasons.join(" "));
+  const status = round.decision === "auto-reject" && !input.dispute ? "auto-rejected" : "with-convenor";
 
   const app = db.transaction((tx) => {
+    tx.insert(selections)
+      .values({ studentId: input.student.id, offeringId: offering.id })
+      .onConflictDoNothing()
+      .run();
     const app = tx
       .insert(applications)
       .values({
@@ -220,6 +240,7 @@ export function submitApplication(input: {
         // the routing: from the course row, never from anything typed
         convenorId: course.convenorId,
         term: input.term,
+        year,
         statement,
         status,
         checks: JSON.stringify(checks),
@@ -229,7 +250,19 @@ export function submitApplication(input: {
     const event = (actor: string, actorName: string, kind: string, detail: string) =>
       tx.insert(applicationEvents).values({ applicationId: app.id, actor, actorName, kind, detail }).run();
 
-    event("student", input.student.name, "submitted", `Requested a permission code for ${course.code}, ${TERM_LABELS[input.term as Term]}.`);
+    event(
+      "student",
+      input.student.name,
+      "submitted",
+      `Requested a permission code for ${course.code}, ${TERM_LABELS[input.term as Term]}.`,
+    );
+    if (input.dispute)
+      event(
+        "student",
+        input.student.name,
+        "record-disputed",
+        "Asked for human review of the recorded eligibility information. See the student's explanation.",
+      );
     if (status === "auto-rejected") {
       event("system", "Automatic first round", "auto-rejected", round.reasons.join("\n"));
     } else {
@@ -295,10 +328,17 @@ function permissionCode(courseCode: string): string {
 // --- enrolment ---------------------------------------------------------------
 
 /** Enrol if the gate says eligible, or with an approved application's code. */
-export function enrol(input: { student: Student; courseCode: string; term: string }): "direct" | "permission" {
+export function enrol(input: {
+  student: Student;
+  courseCode: string;
+  term: string;
+  year?: number;
+}): "direct" | "permission" {
   const course = getCourse(input.courseCode);
   if (!course) throw new UserError("That course isn't in the catalogue.");
-  if (!course.termList.includes(input.term as Term)) {
+  const year = input.year ?? 2026;
+  const offering = offeringFor(course.id, input.term, year);
+  if (!offering) {
     throw new UserError(`${course.code} isn't offered in that term.`);
   }
   const approved = db
@@ -308,17 +348,25 @@ export function enrol(input: { student: Student; courseCode: string; term: strin
       and(
         eq(applications.studentId, input.student.id),
         eq(applications.courseId, course.id),
+        eq(applications.term, input.term),
+        eq(applications.year, year),
         eq(applications.status, "approved"),
       ),
     )
     .get();
-  const g = gateFor(input.student, course.code);
+  const g = gateFor(input.student, course.code, input.term, year);
   if (g.outcome === "already") throw new UserError(g.text);
   const via = approved ? "permission" : g.outcome === "eligible" ? "direct" : null;
   if (!via) throw new UserError(`You need a permission code for ${course.code}.`);
 
   db.transaction((tx) => {
-    tx.insert(enrolments).values({ studentId: input.student.id, courseId: course.id, term: input.term, via }).run();
+    tx.insert(enrolments)
+      .values({ studentId: input.student.id, courseId: course.id, term: input.term, year, via })
+      .run();
+    tx.insert(selections)
+      .values({ studentId: input.student.id, offeringId: offering.id })
+      .onConflictDoNothing()
+      .run();
     if (approved) {
       tx.insert(applicationEvents)
         .values({
@@ -332,9 +380,43 @@ export function enrol(input: { student: Student; courseCode: string; term: strin
     }
   });
   if (approved) {
-    bus.emit("change", { applicationId: approved.id, convenorId: approved.convenorId, studentId: approved.studentId });
+    bus.emit("change", {
+      applicationId: approved.id,
+      convenorId: approved.convenorId,
+      studentId: approved.studentId,
+    });
   }
   return via;
+}
+
+export function offeringFor(courseId: number, term: string, year = 2026) {
+  return db
+    .select()
+    .from(offerings)
+    .where(and(eq(offerings.courseId, courseId), eq(offerings.term, term), eq(offerings.year, year)))
+    .get();
+}
+
+export function saveSelection(studentId: number, offeringId: number): void {
+  if (!db.select().from(offerings).where(eq(offerings.id, offeringId)).get())
+    throw new UserError("That course offering is unavailable.");
+  db.insert(selections).values({ studentId, offeringId }).onConflictDoNothing().run();
+}
+
+export function removeSelection(studentId: number, offeringId: number): void {
+  db.delete(selections)
+    .where(and(eq(selections.studentId, studentId), eq(selections.offeringId, offeringId)))
+    .run();
+}
+
+export function selectionsOf(studentId: number) {
+  return db
+    .select({ offering: offerings, course: courses })
+    .from(selections)
+    .innerJoin(offerings, eq(selections.offeringId, offerings.id))
+    .innerJoin(courses, eq(offerings.courseId, courses.id))
+    .where(eq(selections.studentId, studentId))
+    .all();
 }
 
 // --- the demo state ----------------------------------------------------------

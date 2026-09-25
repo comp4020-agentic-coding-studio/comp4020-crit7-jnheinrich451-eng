@@ -1,0 +1,45 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { verificationInfo } from "../lib/auth";
+const token = Astro.url.searchParams.get("token") ?? "";
+const info = verificationInfo(token);
+---
+
+<Layout title="Verify your email" actor={null}>
+  <div class="auth-card">
+    <h1>Verify your email</h1>
+    {info ? (
+      <>
+        <p>
+          {info.purpose === "invite"
+            ? "Choose a password to activate your invited reviewer account."
+            : "Confirm to activate your student account."}
+        </p>
+        <form method="post" action="/api/auth/verify" class="stack">
+          <input type="hidden" name="token" value={token} />
+          {info.purpose === "invite" && (
+            <>
+              <label for="password">Create a prototype password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                minlength="15"
+                maxlength="128"
+                required
+              />
+              <p class="field-help">15–128 characters. Do not reuse your ANU password.</p>
+            </>
+          )}
+          <button class="primary">Confirm email address</button>
+        </form>
+      </>
+    ) : (
+      <p>
+        This link is invalid, expired, or already used.{" "}
+        <a href="/login/">Sign in or request another verification email</a>.
+      </p>
+    )}
+  </div>
+</Layout>

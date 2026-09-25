@@ -1,0 +1,91 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { gateFor, liveApplication, selectionsOf, TERM_LABELS } from "../lib/store";
+import type { Term } from "../data/courses";
+const actor = Astro.locals.actor;
+if (!actor) return Astro.redirect("/login/", 303);
+if (actor.kind !== "student") return Astro.redirect("/applications/", 303);
+const selected = selectionsOf(actor.student.id);
+---
+
+<Layout title="My semester" actor={actor}>
+  <div class="page-top">
+    <div>
+      <p class="eyebrow">YOUR SAVED SELECTIONS</p>
+      <h1>My semester</h1>
+      <p class="lede">
+        Keep planning while permission requests are reviewed. Confirm each ready course when you are ready to
+        enrol.
+      </p>
+    </div>
+    <a class="button" href="/">
+      Find another course
+    </a>
+  </div>
+  {selected.length === 0 && (
+    <div class="empty">
+      <h2>Your semester starts here</h2>
+      <p>Save an offering from a course page. Your selections will be here when you return.</p>
+      <a class="button primary" href="/">
+        Find courses
+      </a>
+    </div>
+  )}
+  <div class="plan-list">
+    {selected.map(({ course, offering }) => {
+      const g = gateFor(actor.student, course.code, offering.term, offering.year);
+      const live = liveApplication(actor.student.id, course.id, offering.term, offering.year);
+      const already = g.outcome === "already";
+      const ready = !already && (g.outcome === "eligible" || live?.status === "approved");
+      const label = already
+        ? g.text
+        : ready
+          ? "Ready to enrol"
+          : live
+            ? "Under review"
+            : g.outcome === "not-recorded"
+              ? "Requirements not recorded"
+              : "Permission needed";
+      const href = `/courses/${course.code}/?term=${encodeURIComponent(offering.term)}&year=${offering.year}`;
+      return (
+        <article class="plan-row">
+          <div>
+            <span class="code">{course.code}</span>
+            <h2>
+              <a href={href}>{course.title}</a>
+            </h2>
+            <p class="meta">
+              {offering.year} · {TERM_LABELS[offering.term as Term]} · {course.units} units
+            </p>
+          </div>
+          <span class={`badge badge-${ready ? "ok" : "muted"}`}>{label}</span>
+          <div class="actions">
+            {ready && (
+              <form method="post" action="/api/enrol">
+                <input type="hidden" name="courseCode" value={course.code} />
+                <input type="hidden" name="term" value={offering.term} />
+                <input type="hidden" name="year" value={offering.year} />
+                <button class="primary">Confirm enrolment</button>
+              </form>
+            )}
+            {live && <a href={`/applications/${live.id}/`}>View permission request</a>}
+            {!ready && !already && !live && (
+              <a class="button" href={href}>
+                Review requirements
+              </a>
+            )}
+            <form method="post" action="/api/selections">
+              <input type="hidden" name="offeringId" value={offering.id} />
+              <button name="action" value="remove">
+                Remove saved selection
+              </button>
+            </form>
+          </div>
+          <p class="field-help">
+            Removing a saved selection does not cancel an enrolment or permission request.
+          </p>
+        </article>
+      );
+    })}
+  </div>
+</Layout>

@@ -3,9 +3,8 @@
 // published with the app. spec/readme.test.ts checks the whole of it is here.
 import * as readme from "../../README.md";
 import Layout from "../layouts/Layout.astro";
-import { actorFrom } from "../lib/store";
 
-const actor = actorFrom(Astro.cookies.get("as")?.value);
+const actor = Astro.locals.actor;
 const title = readme.getHeadings().find((h) => h.depth === 1)?.text ?? "README";
 
 // README images are committed to public/ and linked relatively (public/x.png)

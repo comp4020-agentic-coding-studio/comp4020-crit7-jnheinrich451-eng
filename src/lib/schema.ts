@@ -41,6 +41,7 @@ export const students = sqliteTable("students", {
   name: text().notNull(),
   /** A ProgramKey from src/data/requisites.ts. */
   program: text().notNull(),
+  recordSource: text("record_source").notNull().default("Fictional demonstration record"),
 });
 
 /** Past results. Codes are text, not course ids: a transcript holds
@@ -67,12 +68,13 @@ export const enrolments = sqliteTable(
       .notNull()
       .references(() => courses.id),
     term: text().notNull(),
+    year: int().notNull().default(2026),
     /** "seed" (current load at boot), "direct" (gate said eligible) or
      *  "permission" (an approved application's code). */
     via: text().notNull(),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex("enrolments_student_course").on(t.studentId, t.courseId)],
+  (t) => [uniqueIndex("enrolments_student_course_term").on(t.studentId, t.courseId, t.year, t.term)],
 );
 
 export const applications = sqliteTable("applications", {
@@ -89,6 +91,7 @@ export const applications = sqliteTable("applications", {
     .notNull()
     .references(() => convenors.id),
   term: text().notNull(),
+  year: int().notNull().default(2026),
   statement: text().notNull(),
   /** "auto-rejected" | "with-convenor" | "approved" | "rejected" */
   status: text().notNull(),
@@ -117,3 +120,70 @@ export type Course = typeof courses.$inferSelect;
 export type Student = typeof students.$inferSelect;
 export type Application = typeof applications.$inferSelect;
 export type ApplicationEvent = typeof applicationEvents.$inferSelect;
+
+export const offerings = sqliteTable(
+  "offerings",
+  {
+    id: int().primaryKey({ autoIncrement: true }),
+    courseId: int("course_id")
+      .notNull()
+      .references(() => courses.id),
+    year: int().notNull(),
+    term: text().notNull(),
+  },
+  (t) => [uniqueIndex("offering_course_year_term").on(t.courseId, t.year, t.term)],
+);
+
+export const selections = sqliteTable(
+  "selections",
+  {
+    id: int().primaryKey({ autoIncrement: true }),
+    studentId: int("student_id")
+      .notNull()
+      .references(() => students.id),
+    offeringId: int("offering_id")
+      .notNull()
+      .references(() => offerings.id),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("selection_student_offering").on(t.studentId, t.offeringId)],
+);
+
+// Public registration creates students only. Convenor accounts are provisioned
+// through scripts/invite-staff.ts, never from a browser-supplied role.
+export const accounts = sqliteTable("accounts", {
+  id: int().primaryKey({ autoIncrement: true }),
+  email: text().notNull().unique(),
+  passwordHash: text("password_hash"),
+  studentId: int("student_id")
+    .unique()
+    .references(() => students.id),
+  convenorId: int("convenor_id")
+    .unique()
+    .references(() => convenors.id),
+  verifiedAt: int("verified_at"),
+  createdAt: createdAt(),
+});
+
+export const sessions = sqliteTable("sessions", {
+  tokenHash: text("token_hash").primaryKey(),
+  accountId: int("account_id")
+    .notNull()
+    .references(() => accounts.id),
+  expiresAt: int("expires_at").notNull(),
+});
+
+export const emailTokens = sqliteTable("email_tokens", {
+  tokenHash: text("token_hash").primaryKey(),
+  accountId: int("account_id")
+    .notNull()
+    .references(() => accounts.id),
+  purpose: text().notNull(),
+  expiresAt: int("expires_at").notNull(),
+});
+
+export const authLimits = sqliteTable("auth_limits", {
+  key: text().primaryKey(),
+  count: int().notNull(),
+  resetsAt: int("resets_at").notNull(),
+});

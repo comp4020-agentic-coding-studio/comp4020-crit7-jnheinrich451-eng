@@ -1,12 +1,13 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { actorFrom, type ApplicationView, applicationsOfStudent, queueOf, TERM_LABELS } from "../../lib/store";
+import { type ApplicationView, applicationsOfStudent, queueOf, TERM_LABELS } from "../../lib/store";
 import type { Term } from "../../data/courses";
 
 // A student's own requests, or a convenor's queue: only requests routed to
 // them, waiting ones first. Auto-rejected requests never reached a person,
 // so a convenor sees them only as a count.
-const actor = actorFrom(Astro.cookies.get("as")?.value);
+const actor = Astro.locals.actor;
+if (!actor) return Astro.redirect("/login/", 303);
 
 const STATUS: Record<string, string> = {
   "auto-rejected": "Rejected automatically",
@@ -18,13 +19,27 @@ const STATUS: Record<string, string> = {
 let sections: { heading: string; empty: string; rows: ApplicationView[] }[];
 let screened = 0;
 if (actor.kind === "student") {
-  sections = [{ heading: "Your requests", empty: "You haven't requested any permission codes.", rows: applicationsOfStudent(actor.student.id) }];
+  sections = [
+    {
+      heading: "Your requests",
+      empty: "You haven't requested any permission codes.",
+      rows: applicationsOfStudent(actor.student.id),
+    },
+  ];
 } else {
   const all = queueOf(actor.convenor.id);
   screened = all.filter((a) => a.status === "auto-rejected").length;
   sections = [
-    { heading: "Waiting for you", empty: "Nothing is waiting for you.", rows: all.filter((a) => a.status === "with-convenor") },
-    { heading: "Decided", empty: "You haven't decided any requests yet.", rows: all.filter((a) => ["approved", "rejected"].includes(a.status)) },
+    {
+      heading: "Waiting for you",
+      empty: "Nothing is waiting for you.",
+      rows: all.filter((a) => a.status === "with-convenor"),
+    },
+    {
+      heading: "Decided",
+      empty: "You haven't decided any requests yet.",
+      rows: all.filter((a) => ["approved", "rejected"].includes(a.status)),
+    },
   ];
 }
 const title = actor.kind === "student" ? "My requests" : "Request queue";
@@ -33,43 +48,49 @@ const watch = actor.kind === "student" ? { studentId: actor.student.id } : { con
 
 <Layout title={title} actor={actor} watch={watch}>
   <h1>{title}</h1>
-  {
-    actor.kind === "convenor" ? (
-      <p class="lede">
-        Requests for the courses you convene, {actor.convenor.name}. Each one reached you because the student picked
-        your course, not because of anything they typed.
-        {screened > 0 && <> The automatic first round turned away {screened} {screened === 1 ? "request" : "requests"} before they got here.</>}
-      </p>
-    ) : (
-      <p class="lede">Every request shows where it is and who has it. Nothing sits without a status.</p>
-    )
-  }
+  {actor.kind === "convenor" ? (
+    <p class="lede">
+      Requests for your assigned courses, {actor.convenor.name}. Open a request to review its explanation and
+      eligibility evidence.
+      {screened > 0 && (
+        <>
+          {" "}
+          The automatic first round turned away {screened} {screened === 1 ? "request" : "requests"} before
+          they got here.
+        </>
+      )}
+    </p>
+  ) : (
+    <p class="lede">
+      Track your permission requests. You can keep planning and enrol in other ready courses while a request
+      is under review.
+    </p>
+  )}
 
-  {
-    sections.map((s, i) => (
-      <section aria-labelledby={`section-${i}`}>
-        <h2 id={`section-${i}`}>{s.heading}</h2>
-        {s.rows.length === 0 ? (
-          <p class="muted">{s.empty}</p>
-        ) : (
-          <ul class="request-list">
-            {s.rows.map((a) => (
-              <li>
-                <a href={`/applications/${a.id}/`} class="request-card">
-                  <span class="code">{a.course.code}</span>
-                  <span class="title">
-                    {actor.kind === "convenor" ? `${a.student.name} (${a.student.uid})` : a.course.title}
-                  </span>
-                  <span class="meta">
-                    {TERM_LABELS[a.term as Term]} · sent {a.createdAt.slice(0, 16).replace("T", " ")} UTC
-                  </span>
-                  <span class={`badge status-${a.status}`}>{STATUS[a.status]}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    ))
-  }
+  {sections.map((s, i) => (
+    <section aria-labelledby={`section-${i}`}>
+      <h2 id={`section-${i}`}>{s.heading}</h2>
+      {s.rows.length === 0 ? (
+        <p class="muted">{s.empty}</p>
+      ) : (
+        <ul class="request-list">
+          {s.rows.map((a) => (
+            <li>
+              <a href={`/applications/${a.id}/`} class="request-card">
+                <span class="code">{a.course.code}</span>
+                <span class="title">
+                  {actor.kind === "convenor" ? `${a.student.name} (${a.student.uid})` : a.course.title}
+                </span>
+                <span class="meta">
+                  {`${a.year} ${TERM_LABELS[a.term as Term]}`} · sent{" "}
+                  {a.createdAt.slice(0, 16).replace("T", " ")} UTC
+                </span>
+                <span class={`badge status-${a.status}`}>{STATUS[a.status]}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  ))}
 </Layout>

@@ -20,7 +20,10 @@ for (const route of ROUTES) {
     let doc: Document;
 
     beforeAll(async () => {
-      const res = await fetch(new URL(route, baseUrl));
+      const publicAuth = ["/login/", "/register/", "/verify/"].includes(route);
+      const res = await fetch(new URL(route, baseUrl), {
+        headers: { cookie: publicAuth ? "" : inject("fixtureCookies")["Olivia Park"] },
+      });
       status = res.status;
       dom = new JSDOM(await res.text(), {
         url: new URL(route, baseUrl).href,
@@ -56,10 +59,7 @@ for (const route of ROUTES) {
 
     it("gives every image alt text", () => {
       for (const img of doc.querySelectorAll("img")) {
-        expect(
-          img.hasAttribute("alt"),
-          `<img src="${img.getAttribute("src")}"> needs alt text`,
-        ).toBe(true);
+        expect(img.hasAttribute("alt"), `<img src="${img.getAttribute("src")}"> needs alt text`).toBe(true);
       }
     });
 
@@ -81,8 +81,7 @@ for (const route of ROUTES) {
         },
       });
       const violations = results.violations.map(
-        ({ id, help, nodes }) =>
-          `${id}: ${help} (${nodes.map((node) => node.target.join(" ")).join("; ")})`,
+        ({ id, help, nodes }) => `${id}: ${help} (${nodes.map((node) => node.target.join(" ")).join("; ")})`,
       );
       expect(violations).toEqual([]);
     });

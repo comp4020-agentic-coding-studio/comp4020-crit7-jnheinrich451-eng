@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
-import { existsSync, mkdtempSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { SMTPServer } from "smtp-server";
 import { type AddressInfo, createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -8,6 +10,11 @@ import type { TestProject } from "vitest/node";
 declare module "vitest" {
   export interface ProvidedContext {
     baseUrl: string;
+    fixtureCookies: Record<string, string>;
+    mailDir: string;
+    testDatabase: string;
+    expiredToken: string;
+    expiredSession: string;
   }
 }
 
@@ -28,17 +35,68 @@ export default async function setup(project: TestProject): Promise<() => void> {
     });
   });
 
-  const server = spawn("node", [entry], {
-    env: {
-      ...process.env,
-      HOST: "127.0.0.1",
-      PORT: String(port),
-      DATABASE_PATH: join(mkdtempSync(join(tmpdir(), "spec-db-")), "test.db"),
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const directory = mkdtempSync(join(tmpdir(), "spec-db-"));
+  const database = join(directory, "test.db");
+  const mailDir = mkdtempSync(join(tmpdir(), "spec-mail-"));
+  let rejectFirstDelivery = true;
+  const smtp = new SMTPServer({
+    authOptional: true,
+    disabledCommands: ["AUTH", "STARTTLS"],
+    logger: false,
+    onRcptTo(address, _session, done) {
+      if (address.address === "delivery-failure@anu.edu.au" && rejectFirstDelivery) {
+        rejectFirstDelivery = false;
+        done(new Error("Simulated provider rejection"));
+      } else done();
     },
+    onData(stream, session, done) {
+      let message = "";
+      stream.on("data", (chunk: Buffer) => {
+        message += chunk.toString();
+      });
+      stream.on("end", () => {
+        for (const recipient of session.envelope.rcptTo) {
+          writeFileSync(
+            join(
+              mailDir,
+              createHash("sha256").update(recipient.address.toLowerCase()).digest("hex") + ".eml",
+            ),
+            message,
+          );
+        }
+        done();
+      });
+    },
+  });
+  await new Promise<void>((resolve) => smtp.listen(0, "127.0.0.1", resolve));
+  const smtpPort = (smtp.server.address() as AddressInfo).port;
+  const env = {
+    ...process.env,
+    HOST: "127.0.0.1",
+    PORT: String(port),
+    DATABASE_PATH: database,
+    SMTP_HOST: "127.0.0.1",
+    SMTP_PORT: String(smtpPort),
+    SMTP_USER: "",
+    SMTP_PASSWORD: "",
+    MAIL_FROM: "prototype@example.test",
+    APP_ORIGIN: baseUrl,
+  };
+  const fixtureFile = join(directory, "fixtures.json");
+  const fixture = spawn("node", ["--import", "tsx", "spec/fixtures.ts"], {
+    env: { ...env, SPEC_FIXTURE: "1", SPEC_FIXTURE_FILE: fixtureFile },
+    stdio: "inherit",
+  });
+  await new Promise<void>((resolve, reject) => {
+    fixture.on("exit", (code) => (code === 0 ? resolve() : reject(new Error(`Fixture failed: ${code}`))));
+    fixture.on("error", reject);
+  });
+  const data = JSON.parse(readFileSync(fixtureFile, "utf8"));
+  const server = spawn("node", [entry], {
+    env,
     stdio: "ignore",
   });
-
-  const baseUrl = `http://127.0.0.1:${port}`;
   for (let attempt = 0; ; attempt++) {
     try {
       const res = await fetch(baseUrl);
@@ -54,7 +112,13 @@ export default async function setup(project: TestProject): Promise<() => void> {
   }
 
   project.provide("baseUrl", baseUrl);
+  project.provide("fixtureCookies", data.cookies);
+  project.provide("expiredToken", data.expiredToken);
+  project.provide("expiredSession", data.expiredSession);
+  project.provide("mailDir", mailDir);
+  project.provide("testDatabase", database);
   return () => {
     server.kill();
+    smtp.close();
   };
 }

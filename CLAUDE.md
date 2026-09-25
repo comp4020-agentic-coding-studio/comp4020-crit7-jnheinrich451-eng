@@ -2,7 +2,7 @@
 
 ## What we're building
 
-A slice of ANU course enrolment: the permission-code gate. A student opens a
+A slice of ANU course enrolment: the permission-code gate. A student selects a
 course; the app checks their (seeded) record against the course's rules and
 either lets them through, tells them exactly why they need a permission code,
 or tells them the course needs a code from everyone. Applications route to the
@@ -11,6 +11,20 @@ round, and carry a visible status timeline so nothing gets stuck silently.
 
 The contract is the crit 7 spec on the course site
 (`/api/crits/07-anu-system.json`). Re-read it before changing scope.
+
+## Design direction
+
+John has authorised a substantial redesign of the interaction and layout.
+Use ANU's visual style as the reference; the supplied portal screenshots and
+enrolment notes explain the existing experience, not a required screen sequence.
+Neither ANUHub's current workflow nor this prototype's catalogue-first layout
+is fixed. Design around completing enrolment with permission handling integrated
+into that task. Keep the prototype identity clear.
+
+John accepted course search, informative course pages, saved semester selections,
+integrated permission requests and explicit enrolment confirmation. Search accepts
+full codes, spaced codes, numbers and titles; numeric matches must not silently
+choose a subject. Keep the published scope and functional guarantees below.
 
 ## Rules
 
@@ -33,8 +47,20 @@ The contract is the crit 7 spec on the course site
   titles and requisites follow ANU's published courses, transcribed by hand
   and verified by John — do not crawl ANU sites (their robots.txt disallows AI
   agents). Don't put real staff names on invented decisions.
-- **No real auth.** An "act as" picker switches between seeded people. Say so
-  in the README; don't build login.
+- **Verified accounts.** John's 25 September instruction replaces the original
+  no-auth design. Student registration accepts exactly the `anu.edu.au` email
+  domain, hashes passwords, and requires a single-use SMTP email verification
+  link before sign-in. Domain matching alone is not proof of ownership.
+- **Staff are invited.** Never grant a reviewer role from public registration
+  or a browser-supplied actor id. Provision staff through `scripts/invite-staff.ts`;
+  reviewers can access only their assigned requests and relevant evidence.
+- **Generated records are fictional.** New student accounts automatically get
+  the labelled Computing (Advanced) demonstration record. Never describe it as
+  imported or verified ANU academic history. Seed updates must preserve these
+  profiles and user-created state.
+- **Offerings scope decisions.** Save year/term-specific offerings. Approval
+  applies only to the matching student, course, year and term. Saving a course
+  or approving a request does not itself enrol the student.
 - **Forms work without JavaScript.** POST + 303 redirect, as the starter does.
   JS is enhancement only.
 
@@ -72,7 +98,7 @@ The contract is the crit 7 spec on the course site
   ```
 
   After a deploy, run CI's probes by hand until the repo is public: 200 on
-  `/`, bytes from `/api/events`, a same-origin form POST not 403, a
+  `/`, 401 for anonymous `/api/events`, a same-origin form POST not 403, a
   cross-site one 403, and linkinator over internal links.
 - Every new page goes into `spec/routes.ts` in the same commit.
 - Spec tests drive the running app over HTTP and assert contracts (what a

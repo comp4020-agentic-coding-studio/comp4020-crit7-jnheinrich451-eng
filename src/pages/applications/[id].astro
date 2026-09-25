@@ -2,18 +2,20 @@
 import type { Term } from "../../data/courses";
 import { PROGRAMS, type ProgramKey } from "../../data/requisites";
 import Layout from "../../layouts/Layout.astro";
-import { actorFrom, getApplication, TERM_LABELS } from "../../lib/store";
+import { enrolmentsOf, getApplication, TERM_LABELS } from "../../lib/store";
 
 // One request: where it is, who has it, what the automatic round checked, and
 // every step as a timeline. The student who sent it and the convenor it was
 // routed to can see it; the convenor decides here.
-const actor = actorFrom(Astro.cookies.get("as")?.value);
+const actor = Astro.locals.actor;
+if (!actor) return Astro.redirect("/login/", 303);
 const app = getApplication(Number(Astro.params.id));
 if (!app) return new Response("No such request", { status: 404 });
 
 const mine = actor.kind === "student" && actor.student.id === app.studentId;
 const routedToMe = actor.kind === "convenor" && actor.convenor.id === app.convenorId;
 const canSee = mine || routedToMe;
+if (!canSee) return new Response("Request not found", { status: 404 });
 
 const STATUS: Record<string, { label: string; say: string }> = {
   "auto-rejected": {
@@ -22,104 +24,149 @@ const STATUS: Record<string, { label: string; say: string }> = {
   },
   "with-convenor": {
     label: `With ${app.convenor.name}`,
-    say: `Waiting for ${app.convenor.name}, convenor of ${app.course.code}. This page updates when they decide.`,
+    say: `Waiting for ${app.convenor.name}, convenor of ${app.course.code}. Refresh this page to check for a decision.`,
   },
   approved: { label: "Approved", say: "Approved. Use the permission code to enrol." },
-  rejected: { label: "Rejected by the convenor", say: "The convenor turned this down. Their reason is in the timeline." },
+  rejected: {
+    label: "Rejected by the convenor",
+    say: "The convenor turned this down. Their reason is in the timeline.",
+  },
 };
-const status = STATUS[app.status];
+const isEnrolled = enrolmentsOf(app.studentId).some(
+  (e) => e.code === app.course.code && e.year === app.year && e.term === app.term,
+);
+const status = isEnrolled
+  ? { label: "Enrolled", say: "Enrolment is confirmed for this offering. Your request history is below." }
+  : STATUS[app.status];
 const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "System", convenor: "Convenor" };
 ---
 
 <Layout title={`${app.course.code} request`} actor={actor} watch={{ applicationId: app.id }}>
-  <p class="breadcrumb"><a href="/applications/">{actor.kind === "convenor" ? "Request queue" : "My requests"}</a> / #{app.id}</p>
-  {
-    !canSee ? (
-      <>
-        <h1>This request isn't yours</h1>
-        <p>
-          Request #{app.id} belongs to another student. Only that student and {app.course.code}'s convenor can see it.
-          Use “Acting as” to switch to {app.student.name} or {app.convenor.name}.
-        </p>
-      </>
-    ) : (
-      <>
-        <h1>
-          <span class="code">{app.course.code}</span> permission request
-        </h1>
+  <p class="breadcrumb">
+    <a href="/applications/">{actor.kind === "convenor" ? "Request queue" : "My requests"}</a> / #{app.id}
+  </p>
+  {!canSee ? (
+    <>
+      <h1>This request isn't yours</h1>
+      <p>
+        Request #{app.id} belongs to another student. Only that student and {app.course.code}'s convenor can
+        see it.
+      </p>
+    </>
+  ) : (
+    <>
+      <h1>
+        <span class="code">{app.course.code}</span> permission request
+      </h1>
 
-        <section class={`status status-${app.status}`} aria-labelledby="status-heading">
-          <h2 id="status-heading">{status.label}</h2>
-          <p>{status.say}</p>
-          {app.permissionCode && (
-            <p class="code-issued">
-              Permission code: <code>{app.permissionCode}</code>
-              {mine && (
-                <>
-                  {" "}
-                  <a href={`/courses/${app.course.code}/`}>Enrol in {app.course.code}</a>
-                </>
-              )}
-            </p>
-          )}
-        </section>
-
-        <dl class="facts">
-          <div><dt>Student</dt><dd>{app.student.name} ({app.student.uid}), {PROGRAMS[app.student.program as ProgramKey]}</dd></div>
-          <div><dt>Course</dt><dd><a href={`/courses/${app.course.code}/`}>{app.course.code} {app.course.title}</a></dd></div>
-          <div><dt>Term</dt><dd>{TERM_LABELS[app.term as Term]}</dd></div>
-          <div><dt>Routed to</dt><dd>{app.convenor.name}, convenor of {app.course.code}</dd></div>
-        </dl>
-
-        <section aria-labelledby="statement-heading">
-          <h2 id="statement-heading">The student's case</h2>
-          <blockquote class="statement">{app.statement}</blockquote>
-        </section>
-
-        {app.checkList.length > 0 && (
-          <section aria-labelledby="checks-heading">
-            <h2 id="checks-heading">What the automatic round checked</h2>
-            <p class="muted">Read from the student's record when the request was sent, not typed by them.</p>
-            <ul class="checks">
-              {app.checkList.map((c) => (
-                <li class={c.met ? "met" : "unmet"}>
-                  <span class="mark" aria-hidden="true">{c.met ? "✓" : "✗"}</span>
-                  <span class="visually-hidden">{c.met ? "Met:" : "Not met:"}</span> {c.text}
-                </li>
-              ))}
-            </ul>
-          </section>
+      <section class={`status status-${app.status}`} aria-labelledby="status-heading">
+        <h2 id="status-heading">{status.label}</h2>
+        <p>{status.say}</p>
+        {app.permissionCode && (
+          <p class="code-issued">
+            Permission code: <code>{app.permissionCode}</code>
+            {mine && !isEnrolled && (
+              <>
+                {" "}
+                <a
+                  href={`/courses/${app.course.code}/?term=${encodeURIComponent(app.term)}&year=${app.year}`}
+                >
+                  Continue to {app.course.code}
+                </a>
+              </>
+            )}
+          </p>
         )}
+      </section>
 
-        {routedToMe && app.status === "with-convenor" && (
-          <section aria-labelledby="decide-heading" class="decide">
-            <h2 id="decide-heading">Your decision</h2>
-            <form method="post" action={`/api/applications/${app.id}/decision`} class="stack">
-              <label for="note">Note to the student (required to reject)</label>
-              <textarea id="note" name="note" rows="3" maxlength="2000" />
-              <div class="actions">
-                <button class="primary" name="decision" value="approve">Approve and issue a code</button>
-                <button class="danger" name="decision" value="reject">Reject</button>
-              </div>
-            </form>
-          </section>
-        )}
+      <dl class="facts">
+        <div>
+          <dt>Student</dt>
+          <dd>
+            {app.student.name} ({app.student.uid}), {PROGRAMS[app.student.program as ProgramKey]}
+          </dd>
+        </div>
+        <div>
+          <dt>Course</dt>
+          <dd>
+            <a href={`/courses/${app.course.code}/`}>
+              {app.course.code} {app.course.title}
+            </a>
+          </dd>
+        </div>
+        <div>
+          <dt>Term</dt>
+          <dd>{`${app.year} ${TERM_LABELS[app.term as Term]}`}</dd>
+        </div>
+        <div>
+          <dt>Assigned reviewer</dt>
+          <dd>
+            {app.convenor.name}, convenor of {app.course.code}
+          </dd>
+        </div>
+      </dl>
 
-        <section aria-labelledby="timeline-heading">
-          <h2 id="timeline-heading">Timeline</h2>
-          <ol class="timeline">
-            {app.events.map((e) => (
-              <li class={`event event-${e.actor}`}>
-                <p class="who">
-                  <strong>{e.actorName}</strong> <span class="role">{ACTOR_LABEL[e.actor]}</span>
-                  <time datetime={`${e.createdAt.replace(" ", "T")}Z`}>{e.createdAt} UTC</time>
-                </p>
-                <p class="what">{e.detail.split("\n").map((line) => <span class="line">{line}</span>)}</p>
+      <section aria-labelledby="statement-heading">
+        <h2 id="statement-heading">The student's case</h2>
+        <blockquote class="statement">{app.statement}</blockquote>
+      </section>
+
+      {app.checkList.length > 0 && (
+        <section aria-labelledby="checks-heading">
+          <h2 id="checks-heading">What the automatic round checked</h2>
+          <p class="muted">
+            Snapshot of the fictional academic record when the request was sent. This is demonstration data,
+            not verified university results.
+          </p>
+          <ul class="checks">
+            {app.checkList.map((c) => (
+              <li class={c.met ? "met" : "unmet"}>
+                <span class="mark" aria-hidden="true">
+                  {c.met ? "✓" : "✗"}
+                </span>
+                <span class="visually-hidden">{c.met ? "Met:" : "Not met:"}</span> {c.text}
               </li>
             ))}
-          </ol>
+          </ul>
         </section>
-      </>
-    )
-  }
+      )}
+
+      {routedToMe && app.status === "with-convenor" && (
+        <section aria-labelledby="decide-heading" class="decide">
+          <h2 id="decide-heading">Your decision</h2>
+          <form method="post" action={`/api/applications/${app.id}/decision`} class="stack">
+            <label for="note">Note to the student (required to reject)</label>
+            <textarea id="note" name="note" rows="3" maxlength="2000" />
+            <div class="actions">
+              <button class="primary" name="decision" value="approve">
+                Approve and issue a code
+              </button>
+              <button class="danger" name="decision" value="reject">
+                Reject
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
+
+      <section aria-labelledby="timeline-heading">
+        <h2 id="timeline-heading">Timeline</h2>
+        <ol class="timeline">
+          {app.events.map((e) => (
+            <li class={`event event-${e.actor}`}>
+              <p class="who">
+                <strong>{e.actorName}</strong> <span class="role">{ACTOR_LABEL[e.actor]}</span>
+                <time datetime={`${e.createdAt.replace(" ", "T")}Z`}>{e.createdAt} UTC</time>
+              </p>
+              <p class="what">
+                {e.detail.split("\n").map((line) => (
+                  <span class="line">{line}</span>
+                ))}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </section>
+    </>
+  )}
 </Layout>

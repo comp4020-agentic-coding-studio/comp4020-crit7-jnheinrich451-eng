@@ -90,14 +90,15 @@ jobs:
             sleep 10
           done
           echo "site did not return 200"; exit 1
-      - name: Verify the live-update stream is streaming
-        # the SSE endpoint sends an opening comment immediately
+      - name: Verify private events require authentication
+        # Authenticated streaming is covered by the HTTP suite; anonymous
+        # deployment probes must not receive student or reviewer events.
         run: |
-          first=$(curl -sN -m 15 "$APP_URL/api/events" | head -c 12 || true)
-          if [ -n "$first" ]; then
-            echo "streaming: $APP_URL/api/events"
+          code=$(curl -s -o /dev/null -w "%{http_code}" -m 15 "$APP_URL/api/events" || true)
+          if [ "$code" = "401" ]; then
+            echo "private events require authentication"
           else
-            echo "no bytes from the SSE endpoint"; exit 1
+            echo "expected HTTP 401 for anonymous events, got $code"; exit 1
           fi
       - name: Verify the deployed app knows it is serving https
         # Behind Fly's proxy an app can decide it serves http and then 403
