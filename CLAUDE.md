@@ -64,6 +64,17 @@ The 2027 CMSY-SPEC course list names COMP8045, while its explanatory advice link
 COMP8405. Preserve that unresolved source inconsistency; do not alias the codes
 or change allowed-course membership on the assumption that it is a typo.
 
+John has agreed two future increments: structured eligibility with explicit
+unknown results and a manually reviewed reference set; and saved assessment
+reports with an automated, clearly labelled demo permission path. See
+`docs/eligibility-implementation-plan.md` for dependencies and acceptance checks.
+This agreement does not mean the current reviewer queue is automated. Preserve
+the existing gate distinctions when adding incomplete assessments. Separate ANU
+source rules from our demo approval policy, and attribute automated decisions to
+a system actor. The first model trial will use Llama through a local runtime;
+this supersedes the earlier Qwen candidate, not the deterministic decision engine.
+Model benchmarking follows the reference set and need not block the demo flow.
+
 ## Rules
 
 - **The schema is the ground truth.** Edit `src/lib/schema.ts`, run

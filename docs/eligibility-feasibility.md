@@ -8,6 +8,12 @@ must provide a useful outcome without depending on a person operating the
 reviewer queue. Human review of rule authoring and per-request review are
 different activities.
 
+John subsequently agreed both workstreams and selected Llama as the initial
+model family. The actionable sequence is recorded in
+[`eligibility-implementation-plan.md`](eligibility-implementation-plan.md).
+This document retains the earlier assessment and its staffing correction;
+neither document claims the proposed runtime behaviour has been implemented.
+
 ## Feasibility and existing foundation
 
 Course eligibility is feasible to compute from structured rules and structured
@@ -84,7 +90,10 @@ rules remain separate from offering years. The current pass-code/unit view
 cannot settle every GPA, mark or equivalence rule. Use a deliberately fictional
 fixture when demonstrating such data; do not invent it for an existing account.
 
-## Proposed role for a small language model
+## Initial proposal for a small language model
+
+The per-request reviewer shown below was the initial staffing assumption. The
+follow-up section replaces that dependency for the unstaffed public demo.
 
 ```mermaid
 flowchart TD
@@ -112,9 +121,10 @@ Never execute generated JavaScript or SQL as a course rule. A model's own
 confidence score must not promote a draft into an active rule.
 
 [Qwen3-4B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507)
-is one Apache-2.0, four-billion-parameter candidate for a bounded local trial.
+was the initial candidate. John's subsequent choice is Llama, with
+`llama3.2:3b` proposed as the first local benchmark baseline; see the agreed plan.
 No model has been downloaded, benchmarked or selected for production here.
-The current `fly.toml` specifies 256 MB RAM, unsuitable for hosting this model.
+The current `fly.toml` specifies 256 MB RAM, unsuitable for hosting either model.
 Run extraction locally during catalogue maintenance, then deploy the reviewed
 rules with the existing web app. A later online assistant could use separate
 inference infrastructure if a demonstrated product need justifies it. No training
