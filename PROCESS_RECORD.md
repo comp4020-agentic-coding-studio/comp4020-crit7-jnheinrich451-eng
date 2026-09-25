@@ -350,3 +350,172 @@ The first draft of the ANUHub column said, as fact, that a code request
 "waits without being able to see where it is". That generalises one
 experience into a claim about ANU's system, which `AGENTS.md` says not to
 do. It now reads as the case that prompted the prototype.
+
+## 2026-09-24 15:35 — Review the enrolment sequence before changing the layout
+
+**Prompt:**
+
+> Yes you can share, and hmm, Claude built a version with functions, yet I think, maybe layout, or the over design has issues. I have a concise logic chain with ANU enrollment portal, and you can ask me for details
+
+**Result:**
+Reviewed the current implementation against John's two supplied portal images
+and `assets/ANU_enrollment.md`. Asked for his intended sequence, the place of
+permission requests within it, and which parts feel overdesigned. Left product
+code and the existing design unchanged pending that clarification.
+
+The source starts with an unfiltered-by-term catalogue and selects a term on
+the course page, whereas John's notes start with a term and end with a separate
+confirmation. Flagged the dense course-page hierarchy as a candidate for
+progressive disclosure, not an accepted redesign. Also found that approved
+requests are matched without their term in `enrol`, and that the automatic
+rejection path accepts a disputed-record statement without routing it for human
+review. These are source-review findings, not runtime reproductions.
+
+**Verified:**
+Read `CLAUDE.md`, the supplied notes, layouts, course/request pages, eligibility
+presentation, schema, store and existing HTTP tests. Checked the working tree
+and recent history; `assets/` was already untracked and was preserved. No app
+tests or rendered viewport checks were run in this review. Docker access from
+the sandbox was denied. No claim of current test success was made.
+
+**Commit:** none — discussion and source review only; this record is uncommitted.
+
+**What happened:**
+John explicitly authorised sharing the relevant private files and his account
+with Claude Code. Both the normal read-only invocation and a retry with
+customisations disabled crashed in the installed Bun runtime before returning
+a review. No findings here are attributed to Claude. The collaboration attempt
+remains incomplete; no tooling installation or update was attempted.
+
+## 2026-09-24 19:45 — ANU's visual style does not fix the workflow
+
+**Prompt:**
+
+> I think, it is a rebuild, but I think we can change this drastically. Maybe only to keep ANU's art style!
+
+**Result:**
+Updated `CLAUDE.md` to distinguish ANU's visual reference from interaction
+requirements. John authorised substantial changes to the layout and workflow;
+neither the original portal sequence nor the prototype's catalogue-first layout
+is fixed. The replacement journey remains a proposal to discuss. Retained the
+published scope and functional guarantees. No application code changed.
+
+**Verified:**
+Read the current harness and working-tree status before editing. Reviewed the
+documentation diff and ran `git diff --check`; no whitespace errors. App tests
+were not run for this documentation-only clarification.
+
+**Commit:** none — design clarification and record remain uncommitted.
+
+**What happened:**
+The previous review gave the existing ANUHub sequence too much weight as a
+candidate structure. John clarified that the rebuild can change it drastically;
+the shared harness now makes that freedom explicit.
+
+## 2026-09-24 21:46 — Separate course information, offerings and enrolment state
+
+**Prompt:**
+
+> What is a good class enrollment design?
+
+> We can directly find the course by course code here I mean like COMP6528, the 6528. with the prefix COMP.
+
+> I am actually thinking, how should we do to this dataset? I think the crit page for spec if it clarifies?
+
+**Result:**
+Checked the published contract and current data architecture before recommending
+scope. The spec requires a personally relevant end-to-end slice, persistent core
+actions, deployment and process evidence; it does not require real accounts,
+scraping or a university-wide catalogue. Proposed searchable course information,
+saved semester selections and integrated permission handling as one coherent
+enrolment task. These recommendations have not been accepted or implemented.
+
+Distinguished source-backed catalogue data, year/term-specific offerings,
+fictional student and reviewer records, and user-created selections, requests,
+decisions and enrolments. Recommended a small verified reference dataset with
+source/year/check metadata and repeatable imports that preserve user-created
+state. Keep demo identity selection rather than adding account registration.
+
+**Verified:**
+Fetched the current Crit 7 JSON directly from the course API and read Programs
+& Courses' robots.txt through the web tool. It explicitly disallows ChatGPT-User,
+GPTBot and ClaudeBot. No course pages were crawled. Read the current schema,
+catalogue, seed routine, search implementation, people and requisite definitions.
+Counted 70 catalogue entries. Current search uses substring matching on code or
+title; the dataset includes both COMP6528 and ENGN6528, so numeric input should
+not silently resolve to one course. App tests were not run; no app code changed.
+
+**Commit:** none — advice and evidence record only; no implementation was agreed.
+
+**What happened:**
+The web tool could not open the course spec endpoint. A direct read-only request
+returned the published brief and spec. The existing no-crawl harness instruction
+was supported by the site's published robots directives; an authorised export
+or user-supplied source material remains the recommended input route.
+
+## 2026-09-25 13:38 — Verified student accounts with a private reviewer workflow
+
+**Prompt:**
+
+> So I think if we can store the email(account) and password of students, and add a block out with only ends with @anu.edu.au can pass. And then enters, we generate one profile for this new user.
+
+> If we need to register the faculties? For I am not clear about the faculty ends, not clear what should be visible to them. And rest can follow your plan
+
+John then selected email ownership verification, automatic clearly labelled
+fictional academic records, and SMTP support with credentials configured locally.
+
+**Result:**
+Replaced the public actor-switch cookie with server-side sessions. Student
+registration validates the exact email domain, stores salted scrypt password
+hashes, and requires an expiring single-use SMTP verification link before login.
+An automatically generated Computing (Advanced) academic record is labelled as
+fictional. Reviewer roles are assigned through an administrator invitation
+command; public registration cannot create staff. Reviewer pages and live events
+are restricted to their assigned requests. Profiles and requests are private.
+
+Built the accepted enrolment workspace: code/number/title search with subject
+and term filters, source-backed course details and handbook links, persistent
+saved offerings, integrated permission handling and explicit enrolment
+confirmation. Approval matches student, course, year and term. A student can
+request human review of a disputed automatic check. Existing catalogues and
+records migrate through the generated Drizzle migration; no live site deploy.
+
+Used restrained dark/gold styling as the visual direction. Browser inspection
+showed that long requirement text delayed the next action on mobile, so the
+published wording is expandable and the offering controls appear earlier.
+Added `docs/accounts-and-data.md` and a credential-free mail environment example.
+Preserved John's concurrent unfinished `AGENTS.md` edit and untracked `assets/`.
+
+**Verified:**
+The initial Docker baseline passed 126 tests. The final Node 24 / pnpm 11.9.0
+Docker run passed type checking with zero errors, warnings or hints and all
+170 tests. The HTTP suite covers SMTP delivery to a local capture inbox,
+verification expiry and reuse, invitation activation, failed delivery and resend,
+password/session storage, login throttling, CSRF, forged legacy cookies,
+ownership, persistent selections, routing, and cross-term approval rejection.
+Existing invariants and the full README rendering test remain enabled.
+
+Ran headless Chrome at 1440 and 390 pixels, with JavaScript disabled, against a
+separate temporary database. Inspected screenshots of search, registration and
+the mobile course page; checked 13 page/view combinations without horizontal
+overflow. Completed request -> assigned reviewer approval -> explicit student
+enrolment -> reload in the browser. The isolated preview remains on port 4322;
+local screenshots and the browser check report are in the ignored `.data/`.
+The staged implementation passed `git diff --cached --check`.
+
+`check:evidence` still fails on the missing reflection, template `PROCESS.md`
+and its placeholder commit citations. Those student-authored files were not
+rewritten. Actual inbox delivery remains untested until John configures SMTP.
+Password recovery, real academic-record integration and deployment are not part
+of this completed local increment.
+
+**Commit:** [`20fb86f`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/20fb86f)
+
+**What happened:**
+The first new HTTP run passed 166/167 tests; the cross-term test mistakenly used
+a student who had already passed the course. Replaced that fixture with a
+fictional incompatible-course case that requires permission, then demonstrated
+rejection in the wrong term and successful enrolment in the approved term.
+The user's email-verification choice superseded the earlier no-auth harness
+rule; `CLAUDE.md` now records the new contract. No external email was sent by
+the automated or browser checks, and no review is attributed to Claude.
