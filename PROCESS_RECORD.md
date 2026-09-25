@@ -1559,3 +1559,58 @@ Semester 2. Corrected the fixture and tested that a Semester 1 corequisite does 
 qualify a Semester 2 request, keeping the availability and term boundaries intact.
 Several old tests used newly encoded courses as missing-rule examples; replaced
 those examples with actual source gaps or explicit unresolved evidence conditions.
+
+## 2026-09-26 05:10 — Invited reviewers and explicit exception routing
+
+**Prompt:**
+
+> I think this part, can be finished? And in your opinion, the human reviewer, you thought there will be, if we can add this? BUt how to register as a reviewer like the convenor you set for those courses?
+
+**Result:**
+Confirmed the saved-catalogue encoding increment is complete within its documented
+evidence limits. The existing human queue, invitation, sign-in and decision flow
+already provide the requested reviewer role. Kept public registration student-only
+and explained the operator-issued invitation instead of adding a public staff-role
+selector. A tester can act as a fictional convenor; no real ANU staffing is implied.
+Expanded the setup guide with separate browser sessions, existing-invitation
+recovery, COMP8620/COMP7710 assignments and the explicit Send to convenor action.
+Corrected its stale 2026-only dataset description to match the current catalogue.
+
+Found and fixed a route gap: choosing exception or equivalent study could still
+trigger the automatic first-round rejection on an incompatibility. The optional
+staff path now accepts all three explicit judgement reasons, including record
+correction, without changing failed/unknown checks or granting permission. The
+selected reason is recorded in a student event and retained in the form for
+switching back to automatic assessment. Existing automatic reports are preserved.
+
+**Verified:**
+Read CLAUDE.md, the published Crit 7 contract, invitation/authentication code,
+reviewer queue, decision handlers and account tests. Read-only inspection of the
+local database found an unverified account for Dr Rowan Ellis (COMP8620, ID 1)
+and no account for Dr Hana Okafor (COMP7710, ID 4). No account was created, promoted
+or activated, and no invitation was sent to the user's local or external inbox.
+
+Docker Node 24 / pnpm 11.9.0 `pnpm check` passed: zero diagnostics across 83 files,
+416 tests across 18 test files. Three added HTTP scenarios verify a recorded
+COMP6710 incompatibility remains visible when a COMP7710 judgement request reaches
+Dr Hana Okafor. They cover reason preservation, an ignored forged convenor ID,
+wrong-reviewer rejection, duplicate pending requests, approval followed by explicit
+profile enrolment, mandatory rejection feedback and conversion back to automatic
+assessment. Earlier automatic denials retain their original result. Existing
+invitation activation, access boundary and persistence tests also passed.
+
+Refreshed the local preview and confirmed HTTP 200 on sign-in and unchanged
+reviewer setup/pending counts. No new browser visual pass was run: this turn
+changed routing and explanatory copy, not authentication headers or layout.
+The staged diff passed whitespace checks. No push, deployment or Claude review.
+
+**Commit:** [`4fbd143`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/4fbd143)
+
+**What happened:**
+Reviewing how to register a human reviewer exposed that only the older
+record-correction flag bypassed first-round rejection. A student asking for an
+exception would otherwise have needed to mislabel it as an incorrect record to
+reach the reviewer. Corrected that distinction before documenting the workflow.
+The published-spec web tool failed; the same endpoint was read successfully
+through Invoke-RestMethod. An initial patch failed its context check and made no
+changes; reapplied it against the actual harness text before running the checks.
