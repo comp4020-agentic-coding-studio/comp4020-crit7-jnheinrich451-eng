@@ -663,3 +663,212 @@ variable name and failed type checking; renamed it. The first browser rerun
 reached login but had an ambiguous email-field selector shared with the resend
 form; scoped the selector to the login form and completed the rerun. These
 were test-harness corrections, not reasons to relax application security.
+
+## 2026-09-25 21:49 — Inspect saved program HTML and select the first rule version
+
+**Prompt:**
+
+> And I add a downloaded page in ./assets/MCOMP, if you can check it? The Study section, it records the info, but those links, they still points to website, so if it can do, I will download all course pages
+
+When asked which degree and rule year the first planning example should use,
+John selected:
+
+> Computing (Advanced), 2026 — current demo profile
+
+**Result:**
+Confirmed that the saved HTML contains the full Study section, so the user can
+supply downloaded pages without retyping or fixing their external links. Those
+links identify sources; they do not include their destination pages. Recorded
+the snapshot's MCOMP 2027 identity, source URL and checksum, the visible unit
+constraints, eight distinct linked course codes, and the gaps between its
+requirements, specialisation link list and sample study table. In particular,
+Machine Learning is named in the requirements but omitted from the linked
+specialisations. The sample table also omits compulsory COMP6120 and adds an
+extra university elective slot. No guesses were imported as executable rules.
+
+Updated the shared harness with John's VCOMP 2026 decision. The next small
+source set is that degree page, its Machine Learning specialisation, COMP6670
+and the advanced courses named there. Degree-rule year and offering year must
+remain separate. The supplied MCOMP 2027 page is retained as separate evidence.
+
+**Verified:**
+Read the saved HTML's metadata, Study section, additional academic advice and
+the current local catalogue. Parsed the HTML with JSDOM in a Node 24 container
+using `--network none`; no scripts ran or linked pages were fetched. Saved the
+extracted year, URLs, table rows and checksum in
+`.data/MCOMP-2027-source.json`. The source contains the hidden Study tab text
+without needing its downloaded images/scripts. No application code or database
+changed; application tests were not rerun for this offline source review.
+
+**Commit:** none — source review and agreed planning target recorded; no implementation increment.
+
+## 2026-09-25 21:58 — Inventory the uploaded 2027 degree and specialisation sources
+
+**Prompt:**
+
+> Hmm, and I uploaded them, and 2027's specializations are changed from my turn, there is no Machine Learning, but only the Artificial Intelligence, and I checked those courses are moved from ML to AI. And next I will upload the courses
+
+**Result:**
+Inspected all ten uploaded snapshots: three degrees and seven specialisations,
+each with 2027 metadata and locally extractable requirements. The AI snapshot
+includes COMP6670, COMP8600 and COMP8650, consistent with John's observation.
+Kept his reported historical change separate from what these current snapshots
+prove: they do not establish the earlier ML rules or transition policy for an
+existing student. The saved degree requirement text still mentions ML, so its
+inconsistency remains flagged.
+
+Created `docs/uploaded-sources-2027.md` with an inventory, the AI course groups
+and 66 distinct explicit 2027 course links to reduce duplicate collection work.
+These references include exclusions/advice and are not a claim that all courses
+are required or eligible. Updated the moved MCOMP source path, verified its
+checksum is unchanged, and kept the earlier VCOMP 2026 planning target intact.
+
+**Verified:**
+Parsed the uploaded HTML using JSDOM in a Node 24 container with networking
+disabled and no script execution. Extracted per-file year, identifiers, source
+URL, SHA-256, requirement text and links into the local evidence artifact
+`.data/uploaded-program-sources.json`. Deduplicated only explicit 2027 course
+links; unversioned links did not establish a year. No linked course page was
+fetched, and no application code or database was changed. App tests were not
+rerun for this source inventory.
+
+**Commit:** none — offline source inventory and download checklist only.
+
+## 2026-09-25 22:44 — Audit shared course sources without losing specialisation relationships
+
+**Prompt:**
+
+> Ty, the incognito will do! And I have completed all specializations courses, and I noticed there are overlap, the duplicated, but I keep them duplicated in different specializations, for those express their relations, those links you can refer. And working on rest courses, hew, a big work
+
+**Result:**
+Preserved all source copies and their folder context. Audited 64 saved course
+pages representing 49 distinct course/year pairs, all 2027. The 15 extra copies
+agree on the content fields compared. Updated the source checklist to mark
+those 49 codes received and identify 17 remaining links. Recorded the intended
+import boundary: one course version can participate in several specialisation
+rule groups, preserving exclusions, unit constraints and source provenance.
+
+Found that AI's Advanced Topics in Machine Learning folder contains a COMP8620
+page; the correct COMP8650 page is already supplied under Data Science, so no
+repeat download is necessary. Recorded two missing requisite headings and
+topic-dependent prerequisites that cannot safely be flattened into simple
+eligibility. Offering sections include 2027 and 2028 with future availability
+labelled indicative, requiring offering-year extraction separate from page year.
+
+**Verified:**
+Ran the offline JSDOM audit in a Node 24 container with `--network none` and no
+page script execution. All 64 files have code/year metadata and learning-outcome
+and offering headings. Compared normalised content fields within duplicate
+code/year groups; retained raw SHA-256 hashes as separate provenance. Matched
+the uploaded set to the 66 explicit 2027 course links and inspected extracted
+COMP6670, COMP8600, COMP8650 and COMP8620 rules. Evidence is saved in
+`.data/course-source-audit.json`. No source files or application data were
+changed; no application tests were needed for this source audit.
+
+**Commit:** none — offline source audit and collection checklist update only.
+
+## 2026-09-25 23:29 — Distinguish shared titles from course identity and offering status
+
+**Prompt:**
+
+> Done! God! In Courses/Remained, contains rest courses.
+>
+> But for **Computational Methods for Network Science** one COMP8880, one COMP8980? It has unclear meaning. And some courses does not include the enrollment semester, like COMP8880, it isn't presented with the timeslot
+
+John also compared COMP6434 and COMP8430 Data Wrangling and suggested that
+their differing codes might reflect changes across academic years.
+
+**Result:**
+Re-audited 95 saved pages representing 76 distinct course/year pairs, all 2027.
+Of the original 66 linked codes, 61 are present and five remain unmatched; the
+new collection also includes additional catalogue entries. All compared fields
+agree within repeated code/year groups. Preserved the previous audit snapshot.
+
+Compared the four named courses directly. The two Data Wrangling entries have
+different requisites and permission wording. COMP8980 has a different requisite
+expression from COMP8880 and explicitly lists COMP8880 as incompatible. Shared
+titles are therefore not sufficient authority to merge the codes, assert a
+historical replacement or transfer an approval. All four saved pages carry 2027
+metadata. Preserved ambiguous AND/OR grouping rather than inventing a rule.
+
+COMP8430, COMP8880 and COMP8980 explicitly say there are no current offerings;
+COMP6434 lists S2 2027 and an indicative S2 2028 offering. Fourteen distinct
+courses in the collection carry the explicit no-current-offerings statement.
+Recorded the distinction from missing availability and permanent discontinuation
+in the source audit and shared harness. Updated the receipt checklist; application
+data still use the existing 2026 catalogue.
+
+**Verified:**
+Ran JSDOM offline in Node 24 with no network or page script execution. Compared
+saved metadata, description, requisite wording, learning outcomes and offering
+text for COMP6434, COMP8430, COMP8880 and COMP8980. Forty-three saved-file headers
+contain `about:internet`; extraction now retains that value and separately
+records the source's canonical URL as fallback provenance. Rechecked the explicit
+availability classifications and checklist counts against the extracted records.
+No source files were renamed or deleted, no linked page was fetched, and no
+application code/database changed. Application tests were not run for this audit.
+
+**Commit:** none — source comparison and inventory update only.
+
+## 2026-09-25 23:52 — Persist source evidence before interpreting course rules
+
+**Prompt:**
+
+> Great, then if we can move on. And if you need like persistent data to store understanding, the relations of those courses? I think it is quite hard to smooth the entangled relations right?
+
+**Result:**
+Built an offline importer, a version-controlled normalized dataset, five
+additive SQLite tables and a public course library at `/catalogue/`. Imported
+105 saved HTML files into 86 code/kind/year identities: 76 courses, three
+degrees and seven specialisations. Duplicate copies retain their original
+paths and checksums. Stored 394 contextual code/link mentions and 154 offering
+rows with their actual years, sessions and published dates.
+
+Kept the difficult distinction explicit: a mention in a requirement block is
+not automatically a prerequisite, an allowed elective or an equivalence. The
+import preserves paragraph order/list depth and exact AND/OR wording; missing
+target years remain unknown. Separate review state survives reseeding. Changed
+source wording retains another visible snapshot instead of silently replacing
+it or inheriting a previous review. Historical snapshots remain in both the
+distributable JSON and the persistent database.
+
+The library supports full/spaced/numeric course search, inline links to matching
+year-specific sources, published offerings, related source entries and evidence
+disclosures without JavaScript. It labels unknown requirements and distinguishes
+explicit no-current-offerings statements from absent information. The existing
+2026 enrolment rules and fictional student records remain separate. Automatic
+degree planning and a review editor are not implemented. Recorded the model and
+next interpretation boundary in `docs/catalogue-data.md` and the shared harness.
+Committed the preceding offline source audits alongside the implemented import;
+raw user downloads and the user's AGENTS.md edit were left untouched.
+
+**Verified:**
+Generated migration `0004` from `src/lib/schema.ts` using Drizzle. Node 24 / pnpm
+11.9.0 Docker checks passed: zero type errors, warnings or hints and 213 tests
+across nine files. New checks exercise duplicate identity, code/year separation,
+ambiguous wording, excluded-course context, explicit/unknown offerings, future
+offering years, delivery groups and script-free parsing. SQLite reopen/reseed
+tests retain review notes and student enrolments, keep enrolment offerings
+unchanged, and preserve conflicting same-code/year snapshots with fresh review
+state. HTTP tests verify library search, missing-source handling and the year
+boundary against the built app.
+
+Re-imported the full collection and verified byte-for-byte identical JSON with
+SHA-256. Compared requirement/outcome/offering text against all 95 earlier
+course extracts and requirement text against all ten degree/specialisation
+extracts: no non-whitespace differences. Restarted the local preview with the
+additive migration. Chrome checks passed eight page/viewport combinations at
+1440px and 390px, with JavaScript disabled, no page overflow, native search
+submission and native evidence disclosure. Inspected desktop and mobile
+screenshots; final screenshots and result are local under `.data/`.
+
+**Commit:** [`978391a`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/978391a)
+
+**What happened:**
+The first extraction flagged colspan rows in MGMT7020 and REGN8014 as unsupported.
+Offline inspection showed they were delivery-group headings, so the parser now
+retains On Campus/Online labels with the corresponding class rows. The browser
+review also exposed an inherited three-column page heading that cramped the
+title; corrected the library heading layout and rechecked the final build.
+No ANU pages were fetched, no source scripts executed, and no deployment or push
+was performed. This turn did not receive a Claude review.
