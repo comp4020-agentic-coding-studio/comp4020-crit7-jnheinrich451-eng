@@ -1184,3 +1184,33 @@ and 247 tests. The scoped staged diff check passed; the existing extra blank lin
 in John's unstaged `AGENTS.md` was preserved along with untracked source assets.
 
 **Commit:** [`e833cf1`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/e833cf1)
+
+## 2026-09-26 01:43 — Diagnose Ollama missing from the existing VS Code terminal
+
+**Prompt:**
+
+> I installed Llama in C disk, but in this repo, the terminal in vscode, I input ollama with unrecognized command. I download the setup.exe for windows, not through cli
+
+**Result:**
+Confirmed the Windows installer placed Ollama in its default per-user location
+and updated the saved user PATH. The existing process PATH lacks that entry.
+Tested a process-only PATH addition successfully; recommend the same command in
+John's PowerShell terminal or completely reopening VS Code. Clarified that the
+installer installs the runtime, while `ollama pull llama3.2:3b` downloads the
+chosen model. No permanent environment change or model download was performed.
+
+**Verified:**
+The installed executable reports Ollama 0.34.4. `ollama list` returns no installed
+models. After appending the install directory to this diagnostic process's PATH,
+`Get-Command ollama` resolves it and `ollama --version` succeeds. The unsandboxed
+read confirms the saved user PATH entry; the sandboxed registry view did not
+expose it. Consulted Ollama's official Windows documentation for installer and
+CLI behaviour. No application code was changed. Required Docker Node 24 /
+pnpm 11.9.0 `pnpm check` passed with zero diagnostics and 247 tests.
+
+**Commit:** none — read-only diagnosis and a temporary process PATH test; this entry is the only repository change.
+
+**What happened:**
+An already-running VS Code process retained its pre-install PATH. Installing
+through the graphical Windows installer was correct and did not require a
+second CLI installation or moving the executable into the repository.
