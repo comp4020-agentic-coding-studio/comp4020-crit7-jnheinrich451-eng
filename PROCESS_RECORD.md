@@ -1101,3 +1101,46 @@ trained or benchmarked. Docker Node 24 / pnpm 11.9.0 `pnpm check` passed with
 zero diagnostics and 247 tests; no new tests or runtime changes were needed.
 
 **Commit:** [`722e30d`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/722e30d)
+
+## 2026-09-26 01:23 — Correct the assumption that someone staffs the reviewer queue
+
+**Prompt:**
+
+> Hmm, I am thinking for this project, actually there is no reviewer, so if the student's request will be blocked as always in this way?
+> Or, if we use like adversial like way, one agent or model analyzes, and one verdict?
+> Or we can present the thinking mid-term production for certain cases of permission request?
+
+**Result:**
+Revised the feasibility proposal to distinguish reviewing the rule catalogue
+during development from processing every student's request. Recommended an
+automated demo decision path under an explicit prototype approval policy, with
+saved assessments and concrete next actions for unmet or unknown conditions.
+Proposed separate labelled fictional scenarios so visitors can complete the
+permission/enrolment flow without inventing missing facts in the published
+course evidence or waiting for an unavailable reviewer.
+
+Described an analyst/critic experiment with independent source inspection and
+evidence-based objections, followed by validation against rules and demo policy.
+Model agreement alone cannot supply missing grades, announced topic requirements
+or discretionary selection evidence. Proposed student-facing intermediate
+assessment reports showing sources, academic evidence, condition results,
+uncertainties and next actions. Automated decisions must have a system actor;
+existing reviewer roles and historical decisions remain separate. This turn
+changes the proposal only, not runtime approval behavior.
+
+**Verified:**
+Read the current application page, decision endpoint and store authorization:
+`with-convenor` persists until the assigned authenticated reviewer decides it.
+Re-read the published Crit 7 contract, which requires an end-to-end persistent
+slice but does not mandate human processing for every request. Reviewed primary
+papers by Du et al., Choi et al. and Wynn et al. on multi-agent debate benefits
+and failure modes; no model experiment or claimed accuracy improvement here.
+Docker Node 24 / pnpm 11.9.0 `pnpm check` passed: zero diagnostics, 247 tests.
+
+**Commit:** [`ab93614`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/ab93614)
+
+**What happened:**
+John identified that the earlier recommendation assumed a staffed reviewer
+queue. Confirmed this is a real limitation in the running prototype and corrected
+the proposed design rather than implying the fictional reviewer is operating
+in the background. No runtime change, model deployment or push was performed.
