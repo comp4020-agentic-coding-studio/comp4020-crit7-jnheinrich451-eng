@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { REQUISITES } from "../src/data/requisites";
-import { firstRound, gate, type StudentRecord } from "../src/lib/eligibility";
+import { canRequestAssessment, firstRound, gate, type StudentRecord } from "../src/lib/eligibility";
 
 // The gate against ANU's real, transcribed rules. Each case is a sentence of
 // the requisite text read literally; if a transcription or the evaluator
@@ -79,6 +79,14 @@ describe("requisite shapes", () => {
 });
 
 describe("the automatic first round", () => {
+  it("accepts an assessment request for unknown rules without inventing eligibility or a permission requirement", () => {
+    const g = run("COMP6120", student());
+    expect(g).toMatchObject({ outcome: "not-recorded", checks: [{ status: "unknown", met: false }] });
+    expect(canRequestAssessment(g)).toBe(true);
+    expect(firstRound("COMP6120", g)).toMatchObject({ decision: "to-convenor" });
+    expect(canRequestAssessment(run("COMP6466", student()))).toBe(false);
+    expect(canRequestAssessment(run("COMP6466", student({ passed: passed("COMP6466") })))).toBe(false);
+  });
   it("rejects on incompatibility, with the course named", () => {
     const r = firstRound("COMP8600", run("COMP8600", student({ passed: passed("COMP6670", "COMP4670") })));
     expect(r.decision).toBe("auto-reject");

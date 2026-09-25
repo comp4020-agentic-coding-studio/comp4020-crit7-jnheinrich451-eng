@@ -128,6 +128,12 @@ retain the existing prototype's grouping interpretation, not an assertion of
 official ANU validation. COMP8620 checks base prerequisites and carries its
 topic-specific review limit into both the student page and request timeline.
 
+Offered courses without an interpretation now accept an assessment request.
+The saved check remains unknown and retains its source reference; submission
+does not itself establish eligibility or issue permission. Courses without a
+usable offering remain browseable without an enrolment request. See
+`eligibility-implementation-plan.md` for the request/decision flow.
+
 `ACTIVE_YEAR` centralises new defaults. Legacy rules and course identities still
 support explicitly year-scoped 2026 history. ENGN6539 and ENGN8501 are available
 only in that history, not invented as 2027 entries. The generated migration

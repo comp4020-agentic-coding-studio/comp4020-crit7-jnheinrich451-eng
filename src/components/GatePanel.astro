@@ -1,6 +1,7 @@
 ---
-import { checkStatus, firstRound, type Gate } from "../lib/eligibility";
+import { canRequestAssessment, checkStatus, firstRound, type Gate } from "../lib/eligibility";
 import RequirementChecks from "./RequirementChecks.astro";
+import PendingRequestNotice from "./PendingRequestNotice.astro";
 import type { Application } from "../lib/schema";
 import { type CourseRow } from "../lib/store";
 interface Props {
@@ -12,7 +13,8 @@ interface Props {
 }
 const { course, gate, live, term, year } = Astro.props;
 const checks = "checks" in gate ? gate.checks : [];
-const canApply = !live && (gate.outcome === "rules-not-met" || gate.outcome === "permission-always" || gate.outcome === "assessment-incomplete");
+const canApply = !live && canRequestAssessment(gate);
+const assessmentRequest = gate.outcome === "not-recorded" || gate.outcome === "assessment-incomplete";
 const hasUnmet = checks.some(c => checkStatus(c) === "unmet");
 const hasUnknown = checks.some(c => checkStatus(c) === "unknown");
 const preview = canApply ? firstRound(course.code, gate) : null;
@@ -33,6 +35,7 @@ const preview = canApply ? firstRound(course.code, gate) : null;
           : `Waiting for ${course.convenor.name}. You can keep planning your other courses.`}
       </p>
       <a href={`/applications/${live.id}/`}>View request and history</a>
+      <PendingRequestNotice request={live} />
     </>
   ) : gate.outcome === "eligible" ? (
     <>
@@ -67,7 +70,7 @@ const preview = canApply ? firstRound(course.code, gate) : null;
   ) : (
     <>
       <h2 id="gate-heading">Automatic eligibility check unavailable</h2>
-      <p>Check the published course information. This prototype cannot determine eligibility.</p>
+      <p>The published requirements need interpretation. You can request an assessment for this offering; unknown eligibility does not mean you have failed a prerequisite.</p>
     </>
   )}
   {checks.length > 0 && (
@@ -87,7 +90,8 @@ const preview = canApply ? firstRound(course.code, gate) : null;
   )}
   {canApply && (
     <form method="post" action="/api/applications" class="stack apply">
-      <h3>Request permission</h3>
+      <h3>{assessmentRequest ? "Request assessment" : "Request permission"}</h3>
+      {assessmentRequest && <p class="field-help">Your request records the unresolved checks and your explanation for assessment. It does not establish eligibility or issue permission.</p>}
       {preview?.decision === "to-convenor" && (
         <p class="field-help">Sent to {course.convenor.name} for this course and offering.</p>
       )}

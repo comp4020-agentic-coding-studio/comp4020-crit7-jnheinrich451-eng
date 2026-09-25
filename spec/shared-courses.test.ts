@@ -56,7 +56,7 @@ describe("shared course evidence", () => {
     expect((await page("/courses/ENGN8501/?year=2026")).status).toBe(200);
     expect((await page("/courses/COMP8620/?year=2028")).status).toBe(404);
   });
-  it("allows saving an unreviewed offering but cannot enrol it or auto-route permission", async () => {
+  it("allows an assessment request for an unreviewed offering while blocking direct enrolment", async () => {
     const doc = (await page("/courses/ENGN6627/")).doc;
     expect(doc.querySelector("#gate-heading")?.textContent).toBe("Automatic eligibility check unavailable");
     expect(doc.querySelector("main")?.textContent).toContain("Requisite and Incompatibility");
@@ -64,13 +64,15 @@ describe("shared course evidence", () => {
     await post("/api/selections", { offeringId, action: "add" });
     expect((await page("/plan/")).doc.querySelector("main")?.textContent).toContain("ENGN6627");
     const term = doc.querySelector<HTMLOptionElement>('select[name="term"] option')!.value;
-    for (const route of ["/api/enrol", "/api/applications"]) {
-      const result = await post(route, { courseCode: "ENGN6627", year: "2027", term, statement: "Unreviewed source check" });
-      const url = new URL(result.headers.get("location")!, base);
-      expect(url.pathname).toBe("/courses/ENGN6627/");
-      expect(url.searchParams.get("year")).toBe("2027");
-      expect(url.searchParams.has("error")).toBe(true);
-    }
+    expect(doc.querySelector('form[action="/api/applications"]')).toBeTruthy();
+    const result = await post("/api/enrol", { courseCode: "ENGN6627", year: "2027", term });
+    const url = new URL(result.headers.get("location")!, base);
+    expect(url.pathname).toBe("/courses/ENGN6627/");
+    expect(url.searchParams.get("year")).toBe("2027");
+    expect(url.searchParams.has("error")).toBe(true);
+    const requested = await post("/api/applications", { courseCode: "ENGN6627", year: "2027", term, statement: "Assess the published requirements against my fictional record." });
+    expect(requested.headers.get("location")).toMatch(/^\/applications\/\d+\/$/);
+    expect((await page(requested.headers.get("location")!)).doc.querySelector("main")?.textContent).toContain("Unknown: Eligibility conditions for ENGN6627 have not been interpreted");
   });
 });
 

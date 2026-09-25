@@ -26,6 +26,18 @@ Unknown is displayed separately from unmet and is not itself a rejection reason.
 The existing first-round policy can still reject a known unmet condition or
 incompatibility. Requests still require the assigned reviewer for approval.
 
+John's subsequent workflow correction is also implemented: offered courses whose
+rules have not been interpreted accept an assessment request. The first round
+saves unknown conditions and available source references; it does not infer that
+permission is required or refuse submission solely because a rule is missing.
+The interface and submission endpoint share the same eligibility-based request
+guard, with offering availability checked separately. A pending-request notice
+appears on the course, request, My requests and My semester pages only while the
+matching request has `with-convenor` status. It disappears on the next page load
+after approval or either type of rejection. Pending/approved duplicate submissions
+return the existing request; a rejected request remains in history if a new one
+is submitted. No automated final reviewer has been added by this correction.
+
 `src/data/eligibility-reference.json` contains three source-bound reference cases
 (COMP6242, COMP8620, MGMT7020), with six fictional record scenarios. The missing
 MGMT7020 section is a reference case only; it does not activate a course rule.
@@ -89,6 +101,19 @@ model digest, quantisation and inference settings for reproduction. No accuracy
 claim is justified before these checks. A schema-valid draft remains a candidate.
 
 ## B. Assessment reports and a complete demo path
+
+The workflow must cover the general enrolment cases, not only the blanket
+permission example:
+
+| Offering and assessment | Entry point |
+| --- | --- |
+| Offered, requirements met, no permission required | Confirm enrolment |
+| Offered, permission required for everyone | Request permission |
+| Offered, known unmet requirements | Request assessment of an exception or disputed record; no guaranteed waiver |
+| Offered, uncertain or uninterpreted requirements | Request assessment with explicit unknowns |
+| No usable offering for the selected year/term | Read course information or choose another offering; no enrolment request |
+| Request pending for the same student/course/year/term | Show the reminder and existing request; do not create a duplicate |
+| Request approved or rejected | Show the result/history and remove the pending reminder |
 
 Build the student report on A's evaluator. Show each requirement, matching
 evidence, result, source reference and next action. Save the assessment and real

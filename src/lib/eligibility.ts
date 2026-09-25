@@ -45,7 +45,7 @@ export const checkStatus = (c: Check): ConditionStatus => c.status ?? (c.met ? "
 
 export type Gate =
   | { outcome: "already"; text: string }
-  | { outcome: "not-recorded" }
+  | { outcome: "not-recorded"; checks: Check[] }
   | { outcome: "eligible"; checks: Check[] }
   | { outcome: "assessment-incomplete"; checks: Check[]; incompatible: string[] }
   | { outcome: "rules-not-met"; checks: Check[]; incompatible: string[] }
@@ -57,14 +57,22 @@ export type Gate =
       reviewNote?: string;
     };
 
-export function gate(courseCode: string, rules: CourseRules | undefined, s: StudentRecord): Gate {
+/** Offering availability is checked separately, before accepting a request. */
+export const canRequestAssessment = (g: Gate): boolean => g.outcome !== "already" && g.outcome !== "eligible";
+
+export function gate(courseCode: string, rules: CourseRules | undefined, s: StudentRecord, publishedSource?: RuleSource): Gate {
   if (s.passed.some((p) => p.code === courseCode)) {
     return { outcome: "already", text: `You've already passed ${courseCode}.` };
   }
   if (s.enrolled.includes(courseCode)) {
     return { outcome: "already", text: `You're already enrolled in ${courseCode}.` };
   }
-  if (!rules) return { outcome: "not-recorded" };
+  if (!rules) return { outcome: "not-recorded", checks: [{
+    met: false, status: "unknown",
+    text: `Eligibility conditions for ${courseCode} have not been interpreted`,
+    evidence: [], ...(publishedSource ? { source: publishedSource } : {}),
+    nextAction: "Provide details of relevant study or equivalent qualifications so the published requirements can be assessed.",
+  }] };
 
   const checks: Check[] = rules.requires ? topLevel(rules.requires).map((r) => evaluateRequirement(r, s, rules.source)) : [];
   const passedCodes = new Set(s.passed.map((p) => p.code));
@@ -99,8 +107,9 @@ export function firstRound(courseCode: string, g: Gate): FirstRound {
       return { decision: "auto-reject", reasons: [g.text] };
     case "not-recorded":
       return {
-        decision: "auto-reject",
-        reasons: [`An automatic eligibility check is unavailable for ${courseCode}. Read the published requirements.`],
+        decision: "to-convenor",
+        reasons: [`Assessment incomplete: an automatic eligibility check is unavailable for ${courseCode}.`,
+          "The published requirements and any permission requirement need interpretation; this is not an approval or a rejection."],
       };
     case "eligible":
       return {

@@ -1,0 +1,14 @@
+---
+import type { Application } from "../lib/schema";
+interface Props {
+  request?: Pick<Application, "id" | "status">;
+  showLink?: boolean;
+}
+const { request, showLink = false } = Astro.props;
+---
+{request?.status === "with-convenor" && (
+  <aside class="warning" data-pending-request={request.id}>
+    <p>You have a request being processed. Resending requests may slow the process.</p>
+    {showLink && <a href={`/applications/${request.id}/`}>View existing request</a>}
+  </aside>
+)}

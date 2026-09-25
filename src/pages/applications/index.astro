@@ -1,5 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import PendingRequestNotice from "../../components/PendingRequestNotice.astro";
 import { type ApplicationView, applicationsOfStudent, queueOf, TERM_LABELS } from "../../lib/store";
 import type { Term } from "../../data/courses";
 
@@ -22,7 +23,7 @@ if (actor.kind === "student") {
   sections = [
     {
       heading: "Your requests",
-      empty: "You haven't requested any permission codes.",
+      empty: "You haven't submitted any enrolment requests.",
       rows: applicationsOfStudent(actor.student.id),
     },
   ];
@@ -62,7 +63,7 @@ const watch = actor.kind === "student" ? { studentId: actor.student.id } : { con
     </p>
   ) : (
     <p class="lede">
-      Track your permission requests. You can keep planning and enrol in other ready courses while a request
+      Track your assessments and permission requests. You can keep planning and enrol in other ready courses while a request
       is under review.
     </p>
   )}
@@ -87,6 +88,7 @@ const watch = actor.kind === "student" ? { studentId: actor.student.id } : { con
                 </span>
                 <span class={`badge status-${a.status}`}>{STATUS[a.status]}</span>
               </a>
+              {actor.kind === "student" && <PendingRequestNotice request={a} />}
             </li>
           ))}
         </ul>

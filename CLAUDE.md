@@ -80,6 +80,14 @@ unknown topic conditions for 2027 COMP8620. New request snapshots retain these
 results; historical boolean checks remain readable. The initial manual reference
 cases are in `src/data/eligibility-reference.json`. GPA, exact marks, conditional
 permission, versioned authoring and automated demo decisions remain future work.
+John clarified that permission handling must extend beyond COMP8620's blanket
+permission requirement. An offered course with uninterpreted or uncertain rules
+now accepts an assessment request, preserving unknown rather than claiming a
+failure or granting permission. Known unmet requirements retain their exception
+request route; eligible students enrol directly, and unavailable offerings cannot
+accept enrolment requests. Show the resubmission reminder only while the matching
+student/course/year/term request is pending. Approval or rejection removes it;
+retries reuse the existing pending or approved request without adding events.
 
 ## Rules
 

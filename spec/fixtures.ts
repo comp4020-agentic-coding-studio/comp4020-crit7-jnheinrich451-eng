@@ -11,6 +11,12 @@ import { decide, getCourse, people, submitApplication } from "../src/lib/store";
 if (process.env.SPEC_FIXTURE !== "1" || !process.env.SPEC_FIXTURE_FILE)
   throw new Error("Test fixture context required");
 const passwordHash = await hashPassword("Fixture-only password 2026!");
+for (const [uid, name] of [
+  ["fixture-assessment-approve", "Assessment approval student"],
+  ["fixture-assessment-decline", "Assessment decline student"],
+]) {
+  db.insert(students).values({ uid, name, program: "VCOMP" }).run();
+}
 const termStudent = db
   .insert(students)
   .values({ uid: "fixture-offering", name: "Offering test student", program: "MCOMP" })

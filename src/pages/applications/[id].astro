@@ -3,6 +3,7 @@ import type { Term } from "../../data/courses";
 import { PROGRAMS, type ProgramKey } from "../../data/requisites";
 import Layout from "../../layouts/Layout.astro";
 import RequirementChecks from "../../components/RequirementChecks.astro";
+import PendingRequestNotice from "../../components/PendingRequestNotice.astro";
 import { enrolmentsOf, getApplication, TERM_LABELS } from "../../lib/store";
 
 // One request: where it is, who has it, what the automatic round checked, and
@@ -57,12 +58,13 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
   ) : (
     <>
       <h1>
-        <span class="code">{app.course.code}</span> permission request
+        <span class="code">{app.course.code}</span> enrolment request
       </h1>
 
       <section class={`status status-${app.status}`} aria-labelledby="status-heading">
         <h2 id="status-heading">{status.label}</h2>
         <p>{status.say}</p>
+        {mine && !isEnrolled && <PendingRequestNotice request={app} />}
         {app.permissionCode && (
           <p class="code-issued">
             Permission code: <code>{app.permissionCode}</code>

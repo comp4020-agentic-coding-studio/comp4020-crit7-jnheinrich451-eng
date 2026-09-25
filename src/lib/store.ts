@@ -6,7 +6,7 @@ import { catalogueEntries } from "./catalogue";
 import { fixedUnits, publishedTerms, TERM_LABELS } from "./course-evidence";
 import { rulesForSource } from "./course-rules";
 import { db } from "./db";
-import { type Check, firstRound, type Gate, gate, type StudentRecord } from "./eligibility";
+import { canRequestAssessment, type Check, firstRound, type Gate, gate, type StudentRecord } from "./eligibility";
 import { bus } from "./events";
 import {
   type Application,
@@ -123,7 +123,12 @@ export function recordOf(student: Student, term?: string, year = ACTIVE_YEAR): S
 }
 
 export function gateFor(student: Student, courseCode: string, term?: string, year = ACTIVE_YEAR): Gate {
-  return gate(courseCode, getCourse(courseCode, year)?.rules, recordOf(student, term, year));
+  const course = getCourse(courseCode, year);
+  const source = course?.source;
+  const section = source?.evidence.sections.find(s => s.key === "incompatibility");
+  return gate(courseCode, course?.rules, recordOf(student, term, year), source ? {
+    code: courseCode, year, hash: source.hash, section: "incompatibility", blocks: section?.blocks.map((_, i) => i) ?? [],
+  } : undefined);
 }
 
 // --- applications ------------------------------------------------------------
@@ -211,15 +216,15 @@ export function submitApplication(input: {
   if (!offering) {
     throw new UserError(`${course.code} isn't offered in that term.`);
   }
-  const statement = input.statement.trim().slice(0, 2000);
-  if (!statement) throw new UserError("Tell the convenor why you're applying.");
   const existing = liveApplication(input.student.id, course.id, input.term, year);
   if (existing) return existing;
+  const statement = input.statement.trim().slice(0, 2000);
+  if (!statement) throw new UserError("Explain why you are requesting an assessment or permission.");
 
   const g = gateFor(input.student, course.code, input.term, year);
   const round = firstRound(course.code, g);
   const checks: Check[] = "checks" in g ? g.checks : [];
-  if (g.outcome === "already" || g.outcome === "not-recorded" || g.outcome === "eligible")
+  if (!canRequestAssessment(g))
     throw new UserError(round.reasons.join(" "));
   const status = round.decision === "auto-reject" && !input.dispute ? "auto-rejected" : "with-convenor";
 
@@ -250,7 +255,7 @@ export function submitApplication(input: {
       "student",
       input.student.name,
       "submitted",
-      `Requested a permission code for ${course.code}, ${year} ${TERM_LABELS[input.term as Term]}.`,
+      `Requested ${g.outcome === "not-recorded" ? "an eligibility assessment" : "a permission code"} for ${course.code}, ${year} ${TERM_LABELS[input.term as Term]}.`,
     );
     if (input.dispute)
       event(
@@ -352,7 +357,7 @@ export function enrol(input: {
     .get();
   const g = gateFor(input.student, course.code, input.term, year);
   if (g.outcome === "already") throw new UserError(g.text);
-  if (!approved && g.outcome === "not-recorded") throw new UserError(firstRound(course.code, g).reasons.join(" "));
+  if (!approved && g.outcome === "not-recorded") throw new UserError(`Eligibility for ${course.code} is unknown. Request an assessment before enrolling.`);
   const via = approved ? "permission" : g.outcome === "eligible" ? "direct" : null;
   if (!via) throw new UserError(`You need a permission code for ${course.code}.`);
 

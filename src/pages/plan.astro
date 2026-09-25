@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import PendingRequestNotice from "../components/PendingRequestNotice.astro";
 import { gateFor, liveApplication, offeringFor, selectionsOf, TERM_LABELS } from "../lib/store";
 import type { Term } from "../data/courses";
 const actor = Astro.locals.actor;
@@ -60,6 +61,7 @@ const selected = selectionsOf(actor.student.id);
             </p>
           </div>
           <span class={`badge badge-${ready ? "ok" : "muted"}`}>{label}</span>
+          {!already && <PendingRequestNotice request={live} />}
           <div class="actions">
             {ready && (
               <form method="post" action="/api/enrol">
