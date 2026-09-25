@@ -1614,3 +1614,72 @@ reach the reviewer. Corrected that distinction before documenting the workflow.
 The published-spec web tool failed; the same endpoint was read successfully
 through Invoke-RestMethod. An initial patch failed its context check and made no
 changes; reapplied it against the actual harness text before running the checks.
+
+## 2026-09-26 05:27 — Explicit invitation switching and a browseable reviewer catalogue
+
+**Prompt:**
+
+> if I am logged as a student, then I clicked the reviewer link, it is ineffective, I think it should pop out a window like please log out or something equivalent?
+> the Course Catalogue, it cannot be interacted, I clicked the button and find will be routed into review requests.
+> after deployment, how should we let teaching team(marker) know how to get access to reviewer?
+
+John selected: "Invite each marker's real @anu.edu.au address; they verify it and
+create their own password."
+
+**Result:**
+Verification now displays the active identity and an explicit Sign out and
+continue step. Its POST revokes the current session and preserves the unused
+verification token. The verification endpoint also rejects activation during an
+active session, so a stale or crafted form cannot skip the prompt. Expired or
+already-used links explain how to leave the current account and sign in again.
+The return path accepts only a verification token, never an arbitrary URL.
+
+Moved the reviewer landing-page choice into successful sign-in, removing the
+unconditional queue redirect from the course catalogue. Reviewers can browse and
+search course information while student enrolment actions remain unavailable.
+The queue lists assigned courses in expandable details. Its empty state explains
+Optional staff review / Send to convenor and that automatic reports do not enter
+the human queue. An empty Hana queue is valid when no student has sent her a
+staff request; no fake pending request was added to the user's preview.
+
+Added public teaching-team guidance to Help, linked from sign-in, and documented
+the selected real-inbox invitation procedure. The current one-role-per-email and
+one-account-per-convenor limits are explicit. Production SMTP delivery, actual
+marker recipients and administrative provisioning against the deployed database
+are deployment tasks; the lean production image does not contain the development
+invitation script or tsx. No production access or email delivery is claimed.
+
+**Verified:**
+Read the shared harness, published Crit 7 contract, auth handlers, navigation and
+existing reviewer tests. Final Docker Node 24 / pnpm 11.9.0 `pnpm check` passed:
+zero diagnostics across 83 files; 417 tests across 18 files. Extended HTTP tests
+cover signed-in students/reviewers opening invitations, blocked activation without
+token consumption, explicit logout and session revocation, cross-origin rejection,
+expired-link guidance, reviewer login destination, catalogue navigation/search,
+assigned-course isolation and an empty queue. The staged diff passed whitespace
+checks.
+
+Used real Chrome forms with JavaScript disabled on an isolated database and SMTP
+capture server: registered and verified a student; opened a reviewer invitation in
+that student session; signed out explicitly; activated and signed in as Hana;
+browsed/searched the catalogue; submitted a COMP7710 exception from a separate
+student session; approved it as Hana; confirmed enrolment and reloaded the student
+profile. All three verification/logout POSTs returned 303 with the correct Origin
+and no token in Referer. The mobile catalogue width was 390px at a 390px viewport.
+Inspected desktop 1440x1000 invitation/catalogue and phone 390x844 queue screenshots.
+
+Stopped the disposable server, refreshed the local preview, and confirmed HTTP 200
+and the new guidance. Read-only inspection found Hana's existing account verified
+with no pending requests, matching John's screenshot. No user accounts or requests
+were altered by the browser tests. No real emails, push, deployment or Claude review.
+
+**Commit:** [`0660604`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/0660604)
+
+**What happened:**
+The invitation page forced an anonymous header even while a student session was
+active; activation then led to sign-in, which redirected that existing student.
+The reviewer landing redirect also intercepted the catalogue navigation link.
+John found both through actual use after the previous checks had passed. Extended
+coverage around those paths. After the first green suite, added the already-used
+link case and reran the full check on the final code. The first local readiness
+probe raced the server restart; a subsequent probe returned HTTP 200.
