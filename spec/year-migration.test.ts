@@ -27,28 +27,33 @@ it("upgrades a populated 2026 database without changing profiles, approvals, eve
   client.pragma("foreign_keys = ON");
   try {
     migrate(db, { migrationsFolder: oldFolder });
-    seed(db);
+    // Fixture writes use the historical columns, not today's seed/schema.
+    client.prepare("INSERT INTO convenors (name, email) VALUES ('Historical reviewer', 'historical@example.edu')").run();
+    client.prepare("INSERT INTO courses (code, title, units, terms, convenor_id) VALUES ('COMP8620', 'Historical course', 6, '[\"S2\"]', 1)").run();
+    client.prepare("INSERT INTO offerings (course_id, year, term) VALUES (1, 2026, 'S2')").run();
     const student = db.insert(students).values({ uid: "historic-user", name: "Existing fictional user", program: "VCOMP" }).returning().get();
     db.insert(accounts).values({ email: "historic-user@anu.edu.au", passwordHash: "fixture-hash-preserved", studentId: student.id, verifiedAt: 1234 }).run();
-    db.insert(transcript).values({ studentId: student.id, courseCode: "COMP6320", units: 6, grade: "HD", term: "2025 S1" }).run();
+    client.prepare("INSERT INTO transcript (student_id, course_code, units, grade, term) VALUES (?, 'COMP6320', 6, 'HD', '2025 S1')").run(student.id);
     const course = db.select().from(courses).where(eq(courses.code, "COMP8620")).get()!;
     const offering = db.select().from(offerings).where(eq(offerings.courseId, course.id)).get()!;
     // Use the OLD schema for the fixture, before new assessment columns exist.
     const app = client.prepare("INSERT INTO applications (student_id, course_id, convenor_id, year, term, status, permission_code, checks, statement) VALUES (?, ?, ?, 2026, 'S2', 'approved', 'HISTORICAL-PERMISSION', ?, 'Original request') RETURNING id")
       .get(student.id, course.id, course.convenorId, '[{"met":true,"text":"Original check"}]') as { id: number };
     db.insert(applicationEvents).values({ applicationId: app.id, actor: "convenor", actorName: "Fictional reviewer", kind: "approved", detail: "Original decision" }).run();
-    db.insert(enrolments).values({ studentId: student.id, courseId: course.id, year: 2026, term: "S2", via: "permission" }).run();
+    client.prepare("INSERT INTO enrolments (student_id, course_id, year, term, via) VALUES (?, ?, 2026, 'S2', 'permission')").run(student.id, course.id);
     db.insert(selections).values({ studentId: student.id, offeringId: offering.id }).run();
     const state = () => ({
       profile: db.select().from(students).where(eq(students.id, student.id)).get(),
       account: db.select().from(accounts).where(eq(accounts.studentId, student.id)).get(),
-      transcript: db.select().from(transcript).where(eq(transcript.studentId, student.id)).all(),
+      transcript: client.prepare("SELECT id, student_id, course_code, units, grade, term FROM transcript WHERE student_id = ?").all(student.id),
       requests: client.prepare("SELECT id, student_id, course_id, convenor_id, year, term, status, permission_code, checks, statement, created_at FROM applications").all(), events: db.select().from(applicationEvents).all(),
-      enrolments: db.select().from(enrolments).where(eq(enrolments.studentId, student.id)).all(),
+      enrolments: client.prepare("SELECT id, student_id, course_id, year, term, via, created_at FROM enrolments WHERE student_id = ?").all(student.id),
       selections: db.select().from(selections).all(),
     });
     const before = state();
     migrateDatabase(client);
+    expect(db.select().from(transcript).where(eq(transcript.studentId, student.id)).get()).toMatchObject({ mark: null, program: null, institution: null });
+    expect(db.select().from(enrolments).where(eq(enrolments.studentId, student.id)).get()).toMatchObject({ units: null, overloadRequestId: null });
     expect(db.select().from(applications).where(eq(applications.id, app.id)).get()).toMatchObject({ assessment: null, scenarioKey: null, requestKey: null });
     for (let boot = 0; boot < 2; boot++) {
       seed(db);

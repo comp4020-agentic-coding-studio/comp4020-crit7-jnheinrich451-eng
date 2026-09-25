@@ -8,6 +8,7 @@ import { accounts, emailTokens, enrolments, sessions, students, transcript } fro
 import { createSession, digest, inviteStaff } from "../src/lib/auth";
 import { hashPassword } from "../src/lib/passwords";
 import { decide, getCourse, people, submitApplication } from "../src/lib/store";
+import { submitOverload } from "../src/lib/overload-store";
 if (process.env.SPEC_FIXTURE !== "1" || !process.env.SPEC_FIXTURE_FILE)
   throw new Error("Test fixture context required");
 const passwordHash = await hashPassword("Fixture-only password 2026!");
@@ -24,6 +25,11 @@ for (const [uid, name] of [
   ["fixture-staff-exception", "Staff exception student"],
   ["fixture-staff-equivalence", "Staff equivalence student"],
   ["fixture-staff-correction", "Staff correction student"],
+  ["fixture-overload-page", "Overload page student"],
+  ["fixture-overload-review", "Overload review student"],
+  ["fixture-overload-auto", "Overload auto student"],
+  ["fixture-overload-race", "Overload race student"],
+  ["fixture-overload-permission", "Overload permission student"],
 ]) {
   db.insert(students).values({ uid, name, program: "VCOMP" }).run();
 }
@@ -48,6 +54,18 @@ db.insert(transcript).values({ studentId: historicalStudent.id, courseCode: "COM
 const historicalRequest = submitApplication({ student: historicalStudent, courseCode: "COMP6240", year: 2026, term: "S1", statement: "Historical offering only", dispute: true });
 decide({ convenor: getCourse("COMP6240", 2026)!.convenor, applicationId: historicalRequest.id, approve: true, note: "Fictional 2026 exception" });
 const all = people();
+for (const name of ["Overload page student", "Overload review student", "Overload auto student", "Overload race student", "Overload permission student"]) {
+  const student = all.students.find(s => s.name === name)!;
+  // Explicit test scenarios: confirmed load does not assert prerequisite eligibility.
+  const codes = ["COMP6240", "COMP6242", "COMP6262", "COMP6300"];
+  for (const code of name === "Overload race student" ? codes.slice(0, 3) : codes)
+    db.insert(enrolments).values({ studentId: student.id, courseId: getCourse(code)!.id, year: 2027, term: "S1", units: 6, via: "direct" }).run();
+  if (name === "Overload auto student") {
+    for (let i = 0; i < 4; i++) db.insert(transcript).values({ studentId: student.id, courseCode: `FIXTURE${i}`, units: 6,
+      grade: "CR", mark: 60, term: "2026 S2", program: "VCOMP", institution: "ANU" }).run();
+  }
+  if (name === "Overload page student") submitOverload({ student, code: "COMP6442", year: 2027, term: "S1", reason: "standard", statement: "Invariant fixture: assess this fictional load." });
+}
 const cookies: Record<string, string> = {};
 for (const person of [
   ...all.students.map((s) => ({ ...s, studentId: s.id, convenorId: undefined })),

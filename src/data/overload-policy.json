@@ -1,0 +1,26 @@
+{
+  "version": "saved-overload-2026-09-26-v1",
+  "title": "Overload your enrolment",
+  "path": "assets/Overload Spec/Overload your enrolment _ Australian National University.html",
+  "sha256": "aaebc453b9df05acadd888d296b2f08364bcfae2b7a626205d48e84affb75bfc",
+  "basis": "User-supplied ANU information page; not the separate linked policy or procedure. Applied as a versioned prototype interpretation, not an assertion of future policy.",
+  "standardLimit": 24,
+  "maximum": 36,
+  "periods": { "H1": ["Summer", "S1", "Autumn"], "H2": ["Winter", "S2", "Spring"] },
+  "criteria": {
+    "undergraduate": { "30": { "completedUnits": 48, "semesterUnits": 24, "average": 60 }, "36": { "completedUnits": 96, "semesterUnits": 30, "average": 70 } },
+    "postgraduate": { "30": { "completedUnits": 0, "semesterUnits": 24, "average": 60 }, "36": { "completedUnits": 48, "semesterUnits": 30, "average": 70 } }
+  },
+  "sourceClauses": [
+    "Students can self-enrol in a maximum of 24 units per semester/half-year. More than 24 units requires an overload request.",
+    "The first half-year comprises Summer, First Semester and Autumn; the second comprises Winter, Second Semester and Spring.",
+    "A non-standard session course that does not overlap the standard semester (where 24 units are undertaken) is not considered an overload.",
+    "Cross-institutional study is included. Permission is not given for more than 36 units in a semester/study period. This information does not apply to trimesters.",
+    "Applications should be made before the self-enrolment deadline. Late applications are considered case by case, only if late enrolment in the nominated course is available.",
+    "A student with only 30 units remaining may request discretionary Associate Dean approval to finish in one study period despite not meeting the usual criteria. This exception cannot exceed 30 units.",
+    "Postgraduate 30-unit requests require 24 units completed in one semester of the current postgraduate program at ANU, an overall average of at least 60 and at least 60 in the previous study period.",
+    "Postgraduate 36-unit requests require 48 units completed in the current postgraduate program at ANU, 30 completed in one semester, an overall average of at least 70 and at least 70 in the previous study period.",
+    "Undergraduate 30-unit requests require 48 completed current-program ANU units, 24 in one semester and overall/previous-period averages of at least 60. The 36-unit thresholds are 96 units, 30 in one semester and averages of at least 70.",
+    "NCN and WN count as zero when calculating averages. The application includes a comment explaining the overload request; supporting documents are optional."
+  ]
+}

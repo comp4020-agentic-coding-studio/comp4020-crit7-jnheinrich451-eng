@@ -1,6 +1,7 @@
 ---
 import GatePanel from "../../components/GatePanel.astro";
 import { ACTIVE_YEAR } from "../../lib/academic-year";
+import { unitRange } from "../../lib/study-load";
 import { COVERAGE_LABELS } from "../../lib/course-rules";
 import { catalogueLink, catalogueEntries, referenceLink } from "../../lib/catalogue";
 import type { Term } from "../../data/courses";
@@ -12,6 +13,7 @@ const course = getCourse(Astro.params.code ?? "", year);
 if (!course) return new Response("No such course", { status: 404 });
 const rules = course.rules;
 const evidence = course.source?.evidence;
+const range = unitRange(evidence?.units);
 const entries = catalogueEntries();
 const term = Astro.url.searchParams.get("term") ?? course.termList[0] ?? "";
 const offering = offeringFor(course.id, term, year);
@@ -90,6 +92,11 @@ const saved =
             </option>
           ))}
         </select>
+        {range && <>
+          <label for="units">Units for this enrolment</label>
+          <input type="number" id="units" name="units" min={range.min} max={range.max} step="1" value={Astro.url.searchParams.get("units") ?? ""} required />
+          <p class="field-help">Choose your intended credit value within the published {range.min}–{range.max} unit range. This prototype accepts whole units within that range; class-specific credit options still need confirmation with the teaching team.</p>
+        </>}
         <button>Update offering</button>
       </form>}
       {!offering ? (

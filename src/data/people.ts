@@ -11,11 +11,13 @@ export const CONVENORS = [
   { key: "se", name: "Dr Hana Okafor", email: "hana.okafor@example.edu" },
   { key: "theory", name: "Dr Leo Brandt", email: "leo.brandt@example.edu" },
   { key: "proj", name: "Dr Sam Achterberg", email: "sam.achterberg@example.edu" },
+  { key: "load", name: "Dr Avery Hart", email: "avery.hart@example.edu" },
 ] as const;
 
 export type ConvenorKey = (typeof CONVENORS)[number]["key"];
 
 const AREAS: Record<ConvenorKey, string[]> = {
+  load: [], // Fictional program-load reviewer; never assigned individual courses.
   ai: ["COMP6262", "COMP6320", "COMP8620", "COMP8691"],
   ml: [
     "COMP6242", "COMP6528", "COMP6670", "COMP8535", "COMP8536", "COMP8539",

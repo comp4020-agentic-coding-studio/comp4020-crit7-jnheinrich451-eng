@@ -24,8 +24,11 @@ import {
   transcript,
   offerings,
   selections,
+  overloadEvents,
 } from "./schema";
 import { UserError } from "./errors";
+import { studyLoadFor } from "./overload-store";
+import { loadText } from "./study-load";
 export { UserError } from "./errors";
 export { actorFrom } from "./auth";
 
@@ -447,6 +450,7 @@ export function enrol(input: {
   courseCode: string;
   term: string;
   year?: number;
+  units?: number;
 }): "direct" | "permission" {
   const year = input.year ?? ACTIVE_YEAR;
   const course = getCourse(input.courseCode, year);
@@ -476,8 +480,14 @@ export function enrol(input: {
   if (!via) throw new UserError(`You need a permission code for ${course.code}.`);
 
   db.transaction((tx) => {
+    // The load check and insert share one write transaction, including permission
+    // enrolments. Two simultaneous confirmations cannot both consume the last units.
+    const load = studyLoadFor(input.student.id, course.code, year, input.term, input.units);
+    if (load.state !== "within-limit") throw new UserError(
+      `Cannot confirm enrolment: ${loadText(load)} against a ${load.limit}-unit limit. ${load.state === "over-maximum" ? "The maximum is 36 units." : "Open Study load to request an overload assessment or resolve missing load information."}`);
     tx.insert(enrolments)
-      .values({ studentId: input.student.id, courseId: course.id, term: input.term, year, via })
+      .values({ studentId: input.student.id, courseId: course.id, term: input.term, year, via,
+        units: load.target.units, overloadRequestId: load.maximum! > 24 ? load.approval?.id : null })
       .run();
     tx.insert(selections)
       .values({ studentId: input.student.id, offeringId: offering.id })
@@ -494,7 +504,9 @@ export function enrol(input: {
         })
         .run();
     }
-  });
+    if (load.maximum! > 24 && load.approval) tx.insert(overloadEvents).values({ requestId: load.approval.id,
+      actor: "student", actorName: input.student.name, kind: "enrolled", detail: `Confirmed ${course.code}, ${year} ${input.term}; counted load ${loadText(load)} under the approved limit.` }).run();
+  }, { behavior: "immediate" });
   if (approved) {
     bus.emit("change", {
       applicationId: approved.id,

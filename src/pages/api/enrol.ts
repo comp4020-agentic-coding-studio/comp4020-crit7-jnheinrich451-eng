@@ -10,7 +10,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const courseCode = String(form.get("courseCode") ?? "").toUpperCase();
   const term = String(form.get("term") ?? "");
   const year = Number(form.get("year") ?? ACTIVE_YEAR);
-  const page = `/courses/${encodeURIComponent(courseCode)}/?${new URLSearchParams({ term, year: String(year) })}`;
+  const page = `/courses/${encodeURIComponent(courseCode)}/?${new URLSearchParams({ term, year: String(year), ...(form.has("units") ? { units: String(form.get("units")) } : {}) })}`;
   if (actor.kind !== "student") return back(page, { error: "Only students enrol." });
   try {
     const via = enrol({
@@ -18,6 +18,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       courseCode,
       term,
       year,
+      units: form.has("units") ? Number(form.get("units")) : undefined,
     });
     return back("/plan/", {
       ok:

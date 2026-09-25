@@ -50,6 +50,13 @@
       "when": 1790354332387,
       "tag": "0006_smiling_redwing",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1790365654795,
+      "tag": "0007_equal_ezekiel",
+      "breakpoints": true
     }
   ]
 }

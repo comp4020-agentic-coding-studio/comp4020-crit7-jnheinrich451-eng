@@ -1,0 +1,60 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import StudyLoadPanel from "../../components/StudyLoadPanel.astro";
+import StudyLoadSummary from "../../components/StudyLoadSummary.astro";
+import OverloadSource from "../../components/OverloadSource.astro";
+import { studyLoadFor, overloadsFor, OVERLOAD_STATUS, overloadReviewer } from "../../lib/overload-store";
+import { getCourse, offeringFor } from "../../lib/store";
+import { ACTIVE_YEAR } from "../../lib/academic-year";
+const actor = Astro.locals.actor;
+if (!actor) return Astro.redirect("/login/", 303);
+if (actor.kind === "convenor" && actor.convenor.purpose !== "overload") return new Response("Program-load reviewer access required", { status: 403 });
+const query = Astro.url.searchParams;
+const year = Number(query.get("year") ?? ACTIVE_YEAR), term = query.get("term") ?? "S1";
+const course = getCourse(query.get("course") ?? "", year);
+const offering = course ? offeringFor(course.id, term, year) : undefined;
+const load = actor.kind === "student" && course && offering ? studyLoadFor(actor.student.id, course.code, year, term, query.has("units") ? Number(query.get("units")) : undefined) : null;
+const requests = overloadsFor(actor), reviewer = overloadReviewer();
+const title = actor.kind === "student" ? "Study load and overload requests" : "Overload review queue";
+---
+<Layout title={title} actor={actor}>
+  <h1>{title}</h1>
+  <p class="lede">The normal study load is 24 units per semester/half-year. Approval is required above that limit, with a maximum of 36 units. A 12-unit course counts as 12 units.</p>
+  {actor.kind === "student" ? <>
+    <StudyLoadSummary studentId={actor.student.id} />
+    <p>Keep alternatives in Saved courses while you plan. The limit applies when you confirm enrolment, including enrolment with a course permission code.</p>
+    {query.has("course") && !load && <p class="warning">That course offering is unavailable. <a href="/">Find an offered course</a>.</p>}
+    {load && <>
+      <h2>Adding {course!.code}</h2>
+      <StudyLoadPanel load={load} showAction={false} />
+      {load.state !== "within-limit" && load.state !== "over-maximum" && <form action="/api/overload/" method="post" class="stack surface">
+        <h2>Request an overload assessment</h2>
+        <input type="hidden" name="courseCode" value={course!.code} />
+        <input type="hidden" name="year" value={year} />
+        <input type="hidden" name="term" value={term} />
+        <input type="hidden" name="units" value={load.target.units ?? ""} />
+        <label for="overload-reason">Basis for your request</label>
+        <select id="overload-reason" name="reason">
+          <option value="standard">Assess the standard overload criteria</option>
+          <option value="final-30">Only 30 units remain to finish my degree — request discretionary review</option>
+        </select>
+        <label for="overload-statement">Why do you want to overload?</label>
+        <textarea id="overload-statement" name="statement" rows="4" required maxlength="2000" />
+        <p class="field-help">Your explanation is saved as self-reported context. It does not create marks or verify degree completion. You receive an immediate demo assessment; unresolved evidence can go to {reviewer?.name}, the fictional program-load reviewer.</p>
+        <button class="primary">Get overload assessment</button>
+      </form>}
+      {(load.state === "within-limit" || load.target.units === null) && <p><a class="button" href={`/courses/${course!.code}/?year=${year}&term=${term}&units=${load.target.units ?? ""}`}>Return to course requirements and confirmation</a></p>}
+    </>}
+    {!query.has("course") && <p><a href="/">Choose a course</a> to see its effect on your load and request approval if needed.</p>}
+  </> : <p>You are the fictional program-load reviewer. These are requests explicitly sent for human review; course convenors cannot decide them.</p>}
+  <section aria-labelledby="overload-requests-heading">
+    <h2 id="overload-requests-heading">{actor.kind === "student" ? "Your overload requests" : "Requests for you"}</h2>
+    {!requests.length && <p class="muted">No overload requests {actor.kind === "student" ? "yet" : "have been sent to you"}.</p>}
+    <ul class="request-list">{requests.map(row => <li><a class="request-card" href={`/overload/${row.request.id}/`}>
+      <span class="code">{row.request.year} {row.request.period} · {row.request.requestedLimit ? `${row.request.requestedLimit}-unit limit` : "Load needs clarification"}</span>
+      <span>{actor.kind === "convenor" ? row.student.name : row.course.code}</span>
+      <span class="badge">{OVERLOAD_STATUS[row.request.status]}</span>
+    </a></li>)}</ul>
+  </section>
+  <OverloadSource />
+</Layout>

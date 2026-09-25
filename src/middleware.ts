@@ -5,8 +5,8 @@ import { UserError } from "./lib/errors";
 export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.actor = actorFrom(context.cookies.get(SESSION_COOKIE)?.value);
   const path = context.url.pathname;
-  const privatePage = /^\/(applications|record|plan)(\/|$)/.test(path);
-  const privateApi = /^\/api\/(enrol|applications|selections|events)(\/|$)/.test(path);
+  const privatePage = /^\/(applications|record|plan|overload)(\/|$)/.test(path);
+  const privateApi = /^\/api\/(enrol|applications|selections|events|overload)(\/|$)/.test(path);
   if ((privatePage || privateApi) && !context.locals.actor) {
     if (privateApi) return new Response("Sign in required", { status: 401 });
     return context.redirect("/login/", 303);

@@ -1,0 +1,51 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import RequirementChecks from "../../components/RequirementChecks.astro";
+import { getOverload, OVERLOAD_STATUS } from "../../lib/overload-store";
+import { HALF_LABELS, loadText, type HalfYear } from "../../lib/study-load";
+const actor = Astro.locals.actor;
+if (!actor) return Astro.redirect("/login/", 303);
+const item = getOverload(Number(Astro.params.id));
+const mine = item && actor.kind === "student" && item.request.studentId === actor.student.id;
+const reviewing = item && actor.kind === "convenor" && actor.convenor.purpose === "overload" && item.request.reviewerId === actor.convenor.id
+  && item.events.some(e => e.kind === "review-requested");
+if (!item || (!mine && !reviewing)) return new Response("Request not found", { status: 404 });
+const { request, report } = item;
+const impossible = report.load.minimum > 36 || (request.reason === "final-30" && (request.requestedLimit ?? 0) > 30);
+---
+<Layout title={`Overload request ${request.id}`} actor={actor}>
+  <p><a href="/overload/">Study load and requests</a> / #{request.id}</p>
+  <h1>{request.requestedLimit ? `${request.requestedLimit}-unit overload request` : "Overload assessment"}</h1>
+  <p class="lede">{request.year} {HALF_LABELS[request.period as HalfYear]} · adding {item.course.code}</p>
+  <section class="surface" aria-labelledby="overload-status" data-overload-status={request.status}>
+    <h2 id="overload-status">{OVERLOAD_STATUS[request.status]}</h2>
+    {request.status === "approved" ? <>
+      <p>Your demo load limit is {request.approvedLimit} units for this student and half-year. Course prerequisites and permission codes are checked separately.</p>
+      {mine && <a class="button primary" href={`/courses/${item.course.code}/?year=${request.year}&term=${request.term}&units=${report.load.target.units ?? ""}`}>Return to course and confirm enrolment</a>}
+    </> : request.status === "with-reviewer" ? <>
+      <p>Waiting for {item.reviewer.name}, the fictional program-load reviewer. This queue is not staffed automatically.</p>
+      <p data-overload-pending>You have a request being processed. Resending requests may slow the process.</p>
+    </> : request.status === "rejected" ? <p>Read the reviewer's explanation in the timeline.</p> : <p>{report.explanation}</p>}
+  </section>
+  <h2>Request explanation</h2>
+  <p><strong>{item.student.name}</strong> · {request.reason === "final-30" ? "Discretionary degree-completion request" : "Standard overload criteria"}</p>
+  <blockquote>{request.statement}</blockquote>
+  <section data-overload-assessment={report.policy}>
+    <h2>Saved assessment</h2>
+    <p>Projected load when submitted: {loadText(report.load)}. This is a snapshot of a fictional academic record, not verified ANU evidence.</p>
+    <RequirementChecks checks={report.checks} />
+    <details><summary>Courses counted in this assessment</summary><ul>{report.load.entries.map(c => <li>{c.code} · {c.year} {c.term} · {c.units ?? "unknown"} units</li>)}</ul></details>
+    <details><summary>Source and demo policy</summary><p>{report.source.title} · saved interpretation {report.source.version}. Policy: {report.policy}.</p><ul>{report.source.sourceClauses.map(text => <li>{text}</li>)}</ul></details>
+  </section>
+  {mine && ["assessment-incomplete", "auto-rejected"].includes(request.status) && !impossible && <form class="stack surface" method="post" action={`/api/overload/${request.id}/review`}>
+    <h2>Optional human review</h2><p>Send this explanation and the unchanged assessment to {item.reviewer.name}. Only that invited program-load reviewer can decide the request.</p>
+    <button>Send overload request for review</button>
+  </form>}
+  {reviewing && request.status === "with-reviewer" && <form class="stack surface" method="post" action={`/api/overload/${request.id}/decision`}>
+    <h2>Your decision</h2>
+    <p>Record the evidence you checked, including missing marks, late-enrolment availability or remaining degree units where applicable. This is a fictional program decision. Approval raises a load limit; it does not change the academic record.</p>
+    <label for="overload-note">Decision and evidence</label><textarea id="overload-note" name="note" rows="4" required maxlength="2000" />
+    <div class="actions"><button class="primary" name="decision" value="approve">Approve overload</button><button name="decision" value="reject">Reject overload</button></div>
+  </form>}
+  <h2>Timeline</h2><ol class="timeline">{item.events.map(event => <li class={`event event-${event.actor}`}><p class="who"><strong>{event.actorName}</strong> · {event.actor} · <time>{event.createdAt} UTC</time></p><p>{event.detail}</p></li>)}</ol>
+</Layout>

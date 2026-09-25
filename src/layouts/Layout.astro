@@ -11,7 +11,7 @@ const here = Astro.url.pathname;
 const navLinks =
   actor?.kind === "convenor"
     ? [
-        { href: "/applications/", label: "Review requests" },
+        { href: actor.convenor.purpose === "overload" ? "/overload/" : "/applications/", label: actor.convenor.purpose === "overload" ? "Review overloads" : "Review requests" },
         { href: "/", label: "Course catalogue" },
       ]
     : [
@@ -21,6 +21,7 @@ const navLinks =
               { href: "/plan/", label: "My courses" },
               { href: "/applications/", label: "My requests" },
               { href: "/record/", label: "My profile" },
+              { href: "/overload/", label: "Study load" },
             ]
           : []),
       ];

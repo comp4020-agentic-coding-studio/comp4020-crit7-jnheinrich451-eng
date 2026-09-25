@@ -3,6 +3,8 @@ import Layout from "../layouts/Layout.astro";
 import PendingRequestNotice from "../components/PendingRequestNotice.astro";
 import ConfirmedEnrolments from "../components/ConfirmedEnrolments.astro";
 import ScenarioCompletions from "../components/ScenarioCompletions.astro";
+import StudyLoadSummary from "../components/StudyLoadSummary.astro";
+import { studyLoadFor } from "../lib/overload-store";
 import { applicationsOfStudent, enrolmentsOf, gateFor, offeringFor, selectionsOf, TERM_LABELS } from "../lib/store";
 import { applicationStatus } from "../lib/application-status";
 import type { Term } from "../data/courses";
@@ -30,6 +32,7 @@ const scenarios = requests.filter(app => app.scenarioKey && app.enrolmentConfirm
       Find another course
     </a>
   </div>
+  <StudyLoadSummary studentId={actor.student.id} />
   <section aria-labelledby="saved-heading" data-saved-courses>
     <h2 id="saved-heading">Saved courses</h2>
     <p>These are courses you are considering. Saving one or submitting a request does not confirm enrolment.</p>
@@ -43,10 +46,12 @@ const scenarios = requests.filter(app => app.scenarioKey && app.enrolmentConfirm
         const progress = request ? applicationStatus(request) : null;
         const already = g.outcome === "already";
         const available = !!offeringFor(course.id, offering.term, offering.year);
-        const ready = available && !already && (g.outcome === "eligible" || live?.status === "approved");
+        const load = studyLoadFor(actor.student.id, course.code, offering.year, offering.term);
+        const loadBlocked = !already && load.state !== "within-limit";
+        const ready = available && !already && !loadBlocked && (g.outcome === "eligible" || live?.status === "approved");
         const label = already
           ? g.text
-          : !available ? "Offering unavailable" : ready
+          : !available ? "Offering unavailable" : loadBlocked ? load.state === "over-maximum" ? "Exceeds maximum load" : load.state === "unknown" ? "Load information needed" : "Overload approval needed" : ready
             ? "Ready to enrol"
             : progress
               ? progress.label
@@ -70,6 +75,7 @@ const scenarios = requests.filter(app => app.scenarioKey && app.enrolmentConfirm
             {!already && <PendingRequestNotice request={live} />}
             {!ready && !already && request?.status === "assessment-incomplete" && <p class="assessment-summary">{progress?.say}</p>}
             <div class="actions">
+              {available && loadBlocked && <a class="button" href={`/overload/?course=${course.code}&year=${offering.year}&term=${offering.term}`}>Review study load</a>}
               {ready && (
                 <form method="post" action="/api/enrol">
                   <input type="hidden" name="courseCode" value={course.code} />

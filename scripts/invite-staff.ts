@@ -5,7 +5,7 @@ import { convenors } from "../src/lib/schema";
 const [email, id] = process.argv.slice(2);
 if (!email || !id) {
   console.log("Usage: pnpm exec tsx --env-file=.env scripts/invite-staff.ts person@anu.edu.au <convenor-id>");
-  console.table(db.select({ id: convenors.id, name: convenors.name }).from(convenors).all());
+  console.table(db.select({ id: convenors.id, name: convenors.name, purpose: convenors.purpose }).from(convenors).all());
   process.exitCode = 1;
 } else {
   try {

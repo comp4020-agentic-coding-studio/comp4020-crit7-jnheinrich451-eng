@@ -1,0 +1,13 @@
+---
+import { studyLoadsOf } from "../lib/overload-store";
+import { HALF_LABELS, loadText } from "../lib/study-load";
+interface Props { studentId: number }
+const loads = studyLoadsOf(Astro.props.studentId);
+---
+<section aria-labelledby="study-load-heading" data-study-load-summary>
+  <h2 id="study-load-heading">Confirmed study load</h2>
+  <p>The normal limit is 24 units, usually four 6-unit courses. Saved candidates and pending permissions do not use enrolment credit.</p>
+  {loads.length ? <ul>{loads.map(load => <li>{load.year} {load.period ? HALF_LABELS[load.period] : "unknown period"}: <strong>{loadText(load)}</strong>; limit {load.limit} units.{load.approval && <> <a href={`/overload/${load.approval.id}/`}>View overload approval</a>.</>}</li>)}</ul>
+    : <p class="muted">No confirmed enrolments to count yet.</p>}
+  <p><a href="/overload/">Study-load rules and overload requests</a></p>
+</section>

@@ -1,0 +1,9 @@
+---
+import { OVERLOAD_POLICY } from "../lib/study-load";
+---
+<details>
+  <summary>Saved overload rules and interpretation</summary>
+  <p>Based on the ANU “Overload your enrolment” page supplied for this prototype. This is a saved information page, not a live policy feed.</p>
+  <ul>{OVERLOAD_POLICY.sourceClauses.map(clause => <li>{clause}</li>)}</ul>
+  <p class="field-help">Checks use completed current-program credit and exact marks where recorded. Letter grades do not become invented marks. If course-average and unit-weighted readings disagree, the average remains unknown. Fictional records are complete only within this demo; real cross-institutional study would also need to be included.</p>
+</details>

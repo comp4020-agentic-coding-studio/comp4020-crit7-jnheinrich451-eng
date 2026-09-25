@@ -152,6 +152,24 @@ the course catalogue itself must stay browseable. John selected real @anu.edu.au
 email invitations for markers. Document that deployment needs working SMTP and
 unused reviewer addresses; local captured mail does not prove remote delivery.
 
+John requested a 24-unit enrolment limit and overload applications, with immediate
+assessment plus optional human review. This is implemented at `/overload/` using
+the supplied information page, versioned in `src/data/overload-policy.json`; see
+`docs/overload-design.md` for the precise source interpretation and limitations.
+Count confirmed units, not course count or saved candidates. The transactional
+guard applies to direct and permission-code enrolment. Half-years include the
+named non-standard sessions; only proven non-overlap permits the saved-page
+exemption. Missing dates or units remain explicit. Variable-unit courses need a
+validated credit choice, saved with enrolment; never silently assume six units.
+Overload approval raises the student's year/half-year limit to 30 or 36, never
+waives course conditions or confirms enrolment. Dr Avery Hart is the separate
+fictional program-load reviewer; ordinary course convenors cannot decide these
+requests. Requests preserve policy, load and academic snapshots with events.
+Exact marks and program/institution attribution are nullable evidence fields;
+never backfill existing grade-only profiles with invented numbers. Student prose
+is context only. Completion exceptions and late enrolment remain discretionary;
+the supplied page does not support more than 36 units or trimester rules.
+
 ## Rules
 
 - **The schema is the ground truth.** Edit `src/lib/schema.ts`, run

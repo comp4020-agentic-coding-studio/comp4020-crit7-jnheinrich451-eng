@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { int, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { int, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { ACTIVE_YEAR } from "./academic-year";
 
 // The schema is the ground truth for the database. To change it: edit here,
@@ -22,6 +22,7 @@ export const convenors = sqliteTable("convenors", {
   id: int().primaryKey({ autoIncrement: true }),
   name: text().notNull(),
   email: text().notNull().unique(),
+  purpose: text().notNull().default("course"),
 });
 
 export const courses = sqliteTable("courses", {
@@ -57,6 +58,38 @@ export const transcript = sqliteTable("transcript", {
   grade: text().notNull(),
   units: int().notNull(),
   term: text().notNull(),
+  /** Optional explicit evidence for overload assessment; never infer marks from grade bands. */
+  mark: real(),
+  program: text(),
+  institution: text(),
+});
+
+export const overloadRequests = sqliteTable("overload_requests", {
+  id: int().primaryKey({ autoIncrement: true }),
+  studentId: int("student_id").notNull().references(() => students.id),
+  reviewerId: int("reviewer_id").notNull().references(() => convenors.id),
+  courseId: int("course_id").notNull().references(() => courses.id),
+  year: int().notNull(),
+  term: text().notNull(),
+  period: text().notNull(),
+  requestedLimit: int("requested_limit"),
+  approvedLimit: int("approved_limit"),
+  statement: text().notNull(),
+  reason: text().notNull(),
+  status: text().notNull(),
+  assessment: text().notNull(),
+  requestKey: text("request_key").notNull().unique(),
+  createdAt: createdAt(),
+});
+
+export const overloadEvents = sqliteTable("overload_events", {
+  id: int().primaryKey({ autoIncrement: true }),
+  requestId: int("request_id").notNull().references(() => overloadRequests.id),
+  actor: text().notNull(),
+  actorName: text("actor_name").notNull(),
+  kind: text().notNull(),
+  detail: text().notNull(),
+  createdAt: createdAt(),
 });
 
 export const enrolments = sqliteTable(
@@ -74,6 +107,9 @@ export const enrolments = sqliteTable(
     /** "seed" (current load at boot), "direct" (gate said eligible) or
      *  "permission" (an approved application's code). */
     via: text().notNull(),
+    /** Snapshot for new enrolments; null historical rows use their catalogue year. */
+    units: int(),
+    overloadRequestId: int("overload_request_id").references(() => overloadRequests.id),
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex("enrolments_student_course_term").on(t.studentId, t.courseId, t.year, t.term)],

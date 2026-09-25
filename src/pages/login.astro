@@ -1,7 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 if (Astro.locals.actor)
-  return Astro.redirect(Astro.locals.actor.kind === "convenor" ? "/applications/" : "/plan/", 303);
+  return Astro.redirect(Astro.locals.actor.kind === "convenor" ? Astro.locals.actor.convenor.purpose === "overload" ? "/overload/" : "/applications/" : "/plan/", 303);
 ---
 
 <Layout title="Sign in" actor={null}>

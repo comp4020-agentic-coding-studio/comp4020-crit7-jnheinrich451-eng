@@ -2,6 +2,8 @@
 import { canRequestAssessment, checkStatus, firstRound, type Gate } from "../lib/eligibility";
 import RequirementChecks from "./RequirementChecks.astro";
 import PendingRequestNotice from "./PendingRequestNotice.astro";
+import StudyLoadPanel from "./StudyLoadPanel.astro";
+import { studyLoadFor } from "../lib/overload-store";
 import { REQUEST_REASONS } from "../lib/demo-assessment";
 import type { Application } from "../lib/schema";
 import { type CourseRow } from "../lib/store";
@@ -19,6 +21,8 @@ const assessmentRequest = gate.outcome === "not-recorded" || gate.outcome === "a
 const hasUnmet = checks.some(c => checkStatus(c) === "unmet");
 const hasUnknown = checks.some(c => checkStatus(c) === "unknown");
 const preview = canApply ? firstRound(course.code, gate) : null;
+const load = Astro.locals.actor?.kind === "student" && gate.outcome !== "already"
+  ? studyLoadFor(Astro.locals.actor.student.id, course.code, year, term, Astro.url.searchParams.has("units") ? Number(Astro.url.searchParams.get("units")) : undefined) : null;
 ---
 
 <section class="gate" aria-labelledby="gate-heading">
@@ -86,11 +90,13 @@ const preview = canApply ? firstRound(course.code, gate) : null;
       <RequirementChecks checks={checks} />
     </details>
   )}
-  {gate.outcome !== "already" && (gate.outcome === "eligible" || live?.status === "approved") && (
+  {load && <StudyLoadPanel load={load} />}
+  {gate.outcome !== "already" && load?.state === "within-limit" && (gate.outcome === "eligible" || live?.status === "approved") && (
     <form method="post" action="/api/enrol" class="stack">
       <input type="hidden" name="courseCode" value={course.code} />
       <input type="hidden" name="term" value={term} />
       <input type="hidden" name="year" value={year} />
+      <input type="hidden" name="units" value={load.target.units ?? ""} />
       <p>Confirming adds this offering to your prototype enrolments.</p>
       <button class="primary">Confirm enrolment</button>
     </form>

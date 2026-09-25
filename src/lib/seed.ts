@@ -16,8 +16,8 @@ export function seed(db: BetterSQLite3Database): void {
     for (const c of CONVENORS) {
       const row = tx
         .insert(convenors)
-        .values({ name: c.name, email: c.email })
-        .onConflictDoUpdate({ target: convenors.email, set: { name: c.name } })
+        .values({ name: c.name, email: c.email, purpose: c.key === "load" ? "overload" : "course" })
+        .onConflictDoUpdate({ target: convenors.email, set: { name: c.name, purpose: c.key === "load" ? "overload" : "course" } })
         .returning({ id: convenors.id })
         .get();
       convenorIds.set(c.key, row.id);

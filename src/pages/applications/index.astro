@@ -10,6 +10,7 @@ import { applicationStatus } from "../../lib/application-status";
 // so a convenor sees them only as a count.
 const actor = Astro.locals.actor;
 if (!actor) return Astro.redirect("/login/", 303);
+if (actor.kind === "convenor" && actor.convenor.purpose === "overload") return Astro.redirect("/overload/", 303);
 
 let sections: { heading: string; empty: string; rows: ApplicationView[] }[];
 let screened = 0;
@@ -43,6 +44,7 @@ const assignedCourses = actor.kind === "convenor" ? listCourses().filter(c => c.
 ---
 
 <Layout title={title} actor={actor} watch={watch}>
+  {actor.kind === "student" && <p><a href="/overload/">Study load and overload requests</a></p>}
   <h1>{title}</h1>
   {actor.kind === "convenor" ? (
     <p class="lede">

@@ -51,7 +51,10 @@ it("completes an ordinary profile permission path beyond COMP8620, with offering
   for(const [who,term] of [[student,"S2"],["Other demo student","S1"]]){
     expect(new URL(await post("/api/enrol",fields("COMP8820",term),who),base).searchParams.has("error")).toBe(true);
   }
-  expect(new URL(await post("/api/enrol",fields("COMP8820")),base).searchParams.has("error")).toBe(false);
+  // A permission code does not select a credit value for this 6–24-unit course.
+  expect(new URL(await post("/api/enrol",fields("COMP8820")),base).searchParams.has("error")).toBe(true);
+  expect(new URL(await post("/api/enrol",{...fields("COMP8820"),units:"25"}),base).searchParams.has("error")).toBe(true);
+  expect(new URL(await post("/api/enrol",{...fields("COMP8820"),units:"6"}),base).searchParams.has("error")).toBe(false);
   for(const route of ["/plan/","/record/"])expect((await page(route)).querySelector("[data-confirmed-enrolments]")?.textContent).toContain("COMP8820");
   expect((await page(path)).querySelector("#status-heading")?.textContent).toBe("Enrolled");
   expect((await page("/applications/")).querySelector(`a.request-card[href="${path}"] .badge`)?.textContent).toBe("Enrolled");

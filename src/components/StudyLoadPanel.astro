@@ -1,0 +1,18 @@
+---
+import { HALF_LABELS, loadText } from "../lib/study-load";
+import type { studyLoadFor } from "../lib/overload-store";
+interface Props { load: ReturnType<typeof studyLoadFor>; showAction?: boolean }
+const { load, showAction = true } = Astro.props;
+const href = `/overload/?${new URLSearchParams({ course: load.target.code, year: String(load.year), term: load.target.term, ...(load.target.units ? { units: String(load.target.units) } : {}) })}`;
+---
+<aside class="surface" data-study-load={load.state}>
+  <h3>Study load</h3>
+  {load.target.units === null && <p>Choose the credit value in the course's offering form if it publishes a unit range. A missing credit value cannot be counted as zero.</p>}
+  <p>{load.period ? HALF_LABELS[load.period] : "Unrecognised study period"} {load.year}: adding {load.target.code} gives <strong>{loadText(load)}</strong>. Your limit is {load.limit} units.</p>
+  {load.excluded.length > 0 && <p class="field-help">Non-standard sessions outside the recorded semester dates are counted separately: {load.excluded.join(", ")}.</p>}
+  {load.state === "within-limit" ? <p class="field-help">Within your load limit. Course requirements and explicit enrolment confirmation still apply.</p>
+    : <>
+      <p>{load.state === "over-maximum" ? "This exceeds the 36-unit maximum. Reduce the load before enrolling." : load.state === "unknown" ? "Some credit values or session overlap need clarification before enrolment." : "Overload approval is required before you can confirm this enrolment."}</p>
+      {showAction && <a class="button" href={href}>{load.state === "over-maximum" ? "View study-load rules" : "Request overload assessment"}</a>}
+    </>}
+</aside>

@@ -38,7 +38,8 @@ export const POST: APIRoute = async ({ request, cookies, params, url, locals }) 
     }
     const token = await login(field("email"), field("password"));
     setSession(cookies, token, url);
-    return back(actorFrom(token)?.kind === "convenor" ? "/applications/" : "/");
+    const actor = actorFrom(token);
+    return back(actor?.kind === "convenor" ? actor.convenor.purpose === "overload" ? "/overload/" : "/applications/" : "/");
   } catch (err) {
     if (!(err instanceof UserError)) throw err;
     const page =
