@@ -1214,3 +1214,51 @@ pnpm 11.9.0 `pnpm check` passed with zero diagnostics and 247 tests.
 An already-running VS Code process retained its pre-install PATH. Installing
 through the graphical Windows installer was correct and did not require a
 second CLI installation or moving the executable into the repository.
+
+## 2026-09-26 02:03 — Verify local GPU inference and begin unknown eligibility results
+
+**Prompt:**
+
+> Ty, then hardware is set? What should be next move, the previously recorded two branches as process?
+
+**Result:**
+Verified a bounded local Llama response, then implemented the first foundation
+increment of the agreed sequence. The existing pure evaluator now preserves
+met, unmet and unknown results through nested requirement groups, with explicit
+fictional-record completeness. Empty groups and absent evidence cannot silently
+pass. Unknown does not become an automatic rejection reason, while known unmet
+conditions and incompatibilities retain the existing prototype policy.
+
+2027 COMP8620 now represents missing topic-specific prerequisites as an unknown
+condition alongside the checkable base prerequisite. A shared checklist displays
+the result, next action and source/evidence references on course and request
+pages. New requests persist these details in their existing check snapshots;
+historical boolean snapshots and 2026 rules retain their meaning. Added a
+source-bound reference dataset for COMP6242, COMP8620 and MGMT7020 with six
+fictional scenarios. The missing MGMT7020 section remains an inactive reference
+case. Updated the shared harness and implementation status to name what remains:
+richer operators, versioned rule authoring, complete assessment records, an
+automated demo approval path and the Llama extraction benchmark.
+
+**Verified:**
+Re-read the published Crit 7 contract, current gate, persistence callers and
+saved source paragraphs. Ollama 0.34.4 returned `READY` from `llama3.2:3b`
+(`a80c4f17acd5`), with 100% GPU reported by `ollama ps`, 2.3 GB loaded and a
+2,048-token context. The cold response took 38.04 seconds, including 20.3 seconds
+loading; this verifies setup, not extraction accuracy or steady-state speed.
+Docker Node 24 / pnpm 11.9.0 `pnpm check` passed after the final changes: zero
+diagnostics, 267 tests across 12 files. New coverage checks the AND/OR truth
+table, partial records, empty groups, source identity/version protection, legacy
+snapshots and missing prerequisites. Real HTTP checks confirm that COMP8620's
+unknown result and next action survive request reloads, while the existing
+permission/enrolment flow and historical approval upgrade checks pass. No new
+interactive browser walkthrough or LLM extraction benchmark was run. Restarted
+only the mounted local preview app, preserving its data volume; the COMP8620
+page returned HTTP 200. No deployment or push.
+
+**Commit:** [`4b71983`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/4b71983)
+
+**What happened:**
+The first health request immediately after restarting the preview hit a closed
+connection during startup. A subsequent request succeeded without another
+restart or configuration change.
