@@ -55,9 +55,24 @@ describe("published course library over HTTP", () => {
     expect(ai.text).toContain("minimum of 12 units of 8000-level");
     expect(ai.doc.querySelector('a[href*="code=COMP6670"]')).toBeTruthy();
     const degree = await page("?kind=program&code=7706XMCOMP&year=2027");
-    expect(degree.text).toContain("COMP6442 · 2027 · saved source not linked");
+    expect(degree.doc.querySelector('a[href*="code=COMP6442"]')).toBeTruthy();
     expect((await page("?kind=course&code=COMP6434&year=2026")).status).toBe(404);
     expect((await page("?kind=course&code=MGMT7020&year=2027")).text).toContain("requirements are unknown");
+  });
+  it("links the four newly supplied courses while retaining the unresolved COMP8405 reference", async () => {
+    for (const code of ["COMP6442", "COMP6490", "ENGN6627", "MATH6005"]) {
+      const p = await page(`?kind=course&code=${code}&year=2027`);
+      expect(p.status).toBe(200);
+      expect(p.doc.querySelector(".entry-meta")?.textContent).toContain(code);
+    }
+    const prerequisite = await page("?kind=course&code=COMP6361&year=2027");
+    expect(prerequisite.doc.querySelector('a[href*="code=COMP6442"]')).toBeTruthy();
+    const systems = await page("?kind=specialisation&code=CMSY-SPEC&year=2027");
+    expect(systems.doc.querySelector('a[href*="code=COMP8045"]')).toBeTruthy();
+    expect(systems.doc.querySelector('a[href*="code=COMP8405"]')).toBeNull();
+    expect(systems.text).toContain("COMP8405 Advanced Topics in Computer Systems is a special topics course");
+    expect(systems.text).toContain("COMP8405 · 2027 · saved source not linked");
+    expect((await page("?kind=course&code=COMP8045&year=2026")).status).toBe(404);
   });
 });
 
@@ -74,6 +89,8 @@ it("persists evidence and reviews across reopen/reseed, preserves conflicts, and
   const before = db.select().from(enrolments).all();
   const offeringCount = db.select().from(offerings).all().length;
   const snapshots = catalogue.snapshots as CatalogueSnapshot[];
+  const versionCount = new Set(snapshots.map(s => `${s.evidence.kind}:${s.evidence.code}:${s.evidence.year}`)).size;
+  const sourceCount = snapshots.reduce((total, s) => total + s.sources.length, 0);
   seedCatalogue(db, snapshots);
   const saved = db.select().from(catalogueSnapshots).get()!;
   db.update(catalogueReviews).set({ notes: "Grouping still requires confirmation." }).where(eq(catalogueReviews.snapshotId, saved.id)).run();
@@ -82,16 +99,16 @@ it("persists evidence and reviews across reopen/reseed, preserves conflicts, and
   client.pragma("foreign_keys = ON");
   db = drizzle(client);
   seedCatalogue(db, snapshots);
-  expect(db.select().from(catalogueVersions).all()).toHaveLength(86);
-  expect(db.select().from(catalogueSnapshots).all()).toHaveLength(86);
-  expect(db.select().from(catalogueSources).all()).toHaveLength(105);
+  expect(db.select().from(catalogueVersions).all()).toHaveLength(versionCount);
+  expect(db.select().from(catalogueSnapshots).all()).toHaveLength(snapshots.length);
+  expect(db.select().from(catalogueSources).all()).toHaveLength(sourceCount);
   expect(db.select().from(catalogueReviews).where(eq(catalogueReviews.snapshotId, saved.id)).get()?.notes).toContain("requires confirmation");
   expect(db.select().from(enrolments).all()).toEqual(before);
   expect(db.select().from(offerings).all()).toHaveLength(offeringCount);
   const conflict = parseCatalogue('<meta name="course-code" content="COMP8880"><meta name="course-year" content="2027"><meta name="course-name" content="Changed published wording"><h2 id="incompatibility">Rules</h2><p>COMP6670 OR COMP8600; grouping unresolved.</p>', "assets/conflict.html");
   seedCatalogue(db, [conflict]);
-  expect(db.select().from(catalogueVersions).all()).toHaveLength(86);
-  expect(db.select().from(catalogueSnapshots).all()).toHaveLength(87);
+  expect(db.select().from(catalogueVersions).all()).toHaveLength(versionCount);
+  expect(db.select().from(catalogueSnapshots).all()).toHaveLength(snapshots.length + 1);
   const mentioned = db.select().from(catalogueReferences).where(eq(catalogueReferences.quote, "COMP6670 OR COMP8600; grouping unresolved.")).all();
   expect(mentioned.map(r => r.code)).toEqual(["COMP6670", "COMP8600"]);
   expect(mentioned.every(r => r.year === null)).toBe(true);

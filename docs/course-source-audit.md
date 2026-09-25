@@ -117,3 +117,37 @@ or automatically substitute another same-title code.
 
 The later library import preserves these findings in separate catalogue tables.
 The running app's 2026 enrolment catalogue has not been replaced by this collection.
+
+## 26 September follow-up: four missing pages and a code inconsistency
+
+Received and imported 2027 course pages for COMP6442, COMP6490, ENGN6627 and
+MATH6005. The catalogue now has 80 course versions from 99 course HTML files,
+plus the ten degree/specialisation pages: 90 identities and 109 source copies.
+Sixty-five of the original 66 explicit course links now resolve to a saved 2027
+page. COMP6490 explicitly has no current offerings, bringing that category to
+15 courses; adding its source does not create an enrolment offering.
+
+John reports that he could not find COMP8405 and supplied COMP8045 instead.
+The saved CMSY-SPEC page itself contains both:
+
+- The course-choice list links COMP8045, Advanced Topics in Computer Systems
+  and Architecture, to `/2027/course/COMP8045`.
+- Later explanatory text links COMP8405 and calls it a special topics course
+  with a varying topic. Its URL is `/2027/course/COMP8405`.
+
+This suggests a typo or stale reference, but the supplied evidence does not
+establish which. Retain the published COMP8045 choice and unresolved COMP8405
+mention; do not turn the latter into an additional allowed course, automatically
+replace it, or assert that the code has never existed. COMP8045 already had two
+matching 2027 catalogue copies in the Computer Systems and Cyber Security folders.
+
+The additional file initially supplied under Remained/8000 was inspected as a
+**2026 Second Semester class summary**, class 9013, topic Systems for AI. Its
+canonical URL was
+`https://programsandcourses.anu.edu.au/2026/course/comp8045/second%20semester/9013`,
+with SHA-256 `9be6efe5e1dc056f9fc76bc9acdde23735b58a78034cfeb8a9ff5ab0b80998ae`.
+It was not a 2027 catalogue page and was not imported as one. That file was no
+longer present on a later folder read; the agent did not move or delete it. The
+strict importer remains unchanged and the final import uses the 109 valid
+catalogue files. A class summary's topic/session details should be stored as
+separate offering evidence if that document type is supported later.

@@ -55,6 +55,9 @@ John's question about the year mismatch, 2027 is the recommended next migration
 target; the running enrolment flow still uses 2026. See the concrete migration
 scope in `docs/catalogue-data.md`. A switch must align rules, offerings and the
 fictional record, while retaining existing requests under their original year.
+The 2027 CMSY-SPEC course list names COMP8045, while its explanatory advice links
+COMP8405. Preserve that unresolved source inconsistency; do not alias the codes
+or change allowed-course membership on the assumption that it is a typo.
 
 ## Rules
 

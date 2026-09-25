@@ -55,8 +55,11 @@ interpretation. Unversioned links were not treated as evidence of a specific yea
 For each download keep the course code, displayed year, original URL, units,
 prerequisites, incompatibilities, permission wording and offering sessions.
 No need to edit the source HTML. A year in the filename will prevent one
-snapshot overwriting another. After the Remained upload, 61 of these 66 course codes have saved 2027 pages.
-The complete upload contains 76 distinct courses, including additional catalogue entries.
+snapshot overwriting another. After the 26 September follow-up, 65 of these 66
+course codes have saved 2027 pages. The complete upload contains 80 distinct
+courses, including additional catalogue entries. The remaining COMP8405 mention
+is in explanatory advice; CMSY-SPEC's actual course-choice list names COMP8045.
+Keep that source inconsistency unresolved rather than substituting one code.
 Checked boxes mean a matching code/year was found locally, not that every rule
 has been validated or imported. See `docs/course-source-audit.md` for details.
 
@@ -77,11 +80,11 @@ has been validated or imported. See `docs/course-source-audit.md` for details.
 - [x] [COMP6363](https://programsandcourses.anu.edu.au/2027/course/COMP6363) - COMP-SPEC
 - [x] [COMP6390](https://programsandcourses.anu.edu.au/2027/course/COMP6390) - HCCM-SPEC, SOFT-SPEC
 - [x] [COMP6434](https://programsandcourses.anu.edu.au/2027/course/COMP6434) - DTSC-SPEC
-- [ ] [COMP6442](https://programsandcourses.anu.edu.au/2027/course/COMP6442) - 7706XMCOMP, MMLCV, 7722XVCOMP
+- [x] [COMP6442](https://programsandcourses.anu.edu.au/2027/course/COMP6442) - 7706XMCOMP, MMLCV, 7722XVCOMP
 - [x] [COMP6445](https://programsandcourses.anu.edu.au/2027/course/COMP6445) - MMLCV, 7722XVCOMP
 - [x] [COMP6464](https://programsandcourses.anu.edu.au/2027/course/COMP6464) - CMSY-SPEC
 - [x] [COMP6466](https://programsandcourses.anu.edu.au/2027/course/COMP6466) - COMP-SPEC
-- [ ] [COMP6490](https://programsandcourses.anu.edu.au/2027/course/COMP6490) - MMLCV
+- [x] [COMP6490](https://programsandcourses.anu.edu.au/2027/course/COMP6490) - MMLCV
 - [x] [COMP6528](https://programsandcourses.anu.edu.au/2027/course/COMP6528) - MMLCV, ARTIF-SPEC, HCCM-SPEC
 - [x] [COMP6540](https://programsandcourses.anu.edu.au/2027/course/COMP6540) - HCCM-SPEC
 - [x] [COMP6670](https://programsandcourses.anu.edu.au/2027/course/COMP6670) - MMLCV, ARTIF-SPEC, DTSC-SPEC
@@ -97,7 +100,7 @@ has been validated or imported. See `docs/course-source-audit.md` for details.
 - [x] [COMP8280](https://programsandcourses.anu.edu.au/2027/course/COMP8280) - 7706XMCOMP, MMLCV
 - [x] [COMP8300](https://programsandcourses.anu.edu.au/2027/course/COMP8300) - CMSY-SPEC
 - [x] [COMP8350](https://programsandcourses.anu.edu.au/2027/course/COMP8350) - HCCM-SPEC
-- [ ] [COMP8405](https://programsandcourses.anu.edu.au/2027/course/COMP8405) - CMSY-SPEC
+- [ ] [COMP8405](https://programsandcourses.anu.edu.au/2027/course/COMP8405) - CMSY-SPEC advice only; unresolved alongside its explicit COMP8045 course choice
 - [x] [COMP8410](https://programsandcourses.anu.edu.au/2027/course/COMP8410) - DTSC-SPEC
 - [x] [COMP8460](https://programsandcourses.anu.edu.au/2027/course/COMP8460) - COMP-SPEC
 - [x] [COMP8490](https://programsandcourses.anu.edu.au/2027/course/COMP8490) - ARTIF-SPEC, DTSC-SPEC
@@ -116,12 +119,12 @@ has been validated or imported. See `docs/course-source-audit.md` for details.
 - [x] [COMP8830](https://programsandcourses.anu.edu.au/2027/course/COMP8830) - 7706XMCOMP, MMLCV, SOFT-SPEC
 - [x] [COMP8880](https://programsandcourses.anu.edu.au/2027/course/COMP8880) - DTSC-SPEC
 - [x] [ENGN6213](https://programsandcourses.anu.edu.au/2027/course/ENGN6213) - CMSY-SPEC
-- [ ] [ENGN6627](https://programsandcourses.anu.edu.au/2027/course/ENGN6627) - MMLCV
+- [x] [ENGN6627](https://programsandcourses.anu.edu.au/2027/course/ENGN6627) - MMLCV
 - [x] [ENGN8100](https://programsandcourses.anu.edu.au/2027/course/ENGN8100) - SOFT-SPEC
 - [x] [INFS8004](https://programsandcourses.anu.edu.au/2027/course/INFS8004) - SOFT-SPEC
 - [x] [INFS8205](https://programsandcourses.anu.edu.au/2027/course/INFS8205) - SOFT-SPEC
 - [x] [LAWS8445](https://programsandcourses.anu.edu.au/2027/course/LAWS8445) - SOFT-SPEC
-- [ ] [MATH6005](https://programsandcourses.anu.edu.au/2027/course/MATH6005) - 7706XMCOMP
+- [x] [MATH6005](https://programsandcourses.anu.edu.au/2027/course/MATH6005) - 7706XMCOMP
 - [x] [MATH6114](https://programsandcourses.anu.edu.au/2027/course/MATH6114) - COMP-SPEC
 - [x] [MATH8343](https://programsandcourses.anu.edu.au/2027/course/MATH8343) - COMP-SPEC
 - [x] [MGMT7020](https://programsandcourses.anu.edu.au/2027/course/MGMT7020) - SOFT-SPEC

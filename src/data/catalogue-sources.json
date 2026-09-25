@@ -2292,6 +2292,207 @@
       ]
     },
     {
+      "hash": "8efd2a2a636f8e877dbd50daa78eaec165b1627c48aafcb509c206989899afae",
+      "evidence": {
+        "kind": "course",
+        "code": "COMP6442",
+        "year": 2027,
+        "title": "Software Construction",
+        "description": "This course extensively explores the fundamental principles and practices necessary for creating medium-scale software projects, with a specific focus on the object-oriented programming paradigm. By blending theoretical understanding with hands-on practice, students establish a robust foundation in software construction, drawing from their prior programming experience. Key topics, including programming techniques at large, life cycle models, data manipulation techniques, and GUI concepts, are highlighted to foster a comprehensive grasp of software development. Ultimately, the course empowers students with the skills to construct medium-scale software projects efficiently, ethically, and in alignment with industry standards.",
+        "units": "6 units",
+        "sections": [
+          {
+            "key": "incompatibility",
+            "title": "Requisite and Incompatibility",
+            "present": true,
+            "blocks": [
+              {
+                "text": "To enrol in this course you must have either: completed (COMP6710 OR COMP7710 OR COMP1110 OR COMP1140); AND have completed or be currently enrolled in (MATH6005 OR COMP6260 OR MATH1005 OR COMP1600); OR be enrolled in the Master of Machine Learning and Computer Vision AND have completed (COMP6710 or COMP7710 or COMP1110 or COMP1140) OR be enrolled in the Master of Computing (Advanced). Incompatible with COMP2100.",
+                "depth": 0,
+                "references": [
+                  {
+                    "kind": "course",
+                    "code": "COMP6710",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP6710",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "COMP7710",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP7710",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "COMP1110",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP1110",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "COMP1140",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP1140",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "MATH6005",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/MATH6005",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "COMP6260",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP6260",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "MATH1005",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/MATH1005",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "COMP1600",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP1600",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "COMP2100",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP2100",
+                    "basis": "link"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "learning-outcomes",
+            "title": "Learning Outcomes",
+            "present": true,
+            "blocks": [
+              {
+                "text": "Upon successful completion, students will have the knowledge and skills to:",
+                "depth": 0,
+                "references": []
+              },
+              {
+                "text": "Apply object-oriented programming concepts for medium-scale software projects",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Understand the fundamentals of life cycle models for developing medium-scale software projects",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Apply and Evaluate software construction principles across various life cycle stages in medium-scale software projects",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Understand fundamental concepts of GUIs and user interfaces",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Understand basic concepts of intellectual property in software construction, considering ethical and social implications of technical decisions",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Apply and Evaluate techniques for data manipulation in medium-scale software projects",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Understand and analyse relevant scientific literature in the field of software construction.",
+                "depth": 1,
+                "references": []
+              }
+            ]
+          }
+        ],
+        "availability": "listed",
+        "offerings": [
+          {
+            "year": 2027,
+            "session": "First Semester",
+            "fields": {
+              "Class number": "5104",
+              "Class start date": "22 Feb 2027",
+              "Last day to enrol": "01 Mar 2027",
+              "Census date": "31 Mar 2027",
+              "Class end date": "28 May 2027",
+              "Mode Of Delivery": "In Person",
+              "Class Summary": "N/A"
+            }
+          },
+          {
+            "year": 2027,
+            "session": "Second Semester",
+            "fields": {
+              "Class number": "10107",
+              "Class start date": "26 Jul 2027",
+              "Last day to enrol": "02 Aug 2027",
+              "Census date": "31 Aug 2027",
+              "Class end date": "29 Oct 2027",
+              "Mode Of Delivery": "In Person",
+              "Class Summary": "N/A"
+            }
+          },
+          {
+            "year": 2028,
+            "session": "First Semester",
+            "fields": {
+              "Class number": "6687",
+              "Class start date": "21 Feb 2028",
+              "Last day to enrol": "28 Feb 2028",
+              "Census date": "31 Mar 2028",
+              "Class end date": "26 May 2028",
+              "Mode Of Delivery": "In Person",
+              "Class Summary": "N/A"
+            }
+          },
+          {
+            "year": 2028,
+            "session": "Second Semester",
+            "fields": {
+              "Class number": "11058",
+              "Class start date": "24 Jul 2028",
+              "Last day to enrol": "31 Jul 2028",
+              "Census date": "31 Aug 2028",
+              "Class end date": "27 Oct 2028",
+              "Mode Of Delivery": "In Person",
+              "Class Summary": "N/A"
+            }
+          }
+        ],
+        "offeringText": "ANU utilises MyTimetable to enable students to view the timetable for their enrolled courses, browse, then self-allocate to small teaching activities / tutorials so they can better plan their time. Find out more on the Timetable webpage. The list of offerings for future years is indicative only. Class summaries, if available, can be accessed by clicking on the View link for the relevant class number. 2027 2028 First Semester Class number Class start date Last day to enrol Census date Class end date Mode Of Delivery Class Summary 5104 22 Feb 2027 01 Mar 2027 31 Mar 2027 28 May 2027 In Person N/A Second Semester Class number Class start date Last day to enrol Census date Class end date Mode Of Delivery Class Summary 10107 26 Jul 2027 02 Aug 2027 31 Aug 2027 29 Oct 2027 In Person N/A First Semester Class number Class start date Last day to enrol Census date Class end date Mode Of Delivery Class Summary 6687 21 Feb 2028 28 Feb 2028 31 Mar 2028 26 May 2028 In Person N/A Second Semester Class number Class start date Last day to enrol Census date Class end date Mode Of Delivery Class Summary 11058 24 Jul 2028 31 Jul 2028 31 Aug 2028 27 Oct 2028 In Person N/A",
+        "issues": []
+      },
+      "sources": [
+        {
+          "path": "assets/Courses/Remained/6000/Software Construction/Software Construction - ANU.html",
+          "sha256": "f820311740bd169d0872de7ac585e53834bb508e79eb6b21d54437b579edd2f4",
+          "url": "https://programsandcourses.anu.edu.au/2027/course/comp6442",
+          "urlBasis": "canonical-link"
+        }
+      ]
+    },
+    {
       "hash": "d7241a4d92d5dd59632cb9dea01e6acacf67a060a9f6fd1f44b346a1edc13180",
       "evidence": {
         "kind": "course",
@@ -2736,6 +2937,125 @@
           "path": "assets/Courses/Remained/6000/Special Topics in Computing/Special Topics in Computing - ANU.html",
           "sha256": "f8bf3f00b77998647354d20c2a938b0895ca0f4e8c595687db35fb2c529fbd6c",
           "url": "https://programsandcourses.anu.edu.au/2027/course/comp6470",
+          "urlBasis": "canonical-link"
+        }
+      ]
+    },
+    {
+      "hash": "4ad02b0b6f25a6540dc1d5a4875b46a5ade47e1299e5cf330b45cce1400c3eae",
+      "evidence": {
+        "kind": "course",
+        "code": "COMP6490",
+        "year": 2027,
+        "title": "Document Analysis",
+        "description": "Processing of semi-structured documents such as internet pages, Really Simple Syndication (RSS) feeds and their accompanying news items, and Portable Document Format (PDF) brochures is considered from the perspective of interpreting the content. This course considers the document and its various genres as a fundamental object for business, government and community. For this, the course covers four broad areas: 1. Information Retrieval (IR), 2. Natural Language Processing (NLP), 3. Machine/Deep Learning (M/DL) for documents, and 4. relevant tools for the Web. Basic tasks here are covered, including content collection and extraction, formal and informal NLP, Information Extraction (IE), IR, classification, and analysis. Fundamental probabilistic techniques for performing these tasks and some common software systems will be covered, though no area will be covered in any depth.(The older version: This course considers the “document” and its various genres as a fundamental object for business, government and community, such as web pages, social media feeds, news items, and PDF brochures. The goal is to introduce concepts and hands-on tools for automated understanding of large amounts of text. For this, the course covers four broad areas: (A) information retrieval, (B) natural language processing, (C) machine learning for documents, and (D) relevant tools for the web. Tasks include content collection and extraction, formal and informal natural language processing, information extraction, information retrieval, classification and analysis. Fundamental probabilistic techniques for performing these tasks, and some common software systems will be covered, though no area will be covered in great depth.)",
+        "units": "6 units",
+        "sections": [
+          {
+            "key": "incompatibility",
+            "title": "Requisite and Incompatibility",
+            "present": true,
+            "blocks": [
+              {
+                "text": "To enrol in this course you must be enrolled in VCOMP OR have completed 6 units of: (COMP6240/2400 OR COMP6260/1600 OR COMP6442/2100) AND have completed 6 units of: (COMP6730/1730 OR COMP6710/1110). Incompatible with COMP4650 and COMP6990.",
+                "depth": 0,
+                "references": [
+                  {
+                    "kind": "course",
+                    "code": "COMP6240",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP6240",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "COMP6260",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP6260",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "COMP6442",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP6442",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "COMP6730",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP6730",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "COMP6710",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP6710",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "COMP4650",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP4650",
+                    "basis": "link"
+                  },
+                  {
+                    "kind": "course",
+                    "code": "COMP6990",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/COMP6990",
+                    "basis": "link"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "learning-outcomes",
+            "title": "Learning Outcomes",
+            "present": true,
+            "blocks": [
+              {
+                "text": "Upon successful completion, students will have the knowledge and skills to:",
+                "depth": 0,
+                "references": []
+              },
+              {
+                "text": "Differentiate between the probabilistic theories of language, document structure, and their applications to text generation and analysis, from the pioneering papers to the current advances in research and practice.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Apply, analyse, evaluate, and extend methods for natural language processing, word representation, document feature engineering, information retrieval, text classification, text clustering, and language modelling.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Create automated workflows for document analysis, information retrieval, and text classification tasks by developing and deploying typical algorithms, code libraries, and software (e.g., for natural language processing and machine/deep learning).",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Demonstrate advanced proficiency at designing, justifying, conducting, and reporting on such analysis and evaluation experiments at document and corpus levels.",
+                "depth": 1,
+                "references": []
+              }
+            ]
+          }
+        ],
+        "availability": "explicit-none",
+        "offerings": [],
+        "offeringText": "ANU utilises MyTimetable to enable students to view the timetable for their enrolled courses, browse, then self-allocate to small teaching activities / tutorials so they can better plan their time. Find out more on the Timetable webpage. There are no current offerings for this course.",
+        "issues": []
+      },
+      "sources": [
+        {
+          "path": "assets/Courses/Remained/6000/Document Analysis - 6490/Document Analysis - ANU.html",
+          "sha256": "97f04cf2352703300bfe50f6e645657cc0c9a7ec8c9f31a99ec5151c413eb811",
+          "url": "https://programsandcourses.anu.edu.au/2027/course/comp6490",
           "urlBasis": "canonical-link"
         }
       ]
@@ -7959,6 +8279,146 @@
       ]
     },
     {
+      "hash": "f3833469fb1dfa5191c14399677ebd5e4e0dd962628369f190771db3b9939d6d",
+      "evidence": {
+        "kind": "course",
+        "code": "ENGN6627",
+        "year": 2027,
+        "title": "Robotics",
+        "description": "This course provides an introduction to modern robotics. The focus is on robot kinematics, sensing techniques, localization, and mapping. Topics to be covered include robot spatial configuration, homogeneous coordinate transformation, mobile robot locomotion, mobile robot kinematics, robot motion control, sensors and perception, robot localization, simultaneous localization and mapping SLAM, robotic system architecture.The applied component of the course includes experimental work with a programmable mobile robotic platform equipped with sensors. This applied component is aimed at integrating sensor measurements to build a representation of the environment and perform a robotic task.",
+        "units": "6 units",
+        "sections": [
+          {
+            "key": "incompatibility",
+            "title": "Requisite and Incompatibility",
+            "present": true,
+            "blocks": [
+              {
+                "text": "To enrol in this course you must be studying Master of Engineering in Electrical Engineering or Master of Machine Learning and Computer Vision. Incompatible with ENGN4627.",
+                "depth": 0,
+                "references": [
+                  {
+                    "kind": "course",
+                    "code": "ENGN4627",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/ENGN4627",
+                    "basis": "link"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "learning-outcomes",
+            "title": "Learning Outcomes",
+            "present": true,
+            "blocks": [
+              {
+                "text": "Upon successful completion, students will have the knowledge and skills to:",
+                "depth": 0,
+                "references": []
+              },
+              {
+                "text": "Discuss the history, concepts and key components of robotics technologies.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Describe and compare various robot sensors and their perception principles that enable a robot to analyse their environment, reason and take appropriate actions toward the given goal.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Analyse and solve problems in spatial coordinate representation and spatial transformation, robot locomotion, kinematics, motion control, and localization and mapping.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Apply and demonstrate the learned knowledge and skills in practical robotics applications.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Critically appraise current research literature and conduct experiments with state of the art robotic algorithms on a robotic platform.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Effectively communicate engineering concepts and design decisions using a range of media.",
+                "depth": 1,
+                "references": []
+              }
+            ]
+          }
+        ],
+        "availability": "listed",
+        "offerings": [
+          {
+            "year": 2027,
+            "session": "First Semester",
+            "fields": {
+              "Class number": "5145",
+              "Class start date": "22 Feb 2027",
+              "Last day to enrol": "01 Mar 2027",
+              "Census date": "31 Mar 2027",
+              "Class end date": "28 May 2027",
+              "Mode Of Delivery": "In Person",
+              "Class Summary": "N/A"
+            }
+          },
+          {
+            "year": 2027,
+            "session": "Second Semester",
+            "fields": {
+              "Class number": "8746",
+              "Class start date": "26 Jul 2027",
+              "Last day to enrol": "02 Aug 2027",
+              "Census date": "31 Aug 2027",
+              "Class end date": "29 Oct 2027",
+              "Mode Of Delivery": "In Person",
+              "Class Summary": "N/A"
+            }
+          },
+          {
+            "year": 2028,
+            "session": "First Semester",
+            "fields": {
+              "Class number": "6538",
+              "Class start date": "21 Feb 2028",
+              "Last day to enrol": "28 Feb 2028",
+              "Census date": "31 Mar 2028",
+              "Class end date": "26 May 2028",
+              "Mode Of Delivery": "In Person",
+              "Class Summary": "N/A"
+            }
+          },
+          {
+            "year": 2028,
+            "session": "Second Semester",
+            "fields": {
+              "Class number": "9723",
+              "Class start date": "24 Jul 2028",
+              "Last day to enrol": "31 Jul 2028",
+              "Census date": "31 Aug 2028",
+              "Class end date": "27 Oct 2028",
+              "Mode Of Delivery": "In Person",
+              "Class Summary": "N/A"
+            }
+          }
+        ],
+        "offeringText": "ANU utilises MyTimetable to enable students to view the timetable for their enrolled courses, browse, then self-allocate to small teaching activities / tutorials so they can better plan their time. Find out more on the Timetable webpage. The list of offerings for future years is indicative only. Class summaries, if available, can be accessed by clicking on the View link for the relevant class number. 2027 2028 First Semester Class number Class start date Last day to enrol Census date Class end date Mode Of Delivery Class Summary 5145 22 Feb 2027 01 Mar 2027 31 Mar 2027 28 May 2027 In Person N/A Second Semester Class number Class start date Last day to enrol Census date Class end date Mode Of Delivery Class Summary 8746 26 Jul 2027 02 Aug 2027 31 Aug 2027 29 Oct 2027 In Person N/A First Semester Class number Class start date Last day to enrol Census date Class end date Mode Of Delivery Class Summary 6538 21 Feb 2028 28 Feb 2028 31 Mar 2028 26 May 2028 In Person N/A Second Semester Class number Class start date Last day to enrol Census date Class end date Mode Of Delivery Class Summary 9723 24 Jul 2028 31 Jul 2028 31 Aug 2028 27 Oct 2028 In Person N/A",
+        "issues": []
+      },
+      "sources": [
+        {
+          "path": "assets/Courses/Remained/6000/Robotics/Robotics - ANU.html",
+          "sha256": "3b83f1c259ddc4689877cdac723cf3f1b92da4b6aafdfebc30a31e5c719e4cc8",
+          "url": "https://programsandcourses.anu.edu.au/2027/course/engn6627",
+          "urlBasis": "canonical-link"
+        }
+      ]
+    },
+    {
       "hash": "51b1d52ffb2686fac68aa80cd05900fadb2a22c9f22cbb5d3081df3cda6df575",
       "evidence": {
         "kind": "course",
@@ -8765,6 +9225,125 @@
           "path": "assets/Courses/Software Development/8000/Information Technology Law/Information Technology Law - ANU.html",
           "sha256": "69b1b490119f6d4a9a25e187bec289fce7fc950c2d3be954043ff24bc869994c",
           "url": "https://programsandcourses.anu.edu.au/2027/course/laws8445",
+          "urlBasis": "canonical-link"
+        }
+      ]
+    },
+    {
+      "hash": "864a9aa7ca24d1b41e924f449af25f0a592728d31fe095b14cc04ec10341767f",
+      "evidence": {
+        "kind": "course",
+        "code": "MATH6005",
+        "year": 2027,
+        "title": "Discrete Mathematical Models",
+        "description": "Introduction to discrete mathematics and its use in mathematical modelling. Emphasis will be placed on developing facility, technique and use in applications. Modelling of processes and phenomena which occur in the physical, environmental and life sciences, especially computer science, will be used as a vehicle throughout. Topics to be covered include: logic and set theory, combinatorics and counting, probability, induction and recurrence relations, graph theory and networks, matrix arithmetic and Markov chains.Note: This course is co-taught with undergraduate students but assessed separately.",
+        "units": "6 units",
+        "sections": [
+          {
+            "key": "incompatibility",
+            "title": "Requisite and Incompatibility",
+            "present": true,
+            "blocks": [
+              {
+                "text": "CECS students must be enrolled in a Graduate Diploma of Computing or a Master of Computing to enrol in this course. Incompatible: MATH1005",
+                "depth": 0,
+                "references": [
+                  {
+                    "kind": "course",
+                    "code": "MATH1005",
+                    "year": 2027,
+                    "url": "https://programsandcourses.anu.edu.au/2027/course/MATH1005",
+                    "basis": "link"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "learning-outcomes",
+            "title": "Learning Outcomes",
+            "present": true,
+            "blocks": [
+              {
+                "text": "Upon successful completion, students will have the knowledge and skills to:",
+                "depth": 0,
+                "references": []
+              },
+              {
+                "text": "Recall, invent or interpret examples of motivation for mathematical constructs used in discrete mathematics as models of processes in the world.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Recognise, define, explain and use terminology and notation from discrete mathematics.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Identify the logical structure of a statement, and then identify the logical structure of an argument that may be used to prove or disprove the statement.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Competently perform mathematical calculations in discrete mathematics using methods presented in the course.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Write simple proofs/construct explicit counterexamples for statements relating to discrete mathematics topics covered in the course.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Use their deep knowledge and understanding of the material presented in the course to formulate responses to complex concrete and abstract problems.",
+                "depth": 1,
+                "references": []
+              },
+              {
+                "text": "Communicate their understanding and skills in discrete mathematics with colleagues and non-experts and apply their knowledge in an occupational situation.",
+                "depth": 1,
+                "references": []
+              }
+            ]
+          }
+        ],
+        "availability": "listed",
+        "offerings": [
+          {
+            "year": 2027,
+            "session": "First Semester",
+            "fields": {
+              "Class number": "3985",
+              "Class start date": "22 Feb 2027",
+              "Last day to enrol": "01 Mar 2027",
+              "Census date": "31 Mar 2027",
+              "Class end date": "28 May 2027",
+              "Mode Of Delivery": "In Person",
+              "Class Summary": "N/A"
+            }
+          },
+          {
+            "year": 2028,
+            "session": "First Semester",
+            "fields": {
+              "Class number": "5538",
+              "Class start date": "21 Feb 2028",
+              "Last day to enrol": "28 Feb 2028",
+              "Census date": "31 Mar 2028",
+              "Class end date": "26 May 2028",
+              "Mode Of Delivery": "In Person",
+              "Class Summary": "N/A"
+            }
+          }
+        ],
+        "offeringText": "ANU utilises MyTimetable to enable students to view the timetable for their enrolled courses, browse, then self-allocate to small teaching activities / tutorials so they can better plan their time. Find out more on the Timetable webpage. The list of offerings for future years is indicative only. Class summaries, if available, can be accessed by clicking on the View link for the relevant class number. 2027 2028 First Semester Class number Class start date Last day to enrol Census date Class end date Mode Of Delivery Class Summary 3985 22 Feb 2027 01 Mar 2027 31 Mar 2027 28 May 2027 In Person N/A First Semester Class number Class start date Last day to enrol Census date Class end date Mode Of Delivery Class Summary 5538 21 Feb 2028 28 Feb 2028 31 Mar 2028 26 May 2028 In Person N/A",
+        "issues": []
+      },
+      "sources": [
+        {
+          "path": "assets/Courses/Remained/6000/Discrete Mathematical Models/Discrete Mathematical Models - ANU.html",
+          "sha256": "2b30f1ebfe17dad2f68e7bf65d6392882d2d2b88dc0d73c6044b140c7d8a9252",
+          "url": "https://programsandcourses.anu.edu.au/2027/course/math6005",
           "urlBasis": "canonical-link"
         }
       ]

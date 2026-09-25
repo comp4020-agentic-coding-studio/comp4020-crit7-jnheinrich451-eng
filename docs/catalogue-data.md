@@ -4,12 +4,12 @@ Implemented at `/catalogue/`. This is the foundation for interpreting course
 relationships, not an automatic degree planner. It is public and works without
 sign-in or JavaScript.
 
-The initial import contains 105 local HTML files: 76 course versions, three
+The import after the 26 September follow-up contains 109 local HTML files: 80 course versions, three
 programs and seven specialisations, all with 2027 catalogue metadata. Nineteen
 duplicate copies share records while retaining their paths and file checksums.
-There are 394 references in requirement/advice/outcome blocks and 154 offering
+There are 412 references in requirement/advice/outcome blocks and 164 offering
 rows, including explicitly labelled 2028 offerings. References are mentions,
-not 394 approved prerequisite or membership rules.
+not 412 approved prerequisite or membership rules.
 
 ## Model
 
@@ -83,9 +83,11 @@ lives in its Docker `app-data` volume; ordinary local development uses
 - A link's explicit year is retained. A bare course mention or unversioned link
   has an unknown target year and is not silently resolved to 2027. Missing source
   targets remain visible without broken local links.
-- The missing 2027 pages from the earlier 66-course checklist are COMP6442,
-  COMP6490, COMP8405, ENGN6627 and MATH6005. Other mentions, such as undergraduate
-  prerequisites, also legitimately have no saved page in this collection.
+- The 26 September follow-up supplied COMP6442, COMP6490, ENGN6627 and MATH6005.
+  The remaining COMP8405 reference is in CMSY-SPEC's explanatory advice, while
+  its course-choice list explicitly names COMP8045. Keep the inconsistency
+  unresolved; do not alias the codes or infer a replacement. Other mentions,
+  such as undergraduate prerequisites, can remain references without full pages.
 - The first requested planning example is still **VCOMP, 2026 commencement**.
   We need its actual rules and relevant offering evidence before promising a
   semester-by-semester path. The 2027 AI/ML discrepancy is preserved in the
@@ -111,10 +113,10 @@ Inspection of the current code and saved sources found:
 - COMP6528's saved source lists incompatibilities with ENGN6528, COMP4528 and
   ENGN4528 that the current transcription/check omits. This is an implementation
   gap to resolve, not proof that ANU changed the rule between years.
-- Sixty-six of the 70 current course codes have a saved 2027 page. Their coarse
-  semester/session sets match the current seed. COMP6442, COMP6490, ENGN6539 and
+- After the follow-up, 68 of the 70 current course codes have a saved 2027 page.
+  Their coarse semester/session sets match the current seed. ENGN6539 and
   ENGN8501 have no corresponding saved 2027 page; do not invent their offerings.
-  The imported catalogue also contains ten codes absent from the current seed.
+  The imported catalogue also contains twelve codes absent from the current seed.
 
 The migration should bind active rules to their 2027 source snapshots, populate
 actual 2027 offerings, centralise the active-year defaults, and give the
