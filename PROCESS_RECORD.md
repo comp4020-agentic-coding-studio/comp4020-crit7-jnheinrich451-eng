@@ -622,3 +622,44 @@ and loopback-bound ports, retaining its volumes. The first smoke request used
 S1 for COMP8620 and was correctly rejected because its recorded offering is
 S2; corrected the test input and reran successfully. Neither issue was fixed by
 weakening the enrolment or account checks.
+
+## 2026-09-25 21:39 — Fix native browser verification submissions
+
+**Prompt:**
+
+> Haha, but after confirmation, jumps to a page: [http://127.0.0.1:4323/api/auth/verify](http://127.0.0.1:4323/api/auth/verify), with one line: Cross-site POST form submissions are forbidden. And I still cannot login
+
+**Result:**
+Reproduced the user's failure with a real Chrome form submission and JavaScript
+disabled. The verification page's `Referrer-Policy: no-referrer` caused Chrome
+to send `Origin: null`, so Astro correctly rejected the POST. Changed the policy
+on verification pages to `strict-origin`: the token stays out of the Referer
+header while the same-origin form retains its Origin. Kept Astro's and the app's
+cross-site checks enabled, added HTTP regression coverage for verification
+headers and rejected origins, and added a native-browser check requirement to
+the shared harness. Rebuilt and restarted the local preview without resetting
+its database or changing the user's accounts.
+
+**Verified:**
+Before the fix, headless Chrome with JavaScript disabled submitted the actual
+confirmation button with Origin `null` and received 403 with the user's exact
+error text. After the fix, a fresh fictional account completed registration,
+captured-email confirmation (303), sign-in and authenticated profile access
+through actual browser forms. The confirmation request's Origin matched the
+preview and its Referer contained no token. Local artifacts record the before
+and after outcomes in `.data/verify-browser-before.json` and
+`.data/verify-browser-after.json`. Docker Node 24/pnpm 11.9.0 `pnpm check` passed
+171 tests across 7 files with zero type errors, warnings or hints. Tests also
+confirm null/cross-site origins remain rejected without activating the account
+or consuming its token. Staged whitespace checks passed; no external mail sent.
+
+**Commit:** [`a8a28ff`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/a8a28ff)
+
+**What happened:**
+The previous HTTP smoke check manually supplied Origin, so it missed this
+browser-only failure. Its passing result was insufficient evidence that the
+user could submit the verification form. The first new test edit reused a
+variable name and failed type checking; renamed it. The first browser rerun
+reached login but had an ambiguous email-field selector shared with the resend
+form; scoped the selector to the login form and completed the rerun. These
+were test-harness corrections, not reasons to relax application security.
