@@ -110,3 +110,48 @@ describe("assessment entry and pending-request lifecycle", () => {
     expect((await page("/courses/COMP8620/?year=2027&term=S2", decline)).querySelector("[data-pending-request]")).toBeNull();
   });
 });
+
+describe("explicit requests for human judgement", () => {
+  it.each([
+    ["exception", "Staff exception student"],
+    ["equivalent-study", "Staff equivalence student"],
+    ["record-correction", "Staff correction student"],
+  ])("routes %s despite a recorded incompatibility, preserving its evidence and reason", async (reason, student) => {
+    const fields = { courseCode: "COMP7710", year: "2027", term: "S1", statement: "Please consider the evidence in my explanation." };
+    const automatic = await post("/api/applications", student, { ...fields, reviewMode: "automatic", reason: "recorded-checks" });
+    expect((await page(automatic, student)).querySelector("#status-heading")?.textContent).toBe("Not approved under the demo policy");
+    const path = await post("/api/applications", student, { ...fields, reason, convenorId: "1" });
+    const doc = await page(path, student);
+    expect(doc.querySelector("#status-heading")?.textContent).toBe("With Dr Hana Okafor");
+    expect(doc.querySelector('[data-check-status="unmet"]')?.textContent).toContain("COMP6710");
+    expect(doc.querySelector(".timeline")?.textContent).toContain("The recorded checks are unchanged");
+    expect(doc.querySelector<HTMLSelectElement>("#assessment-reason")?.value).toBe(reason);
+    expect((await page("/applications/", "Dr Hana Okafor")).querySelector(`a[href="${path}"]`)).toBeTruthy();
+    expect((await page("/applications/", "Dr Rowan Ellis")).querySelector(`a[href="${path}"]`)).toBeNull();
+    const wrongReviewer = await post(`/api${path}decision`, "Dr Rowan Ellis", { decision: "approve", note: "Wrong reviewer" });
+    expect(new URL(wrongReviewer, base).searchParams.get("error")).toContain("Only the convenor");
+    const waiting = await page(path, student);
+    const events = waiting.querySelectorAll(".timeline > li").length;
+    expect(await post("/api/applications", student, { ...fields, reason })).toBe(path);
+    expect((await page(path, student)).querySelectorAll(".timeline > li")).toHaveLength(events);
+    if (reason === "exception") {
+      await post(`/api${path}decision`, "Dr Hana Okafor", { decision: "approve", note: "Fictional exception for this test offering." });
+      expect((await page(path, student)).querySelector("#status-heading")?.textContent).toBe("Approved");
+      expect((await page("/record/", student)).querySelector("[data-confirmed-enrolments]")?.textContent).not.toContain("COMP7710");
+      await post("/api/enrol", student, fields);
+      expect((await page("/record/", student)).querySelector("[data-confirmed-enrolments]")?.textContent).toContain("COMP7710");
+    } else if (reason === "equivalent-study") {
+      const missingNote = await post(`/api${path}decision`, "Dr Hana Okafor", { decision: "reject", note: "" });
+      expect(new URL(missingNote, base).searchParams.get("error")).toContain("Say why");
+      await post(`/api${path}decision`, "Dr Hana Okafor", { decision: "reject", note: "The evidence does not support this exception." });
+      expect((await page(path, student)).querySelector("#status-heading")?.textContent).toBe("Rejected by the convenor");
+    } else {
+      await post(`/api${path}assessment`, student, { reason });
+      const converted = await page(path, student);
+      expect(converted.querySelector("#status-heading")?.textContent).toBe("Evidence or decision needed");
+      expect(converted.querySelector(".timeline")?.textContent).toContain("My record is missing or contains incorrect results");
+      expect((await page("/applications/", "Dr Hana Okafor")).querySelector(`a[href="${path}"]`)).toBeNull();
+    }
+    expect((await page(automatic, student)).querySelector("#status-heading")?.textContent).toBe("Not approved under the demo policy");
+  });
+});

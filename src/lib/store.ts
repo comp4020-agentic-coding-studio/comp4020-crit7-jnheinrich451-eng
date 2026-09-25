@@ -8,7 +8,7 @@ import { rulesForSource } from "./course-rules";
 import { db } from "./db";
 import { canRequestAssessment, type Check, firstRound, type Gate, gate, type StudentRecord } from "./eligibility";
 import { bus } from "./events";
-import { assessDemo, requestReason, SCENARIO, scenarioEvidence, snapshotHash, type AssessmentReport } from "./demo-assessment";
+import { assessDemo, REQUEST_REASONS, requestReason, SCENARIO, scenarioEvidence, snapshotHash, type AssessmentReport } from "./demo-assessment";
 import {
   type Application,
   type ApplicationEvent,
@@ -260,7 +260,9 @@ export function submitApplication(input: {
   const checks: Check[] = "checks" in g ? g.checks : [];
   if (!canRequestAssessment(g))
     throw new UserError(round.reasons.join(" "));
-  const status = round.decision === "auto-reject" && !input.dispute ? "auto-rejected" : "with-convenor";
+  const reason = requestReason(input.reason ?? (input.dispute ? "record-correction" : "recorded-checks"));
+  const asksForJudgement = input.dispute || reason !== "recorded-checks";
+  const status = round.decision === "auto-reject" && !asksForJudgement ? "auto-rejected" : "with-convenor";
 
   const app = db.transaction((tx) => {
     tx.insert(selections)
@@ -291,12 +293,12 @@ export function submitApplication(input: {
       "submitted",
       `Requested ${g.outcome === "not-recorded" ? "an eligibility assessment" : "a permission code"} for ${course.code}, ${year} ${TERM_LABELS[input.term as Term]}.`,
     );
-    if (input.dispute)
+    if (asksForJudgement)
       event(
         "student",
         input.student.name,
-        "record-disputed",
-        "Asked for human review of the recorded eligibility information. See the student's explanation.",
+        reason === "exception" ? "exception-requested" : reason === "equivalent-study" ? "equivalence-requested" : "record-disputed",
+        `Asked for human review: ${REQUEST_REASONS[reason === "recorded-checks" ? "record-correction" : reason]}. See the student's explanation. The recorded checks are unchanged.`,
       );
     if (status === "auto-rejected") {
       event("system", "Automatic first round", "auto-rejected", round.reasons.join("\n"));

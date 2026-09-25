@@ -25,8 +25,10 @@ docker compose -f config/local-preview.compose.yml up -d
    15–128 characters. The address is used only inside this local preview.
 2. Open the captured inbox at <http://127.0.0.1:8025>. Open the verification
    message, follow its link, press the confirmation button, then sign in.
-3. Try finding COMP8620, saving an offering and requesting permission. Saving,
-   approval and enrolment remain separate actions.
+3. Find COMP8620, choose an offering, and fill in the request explanation. For
+   human review, expand **Optional staff review** and click **Send to convenor**.
+   **Get demo assessment** creates an automatic report and does not join the
+   human queue. Saving, approval and enrolment remain separate actions.
 4. To act as its fictional reviewer, create an invitation in this same preview:
 
    ```powershell
@@ -35,8 +37,10 @@ docker compose -f config/local-preview.compose.yml up -d
 
    Open the invitation in the captured inbox and set a password. Use a private
    browser window for the reviewer to keep the student session separate. On the
-   seeded catalogue, reviewer 1 is assigned COMP8620. If already invited, use
-   **Resend verification** on the sign-in page instead of inviting again.
+   seeded catalogue, reviewer 1 is Dr Rowan Ellis, assigned COMP8620. If already
+   invited but not activated, use **Resend verification** on the sign-in page
+   with the address from the existing invitation instead of inviting again.
+   Invitations expire after 30 minutes; open the newest captured message.
 
 5. Review the student's request, then return to the student window to confirm
    enrolment. Refresh to check the resulting state remains.
@@ -102,16 +106,52 @@ If mail fails after provisioning, resend from the sign-in page. A reviewer sees
 only requests assigned to their courses, the student's explanation, the frozen
 eligibility checks and the decision history. They cannot browse other profiles.
 
+The two recent examples use these fictional assignments:
+
+| Course | Reviewer | Seeded ID |
+| --- | --- | ---: |
+| COMP8620 | Dr Rowan Ellis | 1 |
+| COMP7710 | Dr Hana Okafor | 4 |
+
+For the COMP7710 reviewer in the local capture preview:
+
+```powershell
+docker compose -f config/local-preview.compose.yml exec app node --import tsx scripts/invite-staff.ts reviewer-se-demo@anu.edu.au 4
+```
+
+This sends only to the local captured inbox at <http://127.0.0.1:8025>. Activate
+the invitation in a separate/private browser window, choose a prototype password,
+then sign in at <http://127.0.0.1:4323/login/>. The reviewer lands on their request
+queue. Student and reviewer accounts must use different addresses; this version
+allows one account per fictional convenor. Using an `@anu.edu.au` address alone
+does not assign staff access.
+
+For an unmet requirement, choose the actual reason: record correction, equivalent
+study or exception. **Send to convenor** then routes that question alongside the
+unchanged failed/unknown checks. A recorded-results-only request can still be
+rejected by the automatic first round. Existing automatic reports are historical
+results; reopen the course to send a new staff request. Existing pending requests
+are reused. The reviewer can approve or reject (a rejection needs an explanation),
+and the decision is visible after refresh. After approval, return to the student
+session to confirm enrolment. Approval alone never adds an enrolment.
+
+This is an optional human role in the prototype. A tester can operate it; there
+is no connection to real ANU staff or an automatically staffed university queue.
+
 `tsx` is development tooling: run this command from a development/admin container
 with the project's dependencies and the intended database mounted, not the lean
 production image. No preset public staff credentials are shipped.
 
 ## Data and persistence
 
-- `src/data/courses.ts`: 70 course entries transcribed from supplied catalogue
-  material; the prototype currently models the 2026 catalogue.
-- `src/data/requisites.ts`: the source wording and structured checks for the
-  subset of courses with supplied requirements. Unknown rules remain unknown.
+- `src/data/catalogue-sources.json`: the saved 2027 course, degree and
+  specialisation evidence, imported into SQLite catalogue tables. Find courses
+  and the library share these sources.
+- `src/data/enrolment-rules-2027.json`: all 80 course versions are accounted for:
+  62 encoded interpretations, 16 with unresolved conditions or alternative
+  readings, and two missing requisite sections. Unknown rules remain unknown.
+- `src/data/courses.ts` and the historical rules in `src/data/requisites.ts`
+  retain the legacy 2026 reference data; old requests keep their offering year.
 - `offerings`: stable course/year/term combinations; `selections` links each
   student to their saved offerings.
 - `students` and `transcript`: each registered student receives an independent,
@@ -127,11 +167,12 @@ production image. No preset public staff credentials are shipped.
 Boot-time seed updates affect the known seeded reference people and records.
 New registered profiles, saved selections, requests and enrolments are preserved.
 Schema changes use generated Drizzle migrations; do not edit the database by
-hand. Existing enrolment/request rows migrate to the current 2026 catalogue.
+hand. Existing enrolments, requests and rule snapshots retain their original year.
 
-Course detail pages show available source-backed information and link to the
-2026 published page. Descriptions and learning outcomes have not been imported.
-Do not fill those gaps with invented facts or crawl the restricted source site.
+Course detail pages show supplied descriptions, learning outcomes, requirements
+and recorded offerings, with links to the persistent source library. Missing
+evidence remains explicit. Do not fill gaps with invented facts or crawl the
+restricted source site. See `docs/catalogue-data.md` for the import workflow.
 
 ## Current limits and checks
 

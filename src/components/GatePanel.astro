@@ -124,6 +124,7 @@ const preview = canApply ? firstRound(course.code, gate) : null;
       <details>
         <summary>Optional staff review</summary>
         <p>This sends the request to {course.convenor.name}, the fictional reviewer. The queue is not staffed automatically and may remain pending.</p>
+        <p>For an exception, equivalent study or a record correction, choose that reason above. The reviewer receives your explanation alongside the unchanged eligibility checks.</p>
         <button name="reviewMode" value="convenor">Send to convenor</button>
       </details>
     </form>

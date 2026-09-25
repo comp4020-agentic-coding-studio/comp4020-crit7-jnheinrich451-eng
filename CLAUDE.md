@@ -140,6 +140,11 @@ agreeing results can settle the group; disagreement is unknown. Repeated rows
 cannot manufacture credit or distinct-course counts. Unknown project approval,
 competitive selection, equivalence, GPA and mark-based suitability cannot receive
 automatic permission. Offered-course checks never invent an unavailable offering.
+The optional staff route accepts explicitly selected exception, equivalent-study
+and record-correction requests even when recorded checks fail. Keep those checks
+unchanged and save the selected reason in a student event; routing is not approval.
+The reason remains selected if the student switches back to automatic assessment.
+Public registration stays student-only; local reviewers activate emailed invitations.
 
 ## Rules
 

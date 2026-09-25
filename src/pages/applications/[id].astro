@@ -24,6 +24,9 @@ if (!canSee) return new Response("Request not found", { status: 404 });
 
 const isEnrolled = app.enrolmentConfirmed;
 const status = applicationStatus(app);
+const staffReason = app.events.some(e => e.kind === "exception-requested") ? "exception"
+  : app.events.some(e => e.kind === "equivalence-requested") ? "equivalent-study"
+  : app.events.some(e => e.kind === "record-disputed") ? "record-correction" : "recorded-checks";
 const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "System", convenor: "Convenor" };
 ---
 
@@ -111,7 +114,7 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
         <p>This replaces the pending staff review with a demo assessment. Missing evidence remains unresolved, with next steps. Your original statement and history are kept.</p>
         <label for="assessment-reason">What should be assessed?</label>
         <select id="assessment-reason" name="reason">
-          {Object.entries(REQUEST_REASONS).map(([value, label]) => <option value={value} selected={value === (app.events.some(e => e.kind === "record-disputed") ? "record-correction" : "recorded-checks")}>{label}</option>)}
+          {Object.entries(REQUEST_REASONS).map(([value, label]) => <option value={value} selected={value === staffReason}>{label}</option>)}
         </select>
         <button class="primary">Run automated demo assessment</button>
       </form>}

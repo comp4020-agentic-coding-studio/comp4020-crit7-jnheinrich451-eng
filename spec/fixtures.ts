@@ -21,10 +21,17 @@ for (const [uid, name] of [
   ["fixture-programming-current", "Programming current student"],
   ["fixture-course-overview", "Course overview student"],
   ["fixture-rule-coverage", "Course rule coverage student"],
+  ["fixture-staff-exception", "Staff exception student"],
+  ["fixture-staff-equivalence", "Staff equivalence student"],
+  ["fixture-staff-correction", "Staff correction student"],
 ]) {
   db.insert(students).values({ uid, name, program: "VCOMP" }).run();
 }
 const programmingConflict = db.select().from(students).where(eq(students.uid, "fixture-programming-conflict")).get()!;
+for (const uid of ["fixture-staff-exception", "fixture-staff-equivalence", "fixture-staff-correction"]) {
+  const student = db.select().from(students).where(eq(students.uid, uid)).get()!;
+  db.insert(transcript).values({ studentId: student.id, courseCode: "COMP6710", units: 6, grade: "HD", term: "2026 S1" }).run();
+}
 db.insert(transcript).values({ studentId: programmingConflict.id, courseCode: "COMP6710", units: 6, grade: "HD", term: "2026 S1" }).run();
 const programmingCurrent = db.select().from(students).where(eq(students.uid, "fixture-programming-current")).get()!;
 db.insert(enrolments).values({ studentId: programmingCurrent.id, courseId: getCourse("COMP6710")!.id, year: 2027, term: "S1", via: "direct" }).run();
