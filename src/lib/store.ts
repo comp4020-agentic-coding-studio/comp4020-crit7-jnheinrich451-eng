@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, asc, desc, eq, inArray, isNull, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull, sql, type SQL } from "drizzle-orm";
 import { COURSES, type Term } from "../data/courses";
 import { ACTIVE_YEAR, LEGACY_YEAR } from "./academic-year";
 import { catalogueEntries } from "./catalogue";
@@ -140,11 +140,21 @@ export type ApplicationView = Application & {
   convenor: Convenor;
   checkList: Check[];
   report: AssessmentReport | null;
+  enrolmentConfirmed: boolean;
 };
 
 function views(where: SQL) {
   return db
-    .select()
+    .select({ applications, courses, students, convenors,
+      confirmed: sql<number>`case when ${applications.scenarioKey} is not null then exists (
+        select 1 from ${applicationEvents} where ${applicationEvents.applicationId} = ${applications.id}
+        and ${applicationEvents.kind} = 'scenario-enrolled'
+      ) else exists (
+        select 1 from ${enrolments} where ${enrolments.studentId} = ${applications.studentId}
+        and ${enrolments.courseId} = ${applications.courseId} and ${enrolments.year} = ${applications.year}
+        and ${enrolments.term} = ${applications.term}
+      ) end`,
+    })
     .from(applications)
     .innerJoin(courses, eq(applications.courseId, courses.id))
     .innerJoin(students, eq(applications.studentId, students.id))
@@ -158,6 +168,7 @@ function views(where: SQL) {
         ...r.applications,
         course: getCourse(r.courses.code, r.applications.year) ?? r.courses,
         student: r.students, convenor: r.convenors, report,
+        enrolmentConfirmed: r.applications.status === "approved" && !!r.confirmed,
         checkList: report ? ("checks" in report.gate ? report.gate.checks : []) : JSON.parse(r.applications.checks),
       };
     });
@@ -165,6 +176,12 @@ function views(where: SQL) {
 
 export function applicationsOfStudent(studentId: number): ApplicationView[] {
   return views(eq(applications.studentId, studentId));
+}
+
+/** Scenario completions are visible history, never academic enrolment evidence. */
+export function completedScenariosOf(studentId: number): ApplicationView[] {
+  return views(and(eq(applications.studentId, studentId), isNotNull(applications.scenarioKey), eq(applications.status, "approved"))!)
+    .filter(app => app.enrolmentConfirmed);
 }
 
 export function queueOf(convenorId: number): ApplicationView[] {

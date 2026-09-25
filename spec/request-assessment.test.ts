@@ -66,6 +66,13 @@ describe("assessment entry and pending-request lifecycle", () => {
     const approvedCourse = await page(coursePath(fields), approval);
     expect(approvedCourse.querySelector('form[action="/api/enrol"]')).toBeTruthy();
     expect(await post("/api/applications", approval, { ...fields, statement: "Stale form after approval" })).toBe(path);
+    expect((await page("/plan/", approval)).querySelector("[data-confirmed-enrolments]")?.textContent).not.toContain(fields.courseCode);
+    await post("/api/enrol", approval, fields);
+    expect((await page(path, approval)).querySelector("#status-heading")?.textContent).toBe("Enrolled");
+    expect((await page("/applications/", approval)).querySelector(`a.request-card[href="${path}"] .badge`)?.textContent).toBe("Enrolled");
+    for (const route of ["/plan/", "/record/"]) {
+      expect((await page(route, approval)).querySelector("[data-confirmed-enrolments]")?.textContent).toContain(fields.courseCode);
+    }
   });
 
   it("removes reminders after rejection and permits a new request without rewriting the decided request", async () => {

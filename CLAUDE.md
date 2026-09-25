@@ -114,6 +114,16 @@ Missing automatic rules are an application coverage gap, not a request for the
 student to fix the gap by rewriting their explanation. The full catalogue is not
 yet encoded; the COMP8620 scenario is one complete example, not a general model
 reviewer. Request pages use the course code as their main, prominent heading.
+Keep that heading in the gold Georgia serif style at its larger size.
+The former My semester page is now My courses: saved candidates, confirmed
+academic enrolments, and completed demo scenarios are separate sections.
+Profile enrolments come from enrolment rows even when a saved selection is
+removed. Scenario completions come from their persisted confirmation events and
+are visible in My courses, My profile and My requests; they never enter the
+academic record used by eligibility. Approval still requires explicit confirmation.
+An automatic exception result says Exception decision needed, with no staff review
+in progress. Its unmet academic check is separate from the unresolved waiver;
+display changes must not rewrite saved reports or historical events.
 
 ## Rules
 

@@ -1,0 +1,16 @@
+---
+import type { Term } from "../data/courses";
+import { type ApplicationView, TERM_LABELS } from "../lib/store";
+interface Props { completions: ApplicationView[] }
+const { completions } = Astro.props;
+---
+{completions.length > 0 && <section aria-labelledby="scenarios-heading" data-scenario-completions>
+  <h2 id="scenarios-heading">Demo scenario completions</h2>
+  <p>These completed examples use a separate fictional record. They do not count towards your academic enrolments or eligibility checks.</p>
+  <ul class="plain">
+    {completions.map(app => <li>
+      <a href={`/applications/${app.id}/`}>{app.course.code} {app.course.title}</a>
+      , {`${app.year} ${TERM_LABELS[app.term as Term]}`} — Scenario enrolment confirmed
+    </li>)}
+  </ul>
+</section>}

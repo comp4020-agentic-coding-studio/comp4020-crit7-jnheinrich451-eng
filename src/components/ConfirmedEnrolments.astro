@@ -1,0 +1,19 @@
+---
+import type { Term } from "../data/courses";
+import { type enrolmentsOf, TERM_LABELS } from "../lib/store";
+interface Props { enrolments: ReturnType<typeof enrolmentsOf> }
+const { enrolments } = Astro.props;
+const VIA: Record<string, string> = {
+  seed: "already enrolled", direct: "enrolled directly", permission: "enrolled with a permission code",
+};
+---
+<section aria-labelledby="current-heading" data-confirmed-enrolments>
+  <h2 id="current-heading">Confirmed enrolments</h2>
+  <p>These offerings are in your fictional academic record. Saving a course or receiving permission alone does not enrol you.</p>
+  {enrolments.length === 0 ? <p class="muted">No confirmed enrolments yet.</p> : <ul class="plain">
+    {enrolments.map(e => <li>
+      <a href={`/courses/${e.code}/?year=${e.year}&term=${encodeURIComponent(e.term)}`}>{e.code} {e.title}</a>
+      , {`${e.year} ${TERM_LABELS[e.term as Term]}`} ({VIA[e.via]})
+    </li>)}
+  </ul>}
+</section>

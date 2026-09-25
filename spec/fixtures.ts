@@ -19,6 +19,7 @@ for (const [uid, name] of [
   ["fixture-programming-clear", "Programming eligibility student"],
   ["fixture-programming-conflict", "Programming conflict student"],
   ["fixture-programming-current", "Programming current student"],
+  ["fixture-course-overview", "Course overview student"],
 ]) {
   db.insert(students).values({ uid, name, program: "VCOMP" }).run();
 }

@@ -73,6 +73,18 @@ describe("COMP7710 saved 2027 incompatibility", () => {
     expect((await page(path, person)).querySelector("[data-decision-reasons]")?.textContent).toBe(result.querySelector("[data-decision-reasons]")?.textContent);
     const disputed = await post("/api/applications", person, { ...fields, reason: "record-correction", statement: "The completed-course entry is incorrect." });
     expect((await page(disputed, person)).querySelector("#status-heading")?.textContent).toBe("Evidence or decision needed");
+    const exception = await post("/api/applications", person, { ...fields, reason: "exception", statement: "Please consider a waiver." });
+    const undecided = await page(exception, person);
+    expect(undecided.querySelector("#status-heading")?.textContent).toBe("Exception decision needed");
+    expect(undecided.querySelector(".status")?.textContent).toContain("No staff review is in progress");
+    expect(undecided.querySelector('[data-check-status="unmet"]')?.textContent).toContain("COMP6710");
+    expect(undecided.querySelector("[data-pending-request]")).toBeNull();
+    expect((await page("/applications/", person)).querySelector(`a.request-card[href="${exception}"] .badge`)?.textContent).toBe("Exception decision needed");
+    const saved = (await page("/plan/", person)).querySelector("[data-saved-courses]")!;
+    expect(saved.querySelector(".badge")?.textContent).toBe("Exception decision needed");
+    expect(saved.querySelector("[data-pending-request]")).toBeNull();
+    expect(saved.querySelector('form[action="/api/enrol"]')).toBeNull();
+    expect((await page(path, person)).querySelector("#status-heading")?.textContent).toBe("Not approved under the demo policy");
   });
 
   it("checks current enrolment in the chosen year and term without claiming the course was passed", async () => {

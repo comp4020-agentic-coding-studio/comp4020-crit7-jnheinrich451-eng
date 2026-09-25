@@ -3,20 +3,13 @@ import Layout from "../../layouts/Layout.astro";
 import PendingRequestNotice from "../../components/PendingRequestNotice.astro";
 import { type ApplicationView, applicationsOfStudent, queueOf, TERM_LABELS } from "../../lib/store";
 import type { Term } from "../../data/courses";
+import { applicationStatus } from "../../lib/application-status";
 
 // A student's own requests, or a convenor's queue: only requests routed to
 // them, waiting ones first. Auto-rejected requests never reached a person,
 // so a convenor sees them only as a count.
 const actor = Astro.locals.actor;
 if (!actor) return Astro.redirect("/login/", 303);
-
-const STATUS: Record<string, string> = {
-  "auto-rejected": "Rejected automatically",
-  "with-convenor": "With convenor",
-  "assessment-incomplete": "Evidence or decision needed",
-  approved: "Approved",
-  rejected: "Rejected by convenor",
-};
 
 let sections: { heading: string; empty: string; rows: ApplicationView[] }[];
 let screened = 0;
@@ -88,7 +81,7 @@ const watch = actor.kind === "student" ? { studentId: actor.student.id } : { con
                   {`${a.year} ${TERM_LABELS[a.term as Term]}`} · sent{" "}
                   {a.createdAt.slice(0, 16).replace("T", " ")} UTC
                 </span>
-                <span class={`badge status-${a.status}`}>{a.report && a.status === "auto-rejected" ? "Not approved under demo policy" : a.report && a.status === "approved" ? "Demo permission approved" : STATUS[a.status]}</span>
+                <span class={`badge status-${a.status}`}>{applicationStatus(a).label}</span>
               </a>
               {actor.kind === "student" && <PendingRequestNotice request={a} />}
             </li>

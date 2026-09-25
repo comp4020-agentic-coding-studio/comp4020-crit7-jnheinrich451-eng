@@ -6,7 +6,8 @@ import RequirementChecks from "../../components/RequirementChecks.astro";
 import PendingRequestNotice from "../../components/PendingRequestNotice.astro";
 import AssessmentReport from "../../components/AssessmentReport.astro";
 import { REQUEST_REASONS } from "../../lib/demo-assessment";
-import { enrolmentsOf, getApplication, TERM_LABELS } from "../../lib/store";
+import { getApplication, TERM_LABELS } from "../../lib/store";
+import { applicationStatus } from "../../lib/application-status";
 
 // One request: where it is, who has it, what the automatic round checked, and
 // every step as a timeline. The student who sent it and the convenor it was
@@ -21,30 +22,8 @@ const routedToMe = actor.kind === "convenor" && actor.convenor.id === app.conven
 const canSee = mine || routedToMe;
 if (!canSee) return new Response("Request not found", { status: 404 });
 
-const STATUS: Record<string, { label: string; say: string }> = {
-  "assessment-incomplete": { label: "Evidence or decision needed", say: "The automatic assessment is complete, but eligibility remains unresolved. See the missing items and next steps below." },
-  "auto-rejected": {
-    label: "Rejected automatically",
-    say: "The automatic first round turned this down from your record, so it never went to the convenor.",
-  },
-  "with-convenor": {
-    label: `With ${app.convenor.name}`,
-    say: `Waiting for ${app.convenor.name}, convenor of ${app.course.code}. Refresh this page to check for a decision.`,
-  },
-  approved: { label: "Approved", say: "Approved. Use the permission code to enrol." },
-  rejected: {
-    label: "Rejected by the convenor",
-    say: "The convenor turned this down. Their reason is in the timeline.",
-  },
-};
-const isEnrolled = app.scenarioKey ? app.events.some(e => e.kind === "scenario-enrolled") : enrolmentsOf(app.studentId).some(
-  (e) => e.code === app.course.code && e.year === app.year && e.term === app.term,
-);
-const status = isEnrolled
-  ? { label: app.scenarioKey ? "Scenario enrolment confirmed" : "Enrolled", say: app.scenarioKey ? "You completed the fictional permission workflow. Your profile and semester enrolments are unchanged." : "Enrolment is confirmed for this offering. Your request history is below." }
-  : app.report && app.status === "approved" ? { label: "Demo permission approved", say: "The automated demo policy issued permission. Confirm enrolment to complete the selected workflow." }
-  : app.report && app.status === "auto-rejected" ? { label: "Not approved under the demo policy", say: "Recorded requirements are unmet. Read the assessment for the reasons and available next steps." }
-  : STATUS[app.status];
+const isEnrolled = app.enrolmentConfirmed;
+const status = applicationStatus(app);
 const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "System", convenor: "Convenor" };
 ---
 
@@ -69,6 +48,7 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
       <section class={`status status-${app.status}`} aria-labelledby="status-heading">
         <h2 id="status-heading">{status.label}</h2>
         <p>{status.say}</p>
+        {mine && isEnrolled && <p><a href="/plan/">View in My courses</a> · <a href="/record/">View My profile</a></p>}
         {mine && !isEnrolled && <PendingRequestNotice request={app} />}
         {app.permissionCode && (
           <p class="code-issued">
@@ -188,7 +168,7 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
 </Layout>
 
 <style>
-  .request-course { font-family: Arial, Helvetica, sans-serif; font-size: clamp(2.5rem, 5vw, 3.75rem); font-weight: 700; letter-spacing: 0.015em; margin-bottom: 0.3rem; }
+  .request-course { font-family: Georgia, serif; color: #756037; font-size: clamp(2.5rem, 5vw, 3.75rem); font-weight: 700; letter-spacing: 0.015em; margin-bottom: 0.3rem; }
   .request-label { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.25rem; }
   .request-label + .lede { margin-top: 0; color: var(--muted); }
 </style>

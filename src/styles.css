@@ -542,11 +542,14 @@ th {
   grid-template-columns: 1fr auto;
   gap: 0.5rem 1.5rem;
 }
-.plan-row h2 {
+.plan-row h3 {
   margin: 0.2rem 0;
   font-size: 1.2rem;
 }
-.plan-row .actions {
+.plan-row .actions,
+.plan-row .assessment-summary,
+.plan-row .field-help,
+.plan-row [data-pending-request] {
   grid-column: 1/-1;
 }
 .plain li {

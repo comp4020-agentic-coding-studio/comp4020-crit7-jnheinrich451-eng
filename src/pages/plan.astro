@@ -1,94 +1,103 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import PendingRequestNotice from "../components/PendingRequestNotice.astro";
-import { gateFor, liveApplication, offeringFor, selectionsOf, TERM_LABELS } from "../lib/store";
+import ConfirmedEnrolments from "../components/ConfirmedEnrolments.astro";
+import ScenarioCompletions from "../components/ScenarioCompletions.astro";
+import { applicationsOfStudent, enrolmentsOf, gateFor, offeringFor, selectionsOf, TERM_LABELS } from "../lib/store";
+import { applicationStatus } from "../lib/application-status";
 import type { Term } from "../data/courses";
 const actor = Astro.locals.actor;
 if (!actor) return Astro.redirect("/login/", 303);
 if (actor.kind !== "student") return Astro.redirect("/applications/", 303);
-const selected = selectionsOf(actor.student.id);
+const current = enrolmentsOf(actor.student.id);
+const selected = selectionsOf(actor.student.id).filter(({ course, offering }) =>
+  !current.some(e => e.code === course.code && e.year === offering.year && e.term === offering.term));
+const requests = applicationsOfStudent(actor.student.id);
+const scenarios = requests.filter(app => app.scenarioKey && app.enrolmentConfirmed);
 ---
 
-<Layout title="My semester" actor={actor}>
+<Layout title="My courses" actor={actor}>
   <div class="page-top">
     <div>
-      <p class="eyebrow">YOUR SAVED SELECTIONS</p>
-      <h1>My semester</h1>
+      <p class="eyebrow">SELECTIONS &amp; ENROLMENTS</p>
+      <h1>My courses</h1>
       <p class="lede">
-        Keep planning while permission requests are reviewed. Confirm each ready course when you are ready to
-        enrol.
+        Save courses to consider, track their requests, and confirm enrolment when ready.
+        Your confirmed enrolments are listed separately below.
       </p>
     </div>
     <a class="button" href="/">
       Find another course
     </a>
   </div>
-  {selected.length === 0 && (
-    <div class="empty">
-      <h2>Your semester starts here</h2>
-      <p>Save an offering from a course page. Your selections will be here when you return.</p>
-      <a class="button primary" href="/">
-        Find courses
-      </a>
-    </div>
-  )}
-  <div class="plan-list">
-    {selected.map(({ course, offering }) => {
-      const g = gateFor(actor.student, course.code, offering.term, offering.year);
-      const live = liveApplication(actor.student.id, course.id, offering.term, offering.year);
-      const already = g.outcome === "already";
-      const available = !!offeringFor(course.id, offering.term, offering.year);
-      const ready = available && !already && (g.outcome === "eligible" || live?.status === "approved");
-      const label = already
-        ? g.text
-        : !available ? "Offering unavailable" : ready
-          ? "Ready to enrol"
-          : live
-            ? "Under review"
-            : g.outcome === "not-recorded"
-              ? "Eligibility check unavailable"
-              : "Permission needed";
-      const href = `/courses/${course.code}/?term=${encodeURIComponent(offering.term)}&year=${offering.year}`;
-      return (
-        <article class="plan-row">
-          <div>
-            <span class="code">{course.code}</span>
-            <h2>
-              <a href={href}>{course.title}</a>
-            </h2>
-            <p class="meta">
-              {offering.year} · {TERM_LABELS[offering.term as Term]} · {course.unitsText}
-            </p>
-          </div>
-          <span class={`badge badge-${ready ? "ok" : "muted"}`}>{label}</span>
-          {!already && <PendingRequestNotice request={live} />}
-          <div class="actions">
-            {ready && (
-              <form method="post" action="/api/enrol">
-                <input type="hidden" name="courseCode" value={course.code} />
-                <input type="hidden" name="term" value={offering.term} />
-                <input type="hidden" name="year" value={offering.year} />
-                <button class="primary">Confirm enrolment</button>
+  <section aria-labelledby="saved-heading" data-saved-courses>
+    <h2 id="saved-heading">Saved courses</h2>
+    <p>These are courses you are considering. Saving one or submitting a request does not confirm enrolment.</p>
+    {selected.length === 0 && <p class="muted">No saved courses awaiting enrolment. <a href="/">Find a course to save</a>.</p>}
+    <div class="plan-list">
+      {selected.map(({ course, offering }) => {
+        const g = gateFor(actor.student, course.code, offering.term, offering.year);
+        const matching = requests.filter(a => !a.scenarioKey && a.courseId === course.id && a.year === offering.year && a.term === offering.term);
+        const live = matching.find(a => a.status === "with-convenor" || a.status === "approved");
+        const request = live ?? matching[0];
+        const progress = request ? applicationStatus(request) : null;
+        const already = g.outcome === "already";
+        const available = !!offeringFor(course.id, offering.term, offering.year);
+        const ready = available && !already && (g.outcome === "eligible" || live?.status === "approved");
+        const label = already
+          ? g.text
+          : !available ? "Offering unavailable" : ready
+            ? "Ready to enrol"
+            : progress
+              ? progress.label
+              : g.outcome === "not-recorded"
+                ? "Eligibility check unavailable"
+                : "Permission needed";
+        const href = `/courses/${course.code}/?term=${encodeURIComponent(offering.term)}&year=${offering.year}`;
+        return (
+          <article class="plan-row">
+            <div>
+              <span class="code">{course.code}</span>
+              <h3>
+                <a href={href}>{course.title}</a>
+              </h3>
+              <p class="meta">
+                {offering.year} · {TERM_LABELS[offering.term as Term]} · {course.unitsText}
+              </p>
+            </div>
+            <span class={`badge badge-${ready ? "ok" : "muted"}`}>{label}</span>
+            {!already && <PendingRequestNotice request={live} />}
+            {!ready && !already && request?.status === "assessment-incomplete" && <p class="assessment-summary">{progress?.say}</p>}
+            <div class="actions">
+              {ready && (
+                <form method="post" action="/api/enrol">
+                  <input type="hidden" name="courseCode" value={course.code} />
+                  <input type="hidden" name="term" value={offering.term} />
+                  <input type="hidden" name="year" value={offering.year} />
+                  <button class="primary">Confirm enrolment</button>
+                </form>
+              )}
+              {request && <a href={`/applications/${request.id}/`}>{request.report ? "View assessment and next steps" : "View permission request"}</a>}
+              {!ready && !already && !live && (
+                <a class="button" href={href}>
+                  Review requirements
+                </a>
+              )}
+              <form method="post" action="/api/selections">
+                <input type="hidden" name="offeringId" value={offering.id} />
+                <button name="action" value="remove">
+                  Remove saved selection
+                </button>
               </form>
-            )}
-            {live && <a href={`/applications/${live.id}/`}>View permission request</a>}
-            {!ready && !already && !live && (
-              <a class="button" href={href}>
-                Review requirements
-              </a>
-            )}
-            <form method="post" action="/api/selections">
-              <input type="hidden" name="offeringId" value={offering.id} />
-              <button name="action" value="remove">
-                Remove saved selection
-              </button>
-            </form>
-          </div>
-          <p class="field-help">
-            Removing a saved selection does not cancel an enrolment or permission request.
-          </p>
-        </article>
-      );
-    })}
-  </div>
+            </div>
+            <p class="field-help">
+              Removing a saved selection does not cancel an enrolment or permission request.
+            </p>
+          </article>
+        );
+      })}
+    </div>
+  </section>
+  <ConfirmedEnrolments enrolments={current} />
+  <ScenarioCompletions completions={scenarios} />
 </Layout>

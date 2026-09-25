@@ -1,8 +1,9 @@
 ---
-import type { Term } from "../data/courses";
 import { PROGRAMS, type ProgramKey } from "../data/requisites";
 import Layout from "../layouts/Layout.astro";
-import { enrolmentsOf, PASSING, TERM_LABELS, transcriptOf } from "../lib/store";
+import ConfirmedEnrolments from "../components/ConfirmedEnrolments.astro";
+import ScenarioCompletions from "../components/ScenarioCompletions.astro";
+import { completedScenariosOf, enrolmentsOf, PASSING, transcriptOf } from "../lib/store";
 
 // The record the gate reads. Nothing on it is typed by the student, which is
 // what keeps a request's checks honest: the convenor sees what the record
@@ -12,11 +13,7 @@ if (!actor) return Astro.redirect("/login/", 303);
 const student = actor.kind === "student" ? actor.student : null;
 const results = student ? transcriptOf(student.id) : [];
 const current = student ? enrolmentsOf(student.id) : [];
-const VIA: Record<string, string> = {
-  seed: "already enrolled",
-  direct: "enrolled directly",
-  permission: "enrolled with a permission code",
-};
+const scenarios = student ? completedScenariosOf(student.id) : [];
 ---
 
 <Layout title="My profile" actor={actor}>
@@ -45,7 +42,7 @@ const VIA: Record<string, string> = {
       </dl>
 
       <section aria-labelledby="results-heading">
-        <h2 id="results-heading">Results</h2>
+        <h2 id="results-heading">Fictional academic results</h2>
         {results.length === 0 ? (
           <p class="muted">No results yet.</p>
         ) : (
@@ -76,23 +73,8 @@ const VIA: Record<string, string> = {
         )}
       </section>
 
-      <section aria-labelledby="current-heading">
-        <h2 id="current-heading">Current enrolments</h2>
-        {current.length === 0 ? (
-          <p class="muted">Not enrolled in anything yet.</p>
-        ) : (
-          <ul class="plain">
-            {current.map((e) => (
-              <li>
-                <a href={`/courses/${e.code}/?year=${e.year}&term=${encodeURIComponent(e.term)}`}>
-                  {e.code} {e.title}
-                </a>
-                , {`${e.year} ${TERM_LABELS[e.term as Term]}`} ({VIA[e.via]})
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <ConfirmedEnrolments enrolments={current} />
+      <ScenarioCompletions completions={scenarios} />
     </>
   )}
 </Layout>

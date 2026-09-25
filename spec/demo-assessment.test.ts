@@ -104,7 +104,9 @@ describe("automated reports over HTTP", () => {
   });
 
   it("finishes the isolated scenario with explicit, idempotent confirmation and no profile permission leak", async () => {
-    const profile = main(await page("/record/"));
+    const profile = await page("/record/");
+    const academic = (doc: Document) => ["[aria-labelledby=results-heading]", "[data-confirmed-enrolments]"].map(selector => doc.querySelector(selector)!.textContent);
+    const ordinaryPath = await post("/api/applications", { ...fields, statement: "A separate request using my profile.", reason: "record-correction", reviewMode: "convenor" });
     const demo = await page("/demo/");
     const form = demo.querySelector<HTMLFormElement>('form[action="/api/applications"]')!;
     const submitted: Record<string, string> = {};
@@ -119,6 +121,8 @@ describe("automated reports over HTTP", () => {
     expect(approved.querySelector('form[action="/api/enrol"]')).toBeNull();
     expect(main(approved)).not.toContain("Dr Rowan Ellis");
     expect(await post("/api/applications", submitted)).toBe(path);
+    expect((await page("/record/")).querySelector("[data-scenario-completions]")).toBeNull();
+    expect((await page("/applications/")).querySelector(`a.request-card[href="${path}"] .badge`)?.textContent).toBe("Demo permission approved");
     for (const who of [student, other]) for (const year of ["2026", "2027"]) {
       const blocked = await post("/api/enrol", { ...fields, year }, who);
       expect(new URL(blocked, base).searchParams.has("error")).toBe(true);
@@ -131,7 +135,19 @@ describe("automated reports over HTTP", () => {
     expect(heading(done)).toBe("Scenario enrolment confirmed");
     expect(done.querySelector('form[action="/api/scenario-enrol"]')).toBeNull();
     expect([...done.querySelectorAll(".timeline > li")].filter(li => li.textContent?.includes("Confirmed scenario enrolment"))).toHaveLength(1);
-    expect(main(await page("/record/"))).toBe(profile);
+    expect(academic(await page("/record/"))).toEqual(academic(profile));
+    for (const route of ["/record/", "/plan/"]) {
+      const doc = await page(route);
+      expect(doc.querySelectorAll(`[data-scenario-completions] a[href="${path}"]`)).toHaveLength(1);
+      expect(doc.querySelector("[data-scenario-completions]")?.textContent).toContain("Scenario enrolment confirmed");
+      expect(doc.querySelector("[data-confirmed-enrolments]")?.textContent).not.toContain("COMP8620");
+      expect((await page(route, other)).querySelector("[data-scenario-completions]")).toBeNull();
+    }
+    const requests = await page("/applications/");
+    expect(requests.querySelector(`a.request-card[href="${path}"] .badge`)?.textContent).toBe("Scenario enrolment confirmed");
+    expect(requests.querySelector(`[data-pending-request="${ordinaryPath.split("/")[2]}"]`)).toBeTruthy();
+    expect((await page(ordinaryPath)).querySelector("[data-pending-request]")).toBeTruthy();
+    expect(new URL(await post("/api/enrol", fields), base).searchParams.has("error")).toBe(true);
     const forged = await post("/api/applications", { ...submitted, term: "S1" });
     expect(new URL(forged, base).searchParams.has("error")).toBe(true);
     const wrongKey = await post("/api/applications", { ...submitted, scenarioKey: "comp8620-forged" });
