@@ -1064,3 +1064,40 @@ table-rebuild procedure. Generated migrations were not hand-edited. A link test
 was corrected to compare parsed URL parameters, and the migration helper's
 unknown pragma return type was narrowed before the final green check. Preserved
 John's unstaged AGENTS.md edit and raw downloads. No push or deployment performed.
+
+## 2026-09-26 01:11 — Assess computable rules and small-model extraction
+
+**Prompt:**
+
+> Hmm, if there is a way to compute eligibility? Or it is too complicated for algorithm?
+> And I think, if we can deploy an open-source small LLM, to give out the verdict on permission code requirement?
+> If we can store those prerequisite into real data form, instead of only natural language for algorithm to process? Include the current profile.
+> You can think if it is feasible first
+
+**Result:**
+Recorded a feasibility assessment in `docs/eligibility-feasibility.md`, leaving
+the application unchanged. Confirmed the existing 17 checks already combine
+structured prerequisite trees with the fictional profile. Recommended extending
+that engine with met/unmet/unknown conditions, explicit permission policy,
+source-linked rule versions and record snapshots. Proposed a small model as an
+authoring aid that drafts rules for validation and review; resulting eligibility
+comes from the reviewed rules, with human decisions for discretionary conditions.
+
+Used actual saved examples for intensive-mode permission, topic prerequisites,
+GPA, competitive selection, marks/equivalence and absent sections. Proposed
+local extraction during catalogue maintenance because the existing Fly config
+has 256 MB RAM. Identified Qwen3-4B-Instruct-2507 as one candidate, without
+claiming measured extraction accuracy or committing to a model. The assessment
+is a proposal for discussion; no inference service or new decision logic was built.
+
+**Verified:**
+Read the current requirement types, evaluator, source binding, profile projection,
+fictional transcript and Fly configuration. Re-read the published Crit 7 contract
+through PowerShell after the browser tool could not retrieve it. Checked the
+supplied local source paragraphs without crawling ANU course pages. Consulted
+Ollama's official structured-output documentation and Qwen's publisher model card
+for JSON-schema support, model size and licence. No model downloaded, deployed,
+trained or benchmarked. Docker Node 24 / pnpm 11.9.0 `pnpm check` passed with
+zero diagnostics and 247 tests; no new tests or runtime changes were needed.
+
+**Commit:** [`722e30d`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/722e30d)
