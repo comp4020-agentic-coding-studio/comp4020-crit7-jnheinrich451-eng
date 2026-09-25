@@ -1003,3 +1003,64 @@ move or delete it. Discarded a temporary checksum-based exclusion implementation
 once unnecessary, leaving the strict importer unchanged. The final import ran
 successfully against the remaining 109 valid catalogue files. No push or
 deployment was performed.
+
+## 2026-09-26 00:59 — Find courses shares the imported 2027 catalogue
+
+**Prompt:**
+
+> Ty, and for the find courses, I think we can then share those entries? I find they are not updated.
+
+**Result:**
+Replaced Find courses' independent 70-course seed view with the same persistent
+2027 evidence used by the library: 80 courses, dynamic subjects, published
+descriptions, learning outcomes, requirements, credit ranges and links between
+the two views. Search initially includes all terms and courses without an
+offering; only usable published 2027 class rows permit saving or enrolment.
+
+Completed the previously recommended 2027 enrolment alignment instead of
+combining new catalogue labels with old gate defaults. Seventeen explicit
+prototype rule interpretations are bound to inspected source hashes. Other
+courses display published requirements without claiming automatic eligibility;
+changed or conflicting sources require review. Added COMP6528's three published
+incompatibilities and exposed COMP8620's additional topic review in the page and
+request timeline. Degree and specialisation planning remains unimplemented.
+
+Kept historical 2026 course rules, requests, approvals and enrolments scoped to
+their original year. New fictional profiles place COMP6670 in 2026 S2; existing
+registered profiles are preserved. Generated migration 0005 from the schema,
+including nullable credit for variable-unit course identities. Updated the
+shared harness and data documentation. No Claude review was obtained this turn.
+
+**Verified:**
+Compared the 17 interpretations with the supplied local 2027 source paragraphs;
+no ANU course-page crawling. Node 24 / pnpm 11.9.0 Docker `pnpm check` passed with
+zero type errors, warnings or hints and 247 tests. HTTP contracts compare the
+same 80 identities in both screens, cover new subjects and source links, reject
+unavailable offerings and unreviewed enrolment, and keep approvals from crossing
+years in either direction. Populated database tests preserve accounts, profiles,
+checks, decisions, events and selections through migration and repeated seed;
+failure tests verify transaction rollback and restored foreign-key enforcement.
+
+Backed up the local preview database before restart. Compared private-state
+fingerprints immediately afterwards: all eight accounts, three requests, nine
+events, three selections, twelve profiles and 42 non-seed transcript rows were
+unchanged; no foreign-key errors. Chrome with JavaScript disabled checked ten
+page/viewport combinations at 1440 and 390 pixels with no horizontal overflow.
+Native forms completed course search, library navigation, local email
+verification, sign-in, saving and direct enrolment for COMP6528, and a 2027
+COMP8620 request routed to Dr Rowan Ellis with the topic-review limit visible.
+Reloads retained these new actions. Evidence is in ignored
+`.data/shared-course-state-after.json` and `.data/shared-courses-browser.json`.
+
+**Commit:** [`cd081f4`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/cd081f4)
+
+**What happened:**
+Fresh-database tests passed before the populated upgrade test exposed a foreign
+key failure while rebuilding applications with existing child events. Deferring
+constraints before calling the migrator did not fix it. The accepted startup
+wrapper changes enforcement before Drizzle's transaction, checks references and
+restores enforcement before serving requests, following SQLite's documented
+table-rebuild procedure. Generated migrations were not hand-edited. A link test
+was corrected to compare parsed URL parameters, and the migration helper's
+unknown pragma return type was narrowed before the final green check. Preserved
+John's unstaged AGENTS.md edit and raw downloads. No push or deployment performed.
