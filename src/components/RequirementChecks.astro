@@ -1,0 +1,42 @@
+---
+import { checkStatus, type Check } from "../lib/eligibility";
+interface Props { checks: Check[] }
+const { checks } = Astro.props;
+const labels = { met: "Met", unmet: "Not met", unknown: "Unknown" };
+const marks = { met: "✓", unmet: "✗", unknown: "?" };
+---
+<ul class="checks">
+  {checks.map(c => {
+    const status = checkStatus(c);
+    return (
+      <li class={status} data-check-status={status}>
+        <span class="mark" aria-hidden="true">{marks[status]}</span>
+        <div>
+          <span class={status === "unknown" ? undefined : "visually-hidden"}>{labels[status]}:</span> {c.text}
+          {c.nextAction && <p class="field-help">Next: {c.nextAction}</p>}
+          {(c.evidence?.length || c.source) && (
+            <details>
+              <summary>Evidence for this check</summary>
+              {c.evidence?.map(line => <p>{line}</p>)}
+              {c.source && (
+                <p data-source-hash={c.source.hash}>
+                  <a href={`/catalogue/?kind=course&code=${encodeURIComponent(c.source.code)}&year=${c.source.year}`}>
+                    Saved {c.source.year} {c.source.code} requirements
+                  </a>
+                </p>
+              )}
+            </details>
+          )}
+        </div>
+      </li>
+    );
+  })}
+</ul>
+
+<style>
+  .checks { list-style: none; padding-left: 0; }
+  .checks li { display: flex; gap: 0.6rem; align-items: baseline; }
+  .mark { flex: 0 0 1rem; }
+  .checks li > div { min-width: 0; }
+  .checks details { margin-top: 0.35rem; }
+</style>

@@ -442,12 +442,11 @@
     "sourceHash": "76a7b02a678a1decce52c04eaef9856b11e98b17d2cd17e2f15217406eea64c6",
     "rules": {
       "requires": {
-        "any": [
+        "all": [
+          { "any": [{ "course": "COMP6320" }, { "course": "COMP3620" }] },
           {
-            "course": "COMP6320"
-          },
-          {
-            "course": "COMP3620"
+            "unknown": "Additional prerequisites for the announced COMP8620 topic are not in the saved evidence",
+            "nextAction": "Supply the topic announcement for this offering and review its prerequisite conditions."
           }
         ]
       },

@@ -3,6 +3,7 @@ import {
   PROGRAMS,
   type ProgramKey,
   type Requirement,
+  type RuleSource,
 } from "../data/requisites";
 
 // The gate, as pure functions: a student's record and a course's rules in,
@@ -10,7 +11,10 @@ import {
 // routes call this and never re-derive eligibility themselves (CLAUDE.md).
 
 export interface StudentRecord {
-  program: ProgramKey;
+  program: ProgramKey | null;
+  /** Complete within this fictional scenario, not verified university history.
+   * Without this declaration, absent results remain unknown. */
+  complete?: boolean;
   /** Courses passed, with units, from the transcript. */
   passed: { code: string; units: number }[];
   /** Courses attempted and not passed. */
@@ -23,12 +27,27 @@ export interface StudentRecord {
 export interface Check {
   met: boolean;
   text: string;
+  /** Optional only for historical snapshots saved before three-valued results. */
+  status?: ConditionStatus;
+  source?: RuleSource;
+  evidence?: string[];
+  nextAction?: string;
+  children?: RequirementResult[];
 }
+
+export type ConditionStatus = "met" | "unmet" | "unknown";
+export interface RequirementResult extends Check {
+  status: ConditionStatus;
+  evidence: string[];
+}
+
+export const checkStatus = (c: Check): ConditionStatus => c.status ?? (c.met ? "met" : "unmet");
 
 export type Gate =
   | { outcome: "already"; text: string }
   | { outcome: "not-recorded" }
   | { outcome: "eligible"; checks: Check[] }
+  | { outcome: "assessment-incomplete"; checks: Check[]; incompatible: string[] }
   | { outcome: "rules-not-met"; checks: Check[]; incompatible: string[] }
   | {
       outcome: "permission-always";
@@ -47,18 +66,23 @@ export function gate(courseCode: string, rules: CourseRules | undefined, s: Stud
   }
   if (!rules) return { outcome: "not-recorded" };
 
-  const checks = rules.requires ? topLevel(rules.requires).map((r) => check(r, s)) : [];
+  const checks: Check[] = rules.requires ? topLevel(rules.requires).map((r) => evaluateRequirement(r, s, rules.source)) : [];
   const passedCodes = new Set(s.passed.map((p) => p.code));
   const incompatible = (rules.incompatible ?? []).filter((c) => passedCodes.has(c));
   for (const code of incompatible) {
-    checks.push({ met: false, text: `You've passed ${code}, which is incompatible with ${courseCode}` });
+    checks.push({ met: false, status: "unmet", text: `You've passed ${code}, which is incompatible with ${courseCode}`, source: rules.source, evidence: [`Passed ${code}`] });
+  }
+  if (s.complete !== true && (rules.incompatible ?? []).some(c => !passedCodes.has(c))) {
+    checks.push({ met: false, status: "unknown", text: "The incomplete record cannot exclude all incompatible courses", source: rules.source,
+      evidence: [], nextAction: "Supply a complete completion record for the incompatibility check." });
   }
   const requisitesMet = checks.every((c) => c.met);
 
   if (rules.permissionAlways) {
     return { outcome: "permission-always", checks, incompatible, requisitesMet, ...(rules.reviewNote ? { reviewNote: rules.reviewNote } : {}) };
   }
-  if (!requisitesMet) return { outcome: "rules-not-met", checks, incompatible };
+  if (checks.some(c => checkStatus(c) === "unmet")) return { outcome: "rules-not-met", checks, incompatible };
+  if (!requisitesMet) return { outcome: "assessment-incomplete", checks, incompatible };
   return { outcome: "eligible", checks };
 }
 
@@ -84,6 +108,7 @@ export function firstRound(courseCode: string, g: Gate): FirstRound {
         reasons: [`You meet ${courseCode}'s requisites, so you don't need a permission code: enrol directly.`],
       };
     case "rules-not-met":
+    case "assessment-incomplete":
     case "permission-always": {
       if (g.incompatible.length > 0) {
         return {
@@ -93,24 +118,30 @@ export function firstRound(courseCode: string, g: Gate): FirstRound {
           ),
         };
       }
-      const unmet = g.checks.filter((c) => !c.met).map((c) => `Not met: ${c.text}`);
+      const unmet = g.checks.filter((c) => checkStatus(c) === "unmet").map((c) => `Not met: ${c.text}`);
+      const unknown = g.checks.filter((c) => checkStatus(c) === "unknown")
+        .map((c) => `Unknown: ${c.text}${c.nextAction ? `. ${c.nextAction}` : ""}`);
       if (g.outcome === "permission-always") {
         // ANU's wording for these courses: "Students who meet the
         // pre-requisites can request a permission code".
         if (unmet.length > 0) {
           return {
             decision: "auto-reject",
-            reasons: [`${courseCode} only issues permission codes to students who meet its requisites.`, ...unmet],
+            reasons: [`This prototype's first-round policy requires the recorded prerequisites for ${courseCode}.`, ...unmet, ...unknown],
           };
         }
         return {
           decision: "to-convenor",
-          reasons: [`${g.reviewNote ? "Base prerequisites met" : "Requisites met"}. ${courseCode} needs a permission code from every student.`, ...(g.reviewNote ? [g.reviewNote] : [])],
+          reasons: [
+            unknown.length ? `Assessment incomplete. ${courseCode} needs a permission code from every student.` : `${g.reviewNote ? "Base prerequisites met" : "Requisites met"}. ${courseCode} needs a permission code from every student.`,
+            ...g.checks.filter(c => checkStatus(c) === "met").map(c => `Met: ${c.text}`),
+            ...unknown, ...(g.reviewNote ? [g.reviewNote] : []),
+          ],
         };
       }
       return {
         decision: "to-convenor",
-        reasons: [...unmet, "The convenor decides whether your case covers what's missing."],
+        reasons: [...unmet, ...unknown, "The convenor decides whether your case covers what's missing."],
       };
     }
   }
@@ -121,24 +152,48 @@ export function firstRound(courseCode: string, g: Gate): FirstRound {
 /** An `all` at the root is shown as separate checklist lines; anything else
  *  is one line. */
 function topLevel(r: Requirement): Requirement[] {
-  return "all" in r ? r.all : [r];
-}
-
-function check(r: Requirement, s: StudentRecord): Check {
-  return { met: satisfied(r, s), text: describe(r, s) };
+  return "all" in r && r.all.length ? r.all.map(child => ({ ...child, source: child.source ?? r.source })) : [r];
 }
 
 export function satisfied(r: Requirement, s: StudentRecord): boolean {
-  if ("all" in r) return r.all.every((x) => satisfied(x, s));
-  if ("any" in r) return r.any.some((x) => satisfied(x, s));
-  if ("course" in r) {
-    return (
-      s.passed.some((p) => p.code === r.course) ||
-      (r.orEnrolled === true && s.enrolled.includes(r.course))
-    );
+  return evaluateRequirement(r, s).status === "met";
+}
+
+/** The same evaluator powers the gate and the future rule-authoring benchmark.
+ * Unknown evidence is neither a successful condition nor a known failure. */
+export function evaluateRequirement(r: Requirement, s: StudentRecord, inheritedSource?: RuleSource): RequirementResult {
+  const source = r.source ?? inheritedSource;
+  const result = (status: ConditionStatus, evidence: string[] = [], nextAction?: string): RequirementResult => ({
+    met: status === "met", status, text: describe(r, s), evidence,
+    ...(source ? { source } : {}), ...(nextAction ? { nextAction } : {}),
+  });
+  if ("all" in r || "any" in r) {
+    const children = ("all" in r ? r.all : r.any).map(child => evaluateRequirement(child, s, source));
+    if (!children.length) return result("unknown", [], "Complete the empty requirement group before assessment.");
+    const states = children.map(child => child.status);
+    const status: ConditionStatus = "all" in r
+      ? states.includes("unmet") ? "unmet" : states.includes("unknown") ? "unknown" : "met"
+      : states.includes("met") ? "met" : states.includes("unknown") ? "unknown" : "unmet";
+    return { ...result(status, children.flatMap(child => child.evidence), status === "unknown"
+      ? [...new Set(children.flatMap(child => child.nextAction ? [child.nextAction] : []))].join(" ") : undefined), children };
   }
-  if ("program" in r) return s.program === r.program;
-  return passedUnits(r.prefix, s) >= r.units;
+  if ("unknown" in r) return result("unknown", [], r.nextAction);
+  if ("course" in r) {
+    if (s.passed.some(p => p.code === r.course)) return result("met", [`Passed ${r.course}`]);
+    if (r.orEnrolled && s.enrolled.includes(r.course)) return result("met", [`Currently enrolled in ${r.course} for this assessment's offering period`]);
+    const evidence = s.failed.includes(r.course) ? [`An unsuccessful attempt at ${r.course} is recorded`] : [];
+    return s.complete === true
+      ? result("unmet", [...evidence, "No qualifying result in the complete fictional record"])
+      : result("unknown", evidence, `Supply completion${r.orEnrolled ? " or current enrolment" : ""} evidence for ${r.course}, or confirm the fictional record is complete.`);
+  }
+  if ("program" in r) return s.program === null
+    ? result("unknown", [], "Supply the student's program.")
+    : result(s.program === r.program ? "met" : "unmet", [`Recorded program: ${s.program}`]);
+  const units = passedUnits(r.prefix, s);
+  const evidence = s.passed.filter(p => p.code.startsWith(r.prefix)).map(p => `${p.code}: ${p.units} passed units`);
+  if (units >= r.units) return result("met", evidence);
+  return s.complete === true ? result("unmet", evidence)
+    : result("unknown", evidence, "Supply the remaining results or confirm the fictional record is complete.");
 }
 
 function passedUnits(prefix: string, s: StudentRecord): number {
@@ -148,7 +203,9 @@ function passedUnits(prefix: string, s: StudentRecord): number {
 /** Plain-language requirement text, with the student's own standing noted
  *  where it helps ("you have 6"). */
 function describe(r: Requirement, s: StudentRecord, nested = false): string {
+  if ("unknown" in r) return r.unknown;
   if ("all" in r || "any" in r) {
+    if (!("all" in r ? r.all : r.any).length) return "An empty requirement group needs interpretation";
     const parts = ("all" in r ? r.all : r.any).map((x) => describe(x, s, true));
     const joined = joinList(parts, "all" in r ? "and" : "or");
     const text = "any" in r && !nested ? `one of ${joined}` : joined;

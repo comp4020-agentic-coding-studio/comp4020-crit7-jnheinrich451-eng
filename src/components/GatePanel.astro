@@ -1,5 +1,6 @@
 ---
-import { firstRound, type Gate } from "../lib/eligibility";
+import { checkStatus, firstRound, type Gate } from "../lib/eligibility";
+import RequirementChecks from "./RequirementChecks.astro";
 import type { Application } from "../lib/schema";
 import { type CourseRow } from "../lib/store";
 interface Props {
@@ -11,7 +12,9 @@ interface Props {
 }
 const { course, gate, live, term, year } = Astro.props;
 const checks = "checks" in gate ? gate.checks : [];
-const canApply = !live && (gate.outcome === "rules-not-met" || gate.outcome === "permission-always");
+const canApply = !live && (gate.outcome === "rules-not-met" || gate.outcome === "permission-always" || gate.outcome === "assessment-incomplete");
+const hasUnmet = checks.some(c => checkStatus(c) === "unmet");
+const hasUnknown = checks.some(c => checkStatus(c) === "unknown");
 const preview = canApply ? firstRound(course.code, gate) : null;
 ---
 
@@ -46,11 +49,20 @@ const preview = canApply ? firstRound(course.code, gate) : null;
       <h2 id="gate-heading">Permission code required for all students</h2>
       <p>
         Every student needs approval for this course.{" "}
-        {gate.requisitesMet
+        {hasUnmet ? "Your fictional record also has unmet prerequisites." : hasUnknown
+          ? checks.some(c => checkStatus(c) === "met")
+            ? "The recorded base prerequisites are met. Additional conditions remain unknown."
+            : "Some prerequisite conditions remain unknown."
+          : gate.requisitesMet
           ? gate.reviewNote ? "The recorded base prerequisites are met." : "The recorded prerequisites are met."
-          : "Your fictional record also has unmet prerequisites."}
+          : "The assessment is incomplete."}
       </p>
       {gate.reviewNote && <p>{gate.reviewNote}</p>}
+    </>
+  ) : gate.outcome === "assessment-incomplete" ? (
+    <>
+      <h2 id="gate-heading">Assessment incomplete</h2>
+      <p>Some conditions cannot be checked from the available evidence. The missing items are listed below.</p>
     </>
   ) : (
     <>
@@ -59,18 +71,9 @@ const preview = canApply ? firstRound(course.code, gate) : null;
     </>
   )}
   {checks.length > 0 && (
-    <details open={canApply && checks.some((c) => !c.met)}>
+    <details open={hasUnmet || hasUnknown}>
       <summary>How your record compares</summary>
-      <ul class="checks">
-        {checks.map((c) => (
-          <li>
-            <span class="mark" aria-hidden="true">
-              {c.met ? "✓" : "✗"}
-            </span>
-            <span class="visually-hidden">{c.met ? "Met:" : "Not met:"}</span> {c.text}
-          </li>
-        ))}
-      </ul>
+      <RequirementChecks checks={checks} />
     </details>
   )}
   {gate.outcome !== "already" && (gate.outcome === "eligible" || live?.status === "approved") && (

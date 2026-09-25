@@ -28,6 +28,7 @@ const badge = (course: (typeof rows)[number]) => {
       "rules-not-met": "Permission needed",
       "permission-always": "Permission for everyone",
       "not-recorded": "Eligibility check unavailable",
+      "assessment-incomplete": "Assessment incomplete",
     }[g.outcome],
     tone: g.outcome === "eligible" ? "ok" : "muted",
   };

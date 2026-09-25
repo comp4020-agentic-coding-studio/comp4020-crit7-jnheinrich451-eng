@@ -11,12 +11,23 @@
 /** A requirement tree. `course` means passed (or, with `orEnrolled`,
  *  currently enrolled); `program` means studying that program; `units` means
  *  at least that many passed units from courses whose code starts `prefix`. */
-export type Requirement =
+export interface RuleSource {
+  code: string;
+  year: number;
+  hash: string;
+  section: string;
+  /** Zero-based blocks in the saved source section; empty for a missing section. */
+  blocks: number[];
+}
+
+export type Requirement = (
   | { all: Requirement[] }
   | { any: Requirement[] }
   | { course: string; orEnrolled?: true }
   | { program: ProgramKey }
-  | { units: number; prefix: string; label: string };
+  | { units: number; prefix: string; label: string }
+  | { unknown: string; nextAction: string }
+) & { source?: RuleSource };
 
 export type ProgramKey = "GDCOMP" | "MCOMP" | "VCOMP" | "MMLCV";
 
@@ -29,6 +40,7 @@ export const PROGRAMS: Record<ProgramKey, string> = {
 
 export interface CourseRules {
   text: string;
+  source?: RuleSource;
   requires?: Requirement;
   incompatible?: string[];
   /** Every student needs a permission code, whatever their record says. */

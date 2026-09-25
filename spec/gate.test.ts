@@ -76,6 +76,9 @@ describe("the gate shows three outcomes, each with its own message", () => {
     const page = await get("/courses/COMP8620/", as("Mei Lin"));
     onlyHeading(page.text, "Permission code required for all students");
     expect(page.text).toContain("recorded base prerequisites are met");
+    expect(page.text).toContain("Unknown: Additional prerequisites for the announced COMP8620 topic");
+    expect(page.text).toContain("Supply the topic announcement for this offering");
+    expect(page.text).not.toContain("also has unmet prerequisites");
   });
 
   it("courses without transcribed rules say so instead of guessing", async () => {
@@ -115,6 +118,9 @@ describe("a request reaches the picked course's convenor and survives a reload",
     const page = await get(path, as("Mei Lin"));
     expect(page.text).toContain("With Dr Rowan Ellis");
     expect(page.text).toContain("Sent to Dr Rowan Ellis, convenor of COMP8620");
+    expect(page.text).toContain("Unknown: Additional prerequisites for the announced COMP8620 topic");
+    expect(page.text).toContain("Saved 2027 COMP8620 requirements");
+    expect((await get(path, as("Mei Lin"))).text).toContain("Supply the topic announcement for this offering");
   });
 
   it("it is in COMP8620's convenor's queue", async () => {
@@ -152,7 +158,7 @@ describe("a request reaches the picked course's convenor and survives a reload",
     expect(page.text).toMatch(/COMP8620-[A-Z0-9]{6}/);
     for (const step of [
       "Requested a permission code",
-      "Base prerequisites met",
+      "Assessment incomplete",
       "Sent to Dr Rowan Ellis",
       "Welcome aboard.",
     ]) {

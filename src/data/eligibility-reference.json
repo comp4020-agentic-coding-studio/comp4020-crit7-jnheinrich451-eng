@@ -1,0 +1,58 @@
+{
+  "format": 1,
+  "status": "Prototype reference cases authored from saved evidence; not official ANU decisions or an LLM benchmark result",
+  "cases": [
+    {
+      "code": "COMP6242",
+      "year": 2027,
+      "sourceHash": "bf75668796f6b42f8afe9b831f13c6fc695d52fe4e2939bd41c62444a6a070b1",
+      "section": "incompatibility",
+      "blocks": [0],
+      "interpretation": "One ML completion AND one programming completion; each group permits alternatives.",
+      "requirement": {
+        "all": [
+          { "any": [{ "course": "COMP3670" }, { "course": "COMP6670" }, { "course": "COMP8410" }] },
+          { "any": [{ "course": "COMP1110" }, { "course": "COMP6710" }, { "course": "COMP7710" }, { "course": "COMP1730" }, { "course": "COMP6730" }] }
+        ]
+      },
+      "scenarios": [
+        { "label": "Both groups satisfied", "passed": ["COMP6670", "COMP6710"], "complete": true, "expected": "met" },
+        { "label": "ML group absent from a complete fictional record", "passed": ["COMP6710"], "complete": true, "expected": "unmet" },
+        { "label": "ML evidence may be missing from a partial record", "passed": ["COMP6710"], "complete": false, "expected": "unknown" }
+      ]
+    },
+    {
+      "code": "COMP8620",
+      "year": 2027,
+      "sourceHash": "76a7b02a678a1decce52c04eaef9856b11e98b17d2cd17e2f15217406eea64c6",
+      "section": "incompatibility",
+      "blocks": [0],
+      "interpretation": "Base completion can be checked; the separately announced topic's conditions are absent. Permission is a separate policy.",
+      "requirement": {
+        "all": [
+          { "any": [{ "course": "COMP6320" }, { "course": "COMP3620" }] },
+          { "unknown": "Additional prerequisites for the announced COMP8620 topic are not in the saved evidence", "nextAction": "Supply the topic announcement for this offering and review its prerequisite conditions." }
+        ]
+      },
+      "scenarios": [
+        { "label": "Base passed but topic conditions absent", "passed": ["COMP6320"], "complete": true, "expected": "unknown" },
+        { "label": "Known base failure alongside unknown topic conditions", "passed": [], "complete": true, "expected": "unmet" }
+      ]
+    },
+    {
+      "code": "MGMT7020",
+      "year": 2027,
+      "sourceHash": "d943da7c8129f147e20d2626b973ce9ede325289a8e06b70021302a5edb2c8a4",
+      "section": "incompatibility",
+      "blocks": [],
+      "interpretation": "The saved requisite section is absent. This case does not activate an enrolment rule for MGMT7020.",
+      "requirement": {
+        "unknown": "The saved MGMT7020 page has no requisite section",
+        "nextAction": "Supply the applicable published requirements before interpreting eligibility."
+      },
+      "scenarios": [
+        { "label": "A complete record cannot fill a missing course rule", "passed": ["COMP6670", "COMP6710"], "complete": true, "expected": "unknown" }
+      ]
+    }
+  ]
+}

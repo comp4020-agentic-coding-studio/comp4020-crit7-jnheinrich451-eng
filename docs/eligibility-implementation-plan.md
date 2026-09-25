@@ -1,8 +1,9 @@
 # Eligibility foundation and automated demo decisions
 
-Recorded 26 September 2026, before implementation. John agreed both workstreams
-and selected Llama as the initial model family. These are planned increments,
-not implemented features or additional assignment requirements. The
+Initially recorded 26 September 2026, before implementation. John agreed both
+workstreams and selected Llama as the initial model family. The status below
+distinguishes completed work from planned increments. These are not additional
+assignment requirements. The
 [published Crit 7 spec](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/api/crits/07-anu-system.json)
 remains the contract. The current application still needs its assigned reviewer
 to decide requests in `with-convenor`.
@@ -10,6 +11,37 @@ to decide requests in `with-convenor`.
 The two workstreams share one rule engine. They do not require separate Git
 branches or simultaneous edits. The earlier analysis and staffing correction
 are in [`eligibility-feasibility.md`](eligibility-feasibility.md).
+
+## Current implementation status
+
+The first foundation increment is implemented in `src/lib/eligibility.ts`:
+three-valued condition results, nested AND/OR semantics, explicit unknown clauses,
+record completeness and evidence/source references. Empty groups and absent facts
+in a partial record cannot become successful checks. The database defines a
+complete fictional scenario; this flag does not claim verified university data.
+
+2027 COMP8620 now includes an unknown condition for absent topic requirements.
+Its base prerequisite can be met while its overall assessment remains incomplete.
+Unknown is displayed separately from unmet and is not itself a rejection reason.
+The existing first-round policy can still reject a known unmet condition or
+incompatibility. Requests still require the assigned reviewer for approval.
+
+`src/data/eligibility-reference.json` contains three source-bound reference cases
+(COMP6242, COMP8620, MGMT7020), with six fictional record scenarios. The missing
+MGMT7020 section is a reference case only; it does not activate a course rule.
+These cases exercise the prerequisite evaluator, not complete enrolment decisions.
+They are not yet a held-out LLM benchmark. Conditions and source references are
+saved in the existing application check snapshots and survive a reload. The
+full versioned rule-authoring workflow, assessment record model, richer operators
+and autonomous demo policy remain outstanding. No schema migration was required
+for this increment; historical snapshots without statuses still render correctly.
+
+Local runtime verified after installation: Ollama 0.34.4 with `llama3.2:3b`
+(`a80c4f17acd5`) returned `READY` to a bounded local probe. `ollama ps` reported
+100% GPU, 2.3 GB and a 2,048-token context. The cold call took about 38 seconds,
+including about 20 seconds loading; this one short response is a setup check,
+not a course-rule accuracy or throughput benchmark. Model storage remains
+`C:\Users\12856\.ollama\models`, outside the repository.
 
 ## A. Structured rules and a reference dataset
 
@@ -127,10 +159,10 @@ not the Apache-2.0 Qwen candidate from the earlier proposal. Pin the actual mode
 digest when downloaded; the tag alone is not an immutable experiment record.
 Treat 3B as an inexpensive baseline, not a claim that it can interpret all rules.
 
-Read-only hardware inspection on 26 September found 64 GiB RAM and an NVIDIA
+Initial read-only hardware inspection on 26 September found 64 GiB RAM and an NVIDIA
 RTX 5070 Ti with 16,303 MiB VRAM. These resources make a small quantised local
-trial plausible; model quality, GPU utilisation and latency have not been tested.
-Ollama was not found on PATH or at its default per-user installation location.
+trial plausible. At that point Ollama had not been installed; the later setup
+check is recorded above. Model quality has not been benchmarked.
 
 For the later local trial, install [Ollama for Windows](https://docs.ollama.com/windows)
 and download with the [documented CLI](https://docs.ollama.com/cli):
@@ -140,8 +172,8 @@ ollama pull llama3.2:3b
 ```
 
 Ollama manages the weights outside this repository; no manual upload into
-`assets/` is needed. No installation, model download, inference or deployment was
-performed when recording this plan. The local API supports
+`assets/` is needed. The original planning turn did not install or run the model;
+John subsequently installed it and the setup check is recorded above. The local API supports
 [JSON-schema outputs](https://docs.ollama.com/capabilities/structured-outputs);
 schema compliance still needs semantic checks. That documentation currently
 excludes Ollama Cloud from structured-output support, so do not assume a cloud

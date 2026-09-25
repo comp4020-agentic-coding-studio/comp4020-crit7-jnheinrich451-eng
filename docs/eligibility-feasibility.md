@@ -1,7 +1,10 @@
 # Structured eligibility and assisted rule extraction
 
-Assessment requested on 26 September 2026. This is a proposal for discussion,
-not an implemented LLM integration or a change to the running gate.
+Initial assessment requested on 26 September 2026. This document records the
+proposal and its corrections. Implementation progress is tracked in
+[`eligibility-implementation-plan.md`](eligibility-implementation-plan.md);
+the first unknown-result increment is now implemented, while LLM integration
+and the automated demo decision path remain proposed.
 
 The follow-up below revises the initial staffing assumption: the public demo
 must provide a useful outcome without depending on a person operating the
@@ -12,7 +15,7 @@ John subsequently agreed both workstreams and selected Llama as the initial
 model family. The actionable sequence is recorded in
 [`eligibility-implementation-plan.md`](eligibility-implementation-plan.md).
 This document retains the earlier assessment and its staffing correction;
-neither document claims the proposed runtime behaviour has been implemented.
+the implementation plan distinguishes completed increments from future work.
 
 ## Feasibility and existing foundation
 

@@ -2,6 +2,7 @@
 import type { Term } from "../../data/courses";
 import { PROGRAMS, type ProgramKey } from "../../data/requisites";
 import Layout from "../../layouts/Layout.astro";
+import RequirementChecks from "../../components/RequirementChecks.astro";
 import { enrolmentsOf, getApplication, TERM_LABELS } from "../../lib/store";
 
 // One request: where it is, who has it, what the automatic round checked, and
@@ -118,16 +119,7 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
             Snapshot of the fictional academic record when the request was sent. This is demonstration data,
             not verified university results.
           </p>
-          <ul class="checks">
-            {app.checkList.map((c) => (
-              <li class={c.met ? "met" : "unmet"}>
-                <span class="mark" aria-hidden="true">
-                  {c.met ? "✓" : "✗"}
-                </span>
-                <span class="visually-hidden">{c.met ? "Met:" : "Not met:"}</span> {c.text}
-              </li>
-            ))}
-          </ul>
+          <RequirementChecks checks={app.checkList} />
         </section>
       )}
 

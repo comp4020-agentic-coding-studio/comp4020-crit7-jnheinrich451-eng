@@ -8,6 +8,7 @@ import { firstRound, gate, type StudentRecord } from "../src/lib/eligibility";
 
 const student = (over: Partial<StudentRecord> = {}): StudentRecord => ({
   program: "MCOMP",
+  complete: true,
   passed: [],
   failed: [],
   enrolled: [],

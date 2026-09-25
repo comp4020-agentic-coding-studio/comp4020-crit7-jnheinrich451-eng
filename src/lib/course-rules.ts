@@ -10,5 +10,10 @@ export function rulesForSource(code: string, year: number, source?: { hash: stri
   if (!source || conflicted || source.evidence.code !== code || source.evidence.year !== year) return undefined;
   const review = reviews.find(r => r.code === code && r.year === year && r.sourceHash === source.hash);
   if (!review) return undefined;
-  return { ...review.rules, text: source.evidence.sections.find(s => s.key === "incompatibility")!.blocks.map(b => b.text).join(" ") } as CourseRules;
+  const section = source.evidence.sections.find(s => s.key === "incompatibility");
+  if (!section?.present || !section.blocks.length) return undefined;
+  return { ...review.rules,
+    source: { code, year, hash: source.hash, section: section.key, blocks: section.blocks.map((_, i) => i) },
+    text: section.blocks.map(b => b.text).join(" "),
+  } as CourseRules;
 }

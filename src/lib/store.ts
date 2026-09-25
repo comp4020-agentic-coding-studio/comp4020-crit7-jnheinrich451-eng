@@ -113,6 +113,7 @@ export function recordOf(student: Student, term?: string, year = ACTIVE_YEAR): S
   const results = transcriptOf(student.id);
   return {
     program: student.program as StudentRecord["program"],
+    complete: true, // The DB defines the whole fictional scenario, not real ANU history.
     passed: results.filter((r) => PASSING.has(r.grade)).map((r) => ({ code: r.courseCode, units: r.units })),
     failed: results.filter((r) => !PASSING.has(r.grade)).map((r) => r.courseCode),
     enrolled: enrolmentsOf(student.id)

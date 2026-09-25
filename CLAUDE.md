@@ -64,7 +64,7 @@ The 2027 CMSY-SPEC course list names COMP8045, while its explanatory advice link
 COMP8405. Preserve that unresolved source inconsistency; do not alias the codes
 or change allowed-course membership on the assumption that it is a typo.
 
-John has agreed two future increments: structured eligibility with explicit
+John has agreed two increments: structured eligibility with explicit
 unknown results and a manually reviewed reference set; and saved assessment
 reports with an automated, clearly labelled demo permission path. See
 `docs/eligibility-implementation-plan.md` for dependencies and acceptance checks.
@@ -74,6 +74,12 @@ source rules from our demo approval policy, and attribute automated decisions to
 a system actor. The first model trial will use Llama through a local runtime;
 this supersedes the earlier Qwen candidate, not the deterministic decision engine.
 Model benchmarking follows the reference set and need not block the demo flow.
+The first foundation increment is now implemented: three-valued requirement
+results, explicit fictional-record completeness, source/evidence references and
+unknown topic conditions for 2027 COMP8620. New request snapshots retain these
+results; historical boolean checks remain readable. The initial manual reference
+cases are in `src/data/eligibility-reference.json`. GPA, exact marks, conditional
+permission, versioned authoring and automated demo decisions remain future work.
 
 ## Rules
 
