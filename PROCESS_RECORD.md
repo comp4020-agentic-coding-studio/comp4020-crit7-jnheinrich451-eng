@@ -1436,3 +1436,64 @@ rule coverage. The generic incomplete result also directed attention toward the
 student's evidence when the missing work was the app's interpretation. Addressed
 that distinction and the specific COMP7710 rule, without claiming all remaining
 course conditions are now implemented.
+
+## 2026-09-26 03:57 — Visible confirmations and saved course candidates
+
+**Prompt:**
+
+> if you can use the previous font and gold color for the COMP7710? Yes it is bigger, but turns black haha.
+> the enrolled COMP8620, I accepted but not on the list.
+> the My semester section, if it needs like rewording? ... It is just like a candidate for courses?
+
+**Result:**
+Restored the request heading's Georgia serif and gold colour while keeping its
+60px desktop / 40px phone scale. Renamed My semester to My courses, with separate
+saved candidates, confirmed academic enrolments and completed demo scenarios.
+Confirmed enrolments are read independently of saved selections, so removing a
+selection cannot hide an enrolment. Navigation, saving buttons and the guide now
+describe this distinction.
+
+The reported COMP8620 confirmation already existed as a scenario-enrolled event;
+the profile omitted this deliberately isolated example. Added visible completion
+history to My profile and My courses and a confirmed badge in My requests. Kept
+scenario evidence separate from academic enrolments and eligibility rather than
+promoting its invented topic assumptions into the student's record. One shared
+status presenter now distinguishes an approved permission from a subsequently
+confirmed enrolment. An automatic exception result says Exception decision needed
+and explicitly states that no staff review is in progress. The academic check and
+the unresolved waiver remain separate, with saved reports and events preserved.
+
+**Verified:**
+Read the shared harness and published Crit 7 contract. Read-only inspection of the
+local request states found an undecided COMP7710 exception, a confirmed COMP8620
+scenario, and a separate COMP8620 request still with its convenor. The same states
+remained after restarting the preview; no database repair or migration was needed.
+
+Docker Node 24 / pnpm 11.9.0 `pnpm check` passed: zero diagnostics across 81 files,
+300 tests across 16 test files. HTTP checks cover saving and confirming separate
+offerings, removing selections without losing enrolments, approval before versus
+after confirmation, scenario completion visibility and privacy, blocked use of
+scenario permission for normal enrolment, coexisting staff requests, and consistent
+exception labels without pending reminders. Earlier reports retain their results.
+
+Used real Chrome form submissions with JavaScript disabled against a disposable
+database and local email sink. Inspected screenshots at 1440x1000 and 390x844:
+COMP7710 uses Georgia and rgb(117, 96, 55), at 60px and 40px respectively. Confirmed
+the scenario, found it in My profile, saved and directly enrolled in COMP6466,
+and checked the three course groups and request badges. No page overflow. Stopped
+the disposable preview; the existing preview at 127.0.0.1:4323 serves the updated
+guide with HTTP 200. No push or deployment, and no Claude review was performed.
+
+**Commit:** [`55ff703`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/55ff703)
+
+**What happened:**
+John caught a visual regression from the previous heading change: larger type had
+also become black sans serif. Scenario isolation also hid useful completion
+feedback, while My semester mixed candidates and confirmed courses. Two initial
+test assertions used the wrong semester wording and a request reason that did not
+produce the intended staff-pending fixture; corrected those fixtures. A subsequent
+JSDOM equality selector failed on a query-string href despite the actual attribute
+matching, confirmed by a separate diagnostic; now the test asserts the attribute
+directly. The browser harness initially treated the ordinary 15px desktop scrollbar
+as a width failure. Corrected that assertion to detect overflow rather than demand
+equal widths, then completed the browser check with another isolated fixture.
