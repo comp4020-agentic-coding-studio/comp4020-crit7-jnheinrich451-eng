@@ -105,6 +105,10 @@ choose a subject. Keep the published scope and functional guarantees below.
   user sees and what survives a reload), not implementation details. At
   minimum: each gate outcome shows its own message; an application reaches the
   picked course's convenor; it's still there after a reload.
+- When changing authentication or verification headers, also submit the real
+  forms in a browser with JavaScript disabled, through verification and sign-in.
+  HTTP tests that supply `Origin` themselves cannot catch a browser changing it
+  under `Referrer-Policy`. Keep the token out of referrers and CSRF checks active.
 - The guestbook and its test go when the starter's plumbing is replaced — in
   the same commit.
 

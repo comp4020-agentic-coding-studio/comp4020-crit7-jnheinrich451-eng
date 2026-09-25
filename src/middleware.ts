@@ -27,7 +27,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
   const response = await next();
-  response.headers.set("Referrer-Policy", path.startsWith("/verify") ? "no-referrer" : "same-origin");
+  // Keep verification tokens out of Referer without turning a native form's
+  // Origin into "null" (no-referrer does that and fails the CSRF checks).
+  response.headers.set("Referrer-Policy", path.startsWith("/verify") ? "strict-origin" : "same-origin");
   response.headers.set("X-Content-Type-Options", "nosniff");
   if (context.locals.actor || path.startsWith("/verify") || path.startsWith("/api/auth"))
     response.headers.set("Cache-Control", "no-store");

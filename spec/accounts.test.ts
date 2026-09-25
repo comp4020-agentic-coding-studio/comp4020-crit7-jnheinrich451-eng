@@ -59,6 +59,20 @@ describe("verified student accounts", () => {
     // Opening a link does not consume it (email scanners may prefetch it).
     expect(message(await post("/api/auth/login", { email, password }))).toContain("Verify+your+email");
   });
+  it("keeps verification tokens out of referrers without hiding the form origin", async () => {
+    const page = await get(`/verify/?token=${token}`);
+    // Browser contract: strict-origin sends only the origin as Referer and
+    // retains Origin on native same-origin forms. no-referrer sends Origin:
+    // null for those forms, which correctly fails Astro's CSRF protection.
+    expect(page.headers.get("referrer-policy")).toBe("strict-origin");
+    expect(page.headers.get("cache-control")).toBe("no-store");
+    for (const origin of ["null", "http://unrelated.test"]) {
+      expect((await post("/api/auth/verify", { token }, "", origin)).status).toBe(403);
+    }
+    // Rejected requests must not consume the token or activate the account.
+    expect(await (await get(`/verify/?token=${token}`)).text()).toContain("Confirm email address");
+    expect(message(await post("/api/auth/login", { email, password }))).toContain("Verify+your+email");
+  });
   it("confirmation works once, and expired or invented links cannot verify", async () => {
     expect(message(await post("/api/auth/verify", { token }))).toContain("Email+verified");
     expect(message(await post("/api/auth/verify", { token }))).toContain("invalid+or+expired");
@@ -134,7 +148,9 @@ describe("verified student accounts", () => {
 describe("reviewer invitations", () => {
   it("requires the emailed invitation and a password to activate a reviewer account", async () => {
     const token = verification("invited-reviewer@anu.edu.au");
-    expect(await (await get(`/verify/?token=${token}`)).text()).toContain("invited reviewer");
+    const invitationPage = await get(`/verify/?token=${token}`);
+    expect(invitationPage.headers.get("referrer-policy")).toBe("strict-origin");
+    expect(await invitationPage.text()).toContain("invited reviewer");
     expect(message(await post("/api/auth/verify", { token, password: "short" }))).toContain("15–128");
     expect(message(await post("/api/auth/verify", { token, password }))).toContain("Email+verified");
     const session = await post("/api/auth/login", { email: "invited-reviewer@anu.edu.au", password });
