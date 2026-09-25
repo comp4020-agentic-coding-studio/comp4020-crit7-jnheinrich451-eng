@@ -1,0 +1,28 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { SCENARIO } from "../lib/demo-assessment";
+const actor = Astro.locals.actor;
+---
+<Layout title="Try the permission workflow" actor={actor}>
+  <p class="eyebrow">FICTIONAL EXAMPLE</p>
+  <h1>Try the complete permission workflow</h1>
+  <p class="lede">COMP8620 · 2027 Second Semester. Request permission, read the assessment, then confirm scenario enrolment. No staff member is needed.</p>
+  <section aria-labelledby="scenario-heading" class="surface">
+    <h2 id="scenario-heading">{SCENARIO.label}</h2>
+    <p>The saved course page requires permission for all students, but leaves the topic prerequisites unresolved. This example supplies a fictional topic and a separate fictional student record.</p>
+    <ul>{SCENARIO.assumptions.map(assumption => <li>{assumption}</li>)}</ul>
+    <p><a href="/courses/COMP8620/?year=2027&term=S2">View the published course and your profile checks</a></p>
+  </section>
+  {actor?.kind === "student" ? <form method="post" action="/api/applications" class="stack surface">
+    <input type="hidden" name="courseCode" value={SCENARIO.courseCode} />
+    <input type="hidden" name="year" value={SCENARIO.year} />
+    <input type="hidden" name="term" value={SCENARIO.term} />
+    <input type="hidden" name="scenarioKey" value={SCENARIO.key} />
+    <input type="hidden" name="reviewMode" value="automatic" />
+    <input type="hidden" name="reason" value="recorded-checks" />
+    <label for="statement">Student's explanation for the scenario</label>
+    <textarea id="statement" name="statement" required maxlength="2000" rows="3">I would like permission to take this fictional topic. Please assess the supplied scenario record.</textarea>
+    <p class="field-help">The explanation is saved as self-reported context. The scenario record determines whether the requirements are met.</p>
+    <button class="primary">Request scenario permission</button>
+  </form> : <p>{actor ? "Sign in with a student account to try the scenario." : <a class="button primary" href="/login/">Sign in to try the scenario</a>}</p>}
+</Layout>

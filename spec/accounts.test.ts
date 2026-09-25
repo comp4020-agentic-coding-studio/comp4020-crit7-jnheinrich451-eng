@@ -228,6 +228,7 @@ describe("search and offering boundaries", () => {
         courseCode: "COMP6240",
         term: "S1",
         statement: "Please review this fictional scenario",
+        reviewMode: "convenor",
         dispute: "yes",
       },
       student,

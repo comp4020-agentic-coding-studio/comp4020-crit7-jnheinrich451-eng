@@ -95,10 +95,16 @@ export const applications = sqliteTable("applications", {
   term: text().notNull(),
   year: int().notNull().default(ACTIVE_YEAR),
   statement: text().notNull(),
-  /** "auto-rejected" | "with-convenor" | "approved" | "rejected" */
+  /** "auto-rejected" | "with-convenor" | "approved" | "rejected" | "assessment-incomplete" */
   status: text().notNull(),
   /** JSON Check[]: the checklist exactly as the gate saw it at submission. */
   checks: text().notNull(),
+  /** Immutable AssessmentReport JSON; null for the historical staff workflow. */
+  assessment: text(),
+  /** A scenario permission is never usable for profile enrolment. */
+  scenarioKey: text("scenario_key"),
+  /** Content identity makes automated retries reuse their original result. */
+  requestKey: text("request_key").unique(),
   permissionCode: text("permission_code"),
   createdAt: createdAt(),
 });

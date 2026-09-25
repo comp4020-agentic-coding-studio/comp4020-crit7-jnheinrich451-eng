@@ -4,7 +4,7 @@ import { ACTIVE_YEAR } from "../../lib/academic-year";
 import { catalogueLink, catalogueEntries, referenceLink } from "../../lib/catalogue";
 import type { Term } from "../../data/courses";
 import Layout from "../../layouts/Layout.astro";
-import { gateFor, getCourse, liveApplication, offeringFor, selectionsOf, TERM_LABELS } from "../../lib/store";
+import { gateFor, getCourse, latestAssessment, liveApplication, offeringFor, selectionsOf, TERM_LABELS } from "../../lib/store";
 const actor = Astro.locals.actor;
 const year = Number(Astro.url.searchParams.get("year") ?? ACTIVE_YEAR);
 const course = getCourse(Astro.params.code ?? "", year);
@@ -16,6 +16,7 @@ const term = Astro.url.searchParams.get("term") ?? course.termList[0] ?? "";
 const offering = offeringFor(course.id, term, year);
 const g = actor?.kind === "student" ? gateFor(actor.student, course.code, term, year) : null;
 const live = actor?.kind === "student" ? liveApplication(actor.student.id, course.id, term, year) : undefined;
+const previous = actor?.kind === "student" && !live ? latestAssessment(actor.student.id, course.id, term, year) : undefined;
 const saved =
   actor?.kind === "student" && selectionsOf(actor.student.id).some((s) => s.offering.id === offering?.id);
 ---
@@ -101,6 +102,7 @@ const saved =
             <p class="field-help">Saving a course does not enrol you.</p>
           </form>
           <GatePanel course={course} gate={g} live={live} term={term} year={year} />
+          {previous && <p><a href={`/applications/${previous.id}/`}>Read your latest assessment and next steps</a></p>}
         </>
       ) : (
         <div class="surface">

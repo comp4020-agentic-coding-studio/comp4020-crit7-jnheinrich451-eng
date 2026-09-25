@@ -14,6 +14,8 @@ const passwordHash = await hashPassword("Fixture-only password 2026!");
 for (const [uid, name] of [
   ["fixture-assessment-approve", "Assessment approval student"],
   ["fixture-assessment-decline", "Assessment decline student"],
+  ["fixture-demo", "Demo assessment student"],
+  ["fixture-demo-other", "Other demo student"],
 ]) {
   db.insert(students).values({ uid, name, program: "VCOMP" }).run();
 }

@@ -33,7 +33,9 @@ it("upgrades a populated 2026 database without changing profiles, approvals, eve
     db.insert(transcript).values({ studentId: student.id, courseCode: "COMP6320", units: 6, grade: "HD", term: "2025 S1" }).run();
     const course = db.select().from(courses).where(eq(courses.code, "COMP8620")).get()!;
     const offering = db.select().from(offerings).where(eq(offerings.courseId, course.id)).get()!;
-    const app = db.insert(applications).values({ studentId: student.id, courseId: course.id, convenorId: course.convenorId, year: 2026, term: "S2", status: "approved", permissionCode: "HISTORICAL-PERMISSION", checks: '[{"met":true,"text":"Original check"}]', statement: "Original request" }).returning().get();
+    // Use the OLD schema for the fixture, before new assessment columns exist.
+    const app = client.prepare("INSERT INTO applications (student_id, course_id, convenor_id, year, term, status, permission_code, checks, statement) VALUES (?, ?, ?, 2026, 'S2', 'approved', 'HISTORICAL-PERMISSION', ?, 'Original request') RETURNING id")
+      .get(student.id, course.id, course.convenorId, '[{"met":true,"text":"Original check"}]') as { id: number };
     db.insert(applicationEvents).values({ applicationId: app.id, actor: "convenor", actorName: "Fictional reviewer", kind: "approved", detail: "Original decision" }).run();
     db.insert(enrolments).values({ studentId: student.id, courseId: course.id, year: 2026, term: "S2", via: "permission" }).run();
     db.insert(selections).values({ studentId: student.id, offeringId: offering.id }).run();
@@ -41,12 +43,13 @@ it("upgrades a populated 2026 database without changing profiles, approvals, eve
       profile: db.select().from(students).where(eq(students.id, student.id)).get(),
       account: db.select().from(accounts).where(eq(accounts.studentId, student.id)).get(),
       transcript: db.select().from(transcript).where(eq(transcript.studentId, student.id)).all(),
-      requests: db.select().from(applications).all(), events: db.select().from(applicationEvents).all(),
+      requests: client.prepare("SELECT id, student_id, course_id, convenor_id, year, term, status, permission_code, checks, statement, created_at FROM applications").all(), events: db.select().from(applicationEvents).all(),
       enrolments: db.select().from(enrolments).where(eq(enrolments.studentId, student.id)).all(),
       selections: db.select().from(selections).all(),
     });
     const before = state();
     migrateDatabase(client);
+    expect(db.select().from(applications).where(eq(applications.id, app.id)).get()).toMatchObject({ assessment: null, scenarioKey: null, requestKey: null });
     for (let boot = 0; boot < 2; boot++) {
       seed(db);
       seedCatalogue(db, catalogue.snapshots as CatalogueSnapshot[]);

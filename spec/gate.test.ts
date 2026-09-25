@@ -21,6 +21,8 @@ async function get(path: string, as: string): Promise<Page> {
 // Astro refuses form POSTs without a same-origin Origin header (CSRF); a
 // browser sends it, a bare fetch has to be told.
 async function post(path: string, as: string, fields: Record<string, string>): Promise<Page> {
+  // This suite covers the explicitly selected staff workflow.
+  if (path === "/api/applications") fields = { reviewMode: "convenor", ...fields };
   const res = await fetch(new URL(path, baseUrl), {
     method: "POST",
     headers: { origin: baseUrl, cookie: as },
@@ -178,7 +180,7 @@ describe("a request reaches the picked course's convenor and survives a reload",
 describe("the automatic first round", () => {
   it("warns the student before they send a request it will turn down", async () => {
     const page = await get("/courses/COMP8600/", as("Kenji Sato"));
-    expect(page.text).toContain("The automatic first round will turn this request down");
+    expect(page.text).toContain("These recorded conditions prevent automatic permission");
     expect(page.text).not.toContain("It goes to Dr Mara Quinn");
   });
 

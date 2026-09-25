@@ -13,6 +13,7 @@ if (!actor) return Astro.redirect("/login/", 303);
 const STATUS: Record<string, string> = {
   "auto-rejected": "Rejected automatically",
   "with-convenor": "With convenor",
+  "assessment-incomplete": "Evidence or decision needed",
   approved: "Approved",
   rejected: "Rejected by convenor",
 };
@@ -83,10 +84,11 @@ const watch = actor.kind === "student" ? { studentId: actor.student.id } : { con
                   {actor.kind === "convenor" ? `${a.student.name} (${a.student.uid})` : a.course.title}
                 </span>
                 <span class="meta">
+                  {a.scenarioKey && "Fictional topic scenario · "}
                   {`${a.year} ${TERM_LABELS[a.term as Term]}`} · sent{" "}
                   {a.createdAt.slice(0, 16).replace("T", " ")} UTC
                 </span>
-                <span class={`badge status-${a.status}`}>{STATUS[a.status]}</span>
+                <span class={`badge status-${a.status}`}>{a.report && a.status === "auto-rejected" ? "Not approved under demo policy" : a.report && a.status === "approved" ? "Demo permission approved" : STATUS[a.status]}</span>
               </a>
               {actor.kind === "student" && <PendingRequestNotice request={a} />}
             </li>

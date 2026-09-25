@@ -6,6 +6,7 @@ export const ROUTES = [
   "/",
   "/readme/",
   "/guide/",
+  "/demo/",
   "/courses/COMP6466/",
   "/courses/COMP6242/",
   "/courses/COMP8620/",

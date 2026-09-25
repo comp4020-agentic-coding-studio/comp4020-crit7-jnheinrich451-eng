@@ -5,9 +5,9 @@
 A slice of ANU course enrolment: the permission-code gate. A student selects a
 course; the app checks their (seeded) record against the course's rules and
 either lets them through, tells them exactly why they need a permission code,
-or tells them the course needs a code from everyone. Applications route to the
-convenor of the course the student actually picked, get an automatic first
-round, and carry a visible status timeline so nothing gets stuck silently.
+or tells them the course needs a code from everyone. Requests receive an immediate
+saved demo assessment by default, with an optional staff route to the convenor of
+the course the student actually picked. Both carry a visible status timeline.
 
 The contract is the crit 7 spec on the course site
 (`/api/crits/07-anu-system.json`). Re-read it before changing scope.
@@ -68,18 +68,33 @@ John has agreed two increments: structured eligibility with explicit
 unknown results and a manually reviewed reference set; and saved assessment
 reports with an automated, clearly labelled demo permission path. See
 `docs/eligibility-implementation-plan.md` for dependencies and acceptance checks.
-This agreement does not mean the current reviewer queue is automated. Preserve
+The first automated demo path is now implemented; existing pending staff requests
+remain pending unless their owner explicitly requests automatic assessment. Preserve
 the existing gate distinctions when adding incomplete assessments. Separate ANU
 source rules from our demo approval policy, and attribute automated decisions to
 a system actor. The first model trial will use Llama through a local runtime;
 this supersedes the earlier Qwen candidate, not the deterministic decision engine.
 Model benchmarking follows the reference set and need not block the demo flow.
+Automatic issuance requires a versioned source interpretation or the explicit
+fictional scenario. Historical 2026 transcriptions cannot gain automatic approval
+just because their old first-round checklist passed; existing human approvals
+retain their offering scope.
 The first foundation increment is now implemented: three-valued requirement
 results, explicit fictional-record completeness, source/evidence references and
 unknown topic conditions for 2027 COMP8620. New request snapshots retain these
 results; historical boolean checks remain readable. The initial manual reference
 cases are in `src/data/eligibility-reference.json`. GPA, exact marks, conditional
-permission, versioned authoring and automated demo decisions remain future work.
+permission and versioned authoring remain future work. Automated assessment reports
+now save the offering, rule and record snapshots, selected request reason, student
+statement and versioned demo policy. COMP8620's complete fictional topic scenario
+is at `/demo/`; its permissions and confirmation are isolated from profile
+enrolments. Its topic assumptions must never become published ANU conditions.
+Student messages are self-reported context, never numerically weighted authority.
+The explicit record-correction, equivalent-study and exception reasons produce
+evidence/decision-needed results. Prose is preserved but not semantically assessed
+yet; it cannot alter a grade, source rule or permission. Future model extraction
+must keep claims separate from verified facts and pass a statement-variation
+benchmark before it influences handling. No model is called by the demo policy.
 John clarified that permission handling must extend beyond COMP8620's blanket
 permission requirement. An offered course with uninterpreted or uncertain rules
 now accepts an assessment request, preserving unknown rather than claiming a
@@ -88,6 +103,10 @@ request route; eligible students enrol directly, and unavailable offerings canno
 accept enrolment requests. Show the resubmission reminder only while the matching
 student/course/year/term request is pending. Approval or rejection removes it;
 retries reuse the existing pending or approved request without adding events.
+Automatic incomplete results are not pending staff work. Identical automatic
+submissions reuse the saved result; new evidence or a changed reason gets a new
+snapshot. Staff review remains an explicit optional route with an unstaffed-queue
+notice. Converting a pending request preserves its original checks and events.
 
 ## Rules
 

@@ -4,6 +4,8 @@ import { PROGRAMS, type ProgramKey } from "../../data/requisites";
 import Layout from "../../layouts/Layout.astro";
 import RequirementChecks from "../../components/RequirementChecks.astro";
 import PendingRequestNotice from "../../components/PendingRequestNotice.astro";
+import AssessmentReport from "../../components/AssessmentReport.astro";
+import { REQUEST_REASONS } from "../../lib/demo-assessment";
 import { enrolmentsOf, getApplication, TERM_LABELS } from "../../lib/store";
 
 // One request: where it is, who has it, what the automatic round checked, and
@@ -20,6 +22,7 @@ const canSee = mine || routedToMe;
 if (!canSee) return new Response("Request not found", { status: 404 });
 
 const STATUS: Record<string, { label: string; say: string }> = {
+  "assessment-incomplete": { label: "Evidence or decision needed", say: "The automatic assessment is complete, but eligibility remains unresolved. See the missing items and next steps below." },
   "auto-rejected": {
     label: "Rejected automatically",
     say: "The automatic first round turned this down from your record, so it never went to the convenor.",
@@ -34,11 +37,13 @@ const STATUS: Record<string, { label: string; say: string }> = {
     say: "The convenor turned this down. Their reason is in the timeline.",
   },
 };
-const isEnrolled = enrolmentsOf(app.studentId).some(
+const isEnrolled = app.scenarioKey ? app.events.some(e => e.kind === "scenario-enrolled") : enrolmentsOf(app.studentId).some(
   (e) => e.code === app.course.code && e.year === app.year && e.term === app.term,
 );
 const status = isEnrolled
-  ? { label: "Enrolled", say: "Enrolment is confirmed for this offering. Your request history is below." }
+  ? { label: app.scenarioKey ? "Scenario enrolment confirmed" : "Enrolled", say: app.scenarioKey ? "You completed the fictional permission workflow. Your profile and semester enrolments are unchanged." : "Enrolment is confirmed for this offering. Your request history is below." }
+  : app.report && app.status === "approved" ? { label: "Demo permission approved", say: "The automated demo policy issued permission. Confirm enrolment to complete the selected workflow." }
+  : app.report && app.status === "auto-rejected" ? { label: "Not approved under the demo policy", say: "Recorded requirements are unmet. Read the assessment for the reasons and available next steps." }
   : STATUS[app.status];
 const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "System", convenor: "Convenor" };
 ---
@@ -68,7 +73,7 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
         {app.permissionCode && (
           <p class="code-issued">
             Permission code: <code>{app.permissionCode}</code>
-            {mine && !isEnrolled && (
+            {mine && !isEnrolled && !app.scenarioKey && (
               <>
                 {" "}
                 <a
@@ -81,6 +86,12 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
           </p>
         )}
       </section>
+
+      {mine && app.scenarioKey && app.status === "approved" && !isEnrolled && <form action="/api/scenario-enrol" method="post" class="stack surface">
+        <input type="hidden" name="applicationId" value={app.id} />
+        <p>Confirming saves completion of this scenario only.</p>
+        <button class="primary">Confirm scenario enrolment</button>
+      </form>}
 
       <dl class="facts">
         <div>
@@ -102,9 +113,9 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
           <dd>{`${app.year} ${TERM_LABELS[app.term as Term]}`}</dd>
         </div>
         <div>
-          <dt>Assigned reviewer</dt>
+          <dt>{app.report ? "Assessment by" : "Assigned reviewer"}</dt>
           <dd>
-            {app.convenor.name}, convenor of {app.course.code}
+            {app.report ? "Automated demo review" : `${app.convenor.name}, convenor of ${app.course.code}`}
           </dd>
         </div>
       </dl>
@@ -114,11 +125,22 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
         <blockquote class="statement">{app.statement}</blockquote>
       </section>
 
+      {app.report && <AssessmentReport report={app.report} />}
+      {mine && app.status === "with-convenor" && <form action={`/api/applications/${app.id}/assessment`} method="post" class="stack surface">
+        <h2>Get an automatic result instead</h2>
+        <p>This replaces the pending staff review with a demo assessment. Missing evidence remains unresolved, with next steps. Your original statement and history are kept.</p>
+        <label for="assessment-reason">What should be assessed?</label>
+        <select id="assessment-reason" name="reason">
+          {Object.entries(REQUEST_REASONS).map(([value, label]) => <option value={value} selected={value === (app.events.some(e => e.kind === "record-disputed") ? "record-correction" : "recorded-checks")}>{label}</option>)}
+        </select>
+        <button class="primary">Run automated demo assessment</button>
+      </form>}
+
       {app.checkList.length > 0 && (
         <section aria-labelledby="checks-heading">
           <h2 id="checks-heading">What the automatic round checked</h2>
           <p class="muted">
-            Snapshot of the fictional academic record when the request was sent. This is demonstration data,
+            Snapshot of the fictional academic record when this assessment was made. This is demonstration data,
             not verified university results.
           </p>
           <RequirementChecks checks={app.checkList} />

@@ -12,6 +12,8 @@ async function page(path: string, person: string) {
   return new JSDOM(await res.text()).window.document;
 }
 async function post(path: string, person: string, fields: Record<string, string>) {
+  // Pending reminders belong to the optional, explicitly selected staff route.
+  if (path === "/api/applications") fields = { reviewMode: "convenor", ...fields };
   const res = await fetch(new URL(path, base), {
     method: "POST", headers: { origin: base, cookie: cookies[person] },
     body: new URLSearchParams(fields), redirect: "manual",

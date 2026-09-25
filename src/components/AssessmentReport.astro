@@ -1,0 +1,31 @@
+---
+import { REQUEST_REASONS, type AssessmentReport } from "../lib/demo-assessment";
+interface Props { report: AssessmentReport }
+const { report } = Astro.props;
+---
+<section aria-labelledby="assessment-heading" data-assessment-policy={report.policy}>
+  <h2 id="assessment-heading">Saved demo assessment</h2>
+  <p>This result uses a prototype approval policy and fictional academic evidence. It is not an ANU decision.</p>
+  {report.scenario && <div class="warning" data-scenario={report.scenario.key}>
+    <h3>{report.scenario.label}</h3>
+    <ul>{report.scenario.assumptions.map(item => <li>{item}</li>)}</ul>
+  </div>}
+  <ul data-decision-reasons>{report.reasons.map(reason => <li>{reason}</li>)}</ul>
+  <h3>Next steps</h3>
+  <ul data-next-actions>{report.nextActions.map(action => <li>{action}</li>)}</ul>
+  {report.outcome === "assessment-incomplete" && <p>This result is saved. Repeating the same request cannot supply the missing evidence. You can <a href="/demo/">try the complete fictional scenario</a> without waiting for a reviewer.</p>}
+  <h3>How your explanation was used</h3>
+  <p><strong>Selected reason:</strong> {REQUEST_REASONS[report.context.reason]}</p>
+  <p>{report.context.treatment}</p>
+  <details>
+    <summary>Record and policy saved with this assessment</summary>
+    <p>Offering: {report.offering.code} · {report.offering.year} {report.offering.term}. Policy: <code>{report.policy}</code>.</p>
+    <p>Program: {report.record.program ?? "Unknown"}. {report.record.complete ? "Complete fictional record" : "Partial record"}.</p>
+    <p>Passed: {report.record.passed.map(p => `${p.code} (${p.units} units)`).join(", ") || "None recorded"}.</p>
+    <p>Unsuccessful attempts: {report.record.failed.join(", ") || "None recorded"}.</p>
+    <p>Enrolled at assessment: {report.record.enrolled.join(", ") || "None recorded"}.</p>
+    <p>Saved rule text: {report.rules?.text ?? "No interpreted rules available"}</p>
+    <p class="field-help">Rule snapshot: <code>{report.rulesHash}</code>. Later profile or catalogue changes do not rewrite this assessment.</p>
+  </details>
+</section>
+<style>code { overflow-wrap: anywhere; }</style>

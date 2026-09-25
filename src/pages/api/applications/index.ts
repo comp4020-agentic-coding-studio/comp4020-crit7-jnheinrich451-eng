@@ -16,13 +16,18 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const page = `/courses/${encodeURIComponent(courseCode)}/?${new URLSearchParams({ term, year: String(year) })}`;
   if (actor.kind !== "student") return back(page, { error: "Only students request permission codes." });
   try {
+    const reviewMode = String(form.get("reviewMode") ?? "automatic");
+    if (reviewMode !== "automatic" && reviewMode !== "convenor") return back(page, { error: "Choose a valid assessment route." });
     const app = submitApplication({
       student: actor.student,
       courseCode,
       term,
       statement: String(form.get("statement") ?? ""),
       year,
-      dispute: form.get("dispute") === "yes",
+      dispute: form.get("dispute") === "yes" || form.get("reason") === "record-correction",
+      reviewMode,
+      reason: String(form.get("reason") ?? (form.get("dispute") === "yes" ? "record-correction" : "recorded-checks")),
+      scenarioKey: String(form.get("scenarioKey") ?? ""),
     });
     return back(`/applications/${app.id}/`);
   } catch (err) {

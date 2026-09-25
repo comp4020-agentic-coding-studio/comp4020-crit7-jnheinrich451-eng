@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, asc, desc, eq, inArray, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, type SQL } from "drizzle-orm";
 import { COURSES, type Term } from "../data/courses";
 import { ACTIVE_YEAR, LEGACY_YEAR } from "./academic-year";
 import { catalogueEntries } from "./catalogue";
@@ -8,6 +8,7 @@ import { rulesForSource } from "./course-rules";
 import { db } from "./db";
 import { canRequestAssessment, type Check, firstRound, type Gate, gate, type StudentRecord } from "./eligibility";
 import { bus } from "./events";
+import { assessDemo, requestReason, SCENARIO, scenarioEvidence, snapshotHash, type AssessmentReport } from "./demo-assessment";
 import {
   type Application,
   type ApplicationEvent,
@@ -138,6 +139,7 @@ export type ApplicationView = Application & {
   student: Student;
   convenor: Convenor;
   checkList: Check[];
+  report: AssessmentReport | null;
 };
 
 function views(where: SQL) {
@@ -150,13 +152,15 @@ function views(where: SQL) {
     .where(where)
     .orderBy(desc(applications.id))
     .all()
-    .map((r): ApplicationView => ({
-      ...r.applications,
-      course: getCourse(r.courses.code, r.applications.year) ?? r.courses,
-      student: r.students,
-      convenor: r.convenors,
-      checkList: JSON.parse(r.applications.checks),
-    }));
+    .map((r): ApplicationView => {
+      const report: AssessmentReport | null = r.applications.assessment ? JSON.parse(r.applications.assessment) : null;
+      return {
+        ...r.applications,
+        course: getCourse(r.courses.code, r.applications.year) ?? r.courses,
+        student: r.students, convenor: r.convenors, report,
+        checkList: report ? ("checks" in report.gate ? report.gate.checks : []) : JSON.parse(r.applications.checks),
+      };
+    });
 }
 
 export function applicationsOfStudent(studentId: number): ApplicationView[] {
@@ -164,7 +168,7 @@ export function applicationsOfStudent(studentId: number): ApplicationView[] {
 }
 
 export function queueOf(convenorId: number): ApplicationView[] {
-  return views(eq(applications.convenorId, convenorId));
+  return views(and(eq(applications.convenorId, convenorId), isNull(applications.assessment))!);
 }
 
 export function getApplication(id: number): (ApplicationView & { events: ApplicationEvent[] }) | undefined {
@@ -177,6 +181,12 @@ export function getApplication(id: number): (ApplicationView & { events: Applica
     .orderBy(asc(applicationEvents.id))
     .all();
   return { ...view, events };
+}
+
+export function latestAssessment(studentId: number, courseId: number, term: string, year: number): Application | undefined {
+  return db.select().from(applications).where(and(eq(applications.studentId, studentId), eq(applications.courseId, courseId),
+    eq(applications.term, term), eq(applications.year, year), isNull(applications.scenarioKey),
+    inArray(applications.status, ["assessment-incomplete", "auto-rejected"]))).orderBy(desc(applications.id)).get();
 }
 
 /** The application a student already has open (or approved) for a course. */
@@ -195,6 +205,7 @@ export function liveApplication(
         eq(applications.courseId, courseId),
         eq(applications.term, term),
         eq(applications.year, year),
+        isNull(applications.scenarioKey),
         inArray(applications.status, ["with-convenor", "approved"]),
       ),
     )
@@ -208,6 +219,9 @@ export function submitApplication(input: {
   statement: string;
   year?: number;
   dispute?: boolean;
+  reviewMode?: "automatic" | "convenor";
+  reason?: string;
+  scenarioKey?: string;
 }): Application {
   const year = input.year ?? ACTIVE_YEAR;
   const course = getCourse(input.courseCode, year);
@@ -216,6 +230,8 @@ export function submitApplication(input: {
   if (!offering) {
     throw new UserError(`${course.code} isn't offered in that term.`);
   }
+  if (input.reviewMode === "automatic") return submitAutomatic(input, course, offering);
+  if (input.scenarioKey) throw new UserError("Scenarios use automatic demo assessment only.");
   const existing = liveApplication(input.student.id, course.id, input.term, year);
   if (existing) return existing;
   const statement = input.statement.trim().slice(0, 2000);
@@ -326,6 +342,83 @@ function permissionCode(courseCode: string): string {
   return `${courseCode}-${tail}`;
 }
 
+function submitAutomatic(
+  input: Parameters<typeof submitApplication>[0], course: CourseRow, offering: typeof offerings.$inferSelect, pending?: Application,
+): Application {
+  const reason = requestReason(input.reason ?? (input.dispute ? "record-correction" : "recorded-checks"));
+  const scenario = input.scenarioKey ? SCENARIO : undefined;
+  if (scenario && (input.scenarioKey !== scenario.key || course.code !== scenario.courseCode || offering.year !== scenario.year || offering.term !== scenario.term))
+    throw new UserError("That scenario does not belong to this offering.");
+  const existing = scenario ? db.select().from(applications).where(and(
+    eq(applications.studentId, input.student.id), eq(applications.scenarioKey, scenario.key), eq(applications.status, "approved"),
+  )).get() : liveApplication(input.student.id, course.id, offering.term, offering.year);
+  if (existing && !pending) return existing;
+  const statement = input.statement.trim().slice(0, 2000);
+  if (!statement) throw new UserError("Explain why you are requesting an assessment or permission.");
+  const evidence = scenario ? scenarioEvidence(course.rules) : { record: recordOf(input.student, offering.term, offering.year), rules: course.rules };
+  const publishedGate = gateFor(input.student, course.code, offering.term, offering.year);
+  if (!scenario && !canRequestAssessment(publishedGate)) throw new UserError(firstRound(course.code, publishedGate).reasons.join(" "));
+  const section = course.source?.evidence.sections.find(s => s.key === "incompatibility");
+  const report = assessDemo({
+    offering: { courseId: course.id, code: course.code, year: offering.year, term: offering.term },
+    ...evidence, reason, statement, scenario,
+    source: course.source ? { code: course.code, year: offering.year, hash: course.source.hash, section: "incompatibility", blocks: section?.blocks.map((_, i) => i) ?? [] } : undefined,
+  });
+  const requestKey = snapshotHash({ studentId: input.student.id, report, pendingId: pending?.id });
+  const app = db.transaction((tx) => {
+    const retry = tx.select().from(applications).where(eq(applications.requestKey, requestKey)).get();
+    if (retry) return retry;
+    if (!scenario) tx.insert(selections).values({ studentId: input.student.id, offeringId: offering.id }).onConflictDoNothing().run();
+    const values = {
+      studentId: input.student.id, courseId: course.id, convenorId: pending?.convenorId ?? course.convenorId,
+      term: offering.term, year: offering.year, statement, status: report.outcome,
+      checks: pending?.checks ?? JSON.stringify("checks" in report.gate ? report.gate.checks : []),
+      assessment: JSON.stringify(report), scenarioKey: scenario?.key ?? null, requestKey,
+      permissionCode: report.outcome === "approved" ? `${scenario ? "SCENARIO-" : "DEMO-"}${permissionCode(course.code)}` : null,
+    };
+    const app = pending ? tx.update(applications).set(values).where(and(eq(applications.id, pending.id), eq(applications.status, "with-convenor"))).returning().get()
+      : tx.insert(applications).values(values).returning().get();
+    if (!app) throw new UserError("This request has already been decided. Reload its result.");
+    tx.insert(applicationEvents).values([
+      { applicationId: app.id, actor: "student", actorName: input.student.name, kind: pending ? "automatic-requested" : "submitted",
+        detail: `Requested automated demo assessment for ${course.code}, ${offering.year} ${TERM_LABELS[offering.term as Term]}.${pending ? " Replaces the pending staff review; earlier events are preserved." : ""}${scenario ? " Fictional topic scenario; separate from the student's profile." : ""}` },
+      { applicationId: app.id, actor: "system", actorName: "Automated demo review", kind: "assessed",
+        detail: `Saved the rule, record, statement and offering snapshots under ${report.policy}. ${report.context.treatment}` },
+      { applicationId: app.id, actor: "system", actorName: "Automated demo review", kind: report.outcome,
+        detail: [...report.reasons, ...report.nextActions].join("\n") },
+    ]).run();
+    return app;
+  });
+  bus.emit("change", { applicationId: app.id, convenorId: app.convenorId, studentId: app.studentId });
+  return app;
+}
+
+/** The owner can explicitly move a pending request out of the unstaffed queue. */
+export function assessPending(student: Student, applicationId: number, reason: string): Application {
+  const app = db.select().from(applications).where(eq(applications.id, applicationId)).get();
+  if (!app || app.studentId !== student.id) throw new UserError("This request isn't yours.");
+  if (app.assessment) return app; // Retrying the conversion does not add events.
+  if (app.status !== "with-convenor") throw new UserError("This request has already been decided.");
+  const course = db.select().from(courses).where(eq(courses.id, app.courseId)).get();
+  const current = course && getCourse(course.code, app.year);
+  const offering = current && offeringFor(current.id, app.term, app.year);
+  if (!current || !offering) throw new UserError("This offering is no longer available for automatic assessment.");
+  return submitAutomatic({ student, courseCode: current.code, term: app.term, year: app.year, statement: app.statement, reason, reviewMode: "automatic" }, current, offering, app);
+}
+
+/** Scenario confirmation is deliberately NOT an enrolment in the user's profile. */
+export function confirmScenario(student: Student, applicationId: number): void {
+  db.transaction((tx) => {
+    const app = tx.select().from(applications).where(eq(applications.id, applicationId)).get();
+    if (!app || app.studentId !== student.id) throw new UserError("This scenario request isn't yours.");
+    if (app.scenarioKey !== SCENARIO.key || app.status !== "approved" || !app.permissionCode)
+      throw new UserError("This is not an approved scenario request.");
+    if (tx.select().from(applicationEvents).where(and(eq(applicationEvents.applicationId, app.id), eq(applicationEvents.kind, "scenario-enrolled"))).get()) return;
+    tx.insert(applicationEvents).values({ applicationId: app.id, actor: "student", actorName: student.name,
+      kind: "scenario-enrolled", detail: `Confirmed scenario enrolment for ${SCENARIO.courseCode}, ${app.year} ${TERM_LABELS[app.term as Term]}. Your profile and semester enrolments are unchanged.` }).run();
+  });
+}
+
 // --- enrolment ---------------------------------------------------------------
 
 /** Enrol if the gate says eligible, or with an approved application's code. */
@@ -352,6 +445,7 @@ export function enrol(input: {
         eq(applications.term, input.term),
         eq(applications.year, year),
         eq(applications.status, "approved"),
+        isNull(applications.scenarioKey),
       ),
     )
     .get();

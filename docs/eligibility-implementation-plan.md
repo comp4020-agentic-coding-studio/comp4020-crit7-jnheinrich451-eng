@@ -5,8 +5,9 @@ workstreams and selected Llama as the initial model family. The status below
 distinguishes completed work from planned increments. These are not additional
 assignment requirements. The
 [published Crit 7 spec](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/api/crits/07-anu-system.json)
-remains the contract. The current application still needs its assigned reviewer
-to decide requests in `with-convenor`.
+remains the contract. Requests default to a saved automatic demo assessment. The
+optional staff route still needs its assigned reviewer; its owner can explicitly
+replace a pending review with an automatic assessment.
 
 The two workstreams share one rule engine. They do not require separate Git
 branches or simultaneous edits. The earlier analysis and staffing correction
@@ -24,7 +25,9 @@ complete fictional scenario; this flag does not claim verified university data.
 Its base prerequisite can be met while its overall assessment remains incomplete.
 Unknown is displayed separately from unmet and is not itself a rejection reason.
 The existing first-round policy can still reject a known unmet condition or
-incompatibility. Requests still require the assigned reviewer for approval.
+incompatibility in the optional staff workflow. The automatic demo policy does
+not approve the unresolved published COMP8620 topic; the isolated scenario below
+supplies explicitly fictional conditions for its complete example.
 
 John's subsequent workflow correction is also implemented: offered courses whose
 rules have not been interpreted accept an assessment request. The first round
@@ -36,7 +39,7 @@ appears on the course, request, My requests and My semester pages only while the
 matching request has `with-convenor` status. It disappears on the next page load
 after approval or either type of rejection. Pending/approved duplicate submissions
 return the existing request; a rejected request remains in history if a new one
-is submitted. No automated final reviewer has been added by this correction.
+is submitted. The subsequent automated increment is described below.
 
 `src/data/eligibility-reference.json` contains three source-bound reference cases
 (COMP6242, COMP8620, MGMT7020), with six fictional record scenarios. The missing
@@ -44,9 +47,51 @@ MGMT7020 section is a reference case only; it does not activate a course rule.
 These cases exercise the prerequisite evaluator, not complete enrolment decisions.
 They are not yet a held-out LLM benchmark. Conditions and source references are
 saved in the existing application check snapshots and survive a reload. The
-full versioned rule-authoring workflow, assessment record model, richer operators
-and autonomous demo policy remain outstanding. No schema migration was required
-for this increment; historical snapshots without statuses still render correctly.
+full versioned rule-authoring workflow and richer operators remain outstanding.
+The initial foundation required no migration. The subsequent report increment
+uses generated migration `0006_smiling_redwing.sql`; historical snapshots without
+statuses or reports still render correctly.
+
+The first B increment is implemented in `src/lib/demo-assessment.ts` and the
+existing request store. `demo-permission-v1` saves the rule tree and digest,
+record, offering, gate, request reason, explanation, outcome and next steps in
+an application report. Submission, assessment and result events are transactional.
+Automatic met, unmet and incomplete results are immediate, with no fabricated
+processing stage and no claimed convenor decision. Staff decisions and older
+requests retain their existing workflow. Converting a pending request is an
+explicit owner action; its old submission checks and events are retained.
+
+`/demo/` provides the first complete example: COMP8620 2027 S2, the source-bound
+base prerequisite, a fictional COMP6670 topic prerequisite, a separate fictional
+record, scenario permission, then explicit confirmation. The scenario permission
+cannot authorise profile enrolment. Confirmation is persisted as a scenario event
+and leaves the student's transcript, selections and enrolments unchanged.
+Identical automatic submissions reuse their report; an approved scenario is
+reused for that owner. No live model inference is required.
+Automatic issuance requires a versioned source interpretation or the isolated
+scenario. Legacy 2026 transcriptions remain available for staff review and do not
+acquire automatic approval from the new policy. Existing human approvals remain
+valid for their original offering. Change the policy identifier when changing
+decision semantics; previously saved reports retain their original version.
+
+### Student explanations: context, claims and decisions
+
+John identified unconstrained student messages as another variable. Do not assign
+a percentage weight to prose: persuasion is not evidence. The current form asks
+the student to choose recorded checks, record correction, equivalent study or an
+exception. The latter three produce an incomplete result with a relevant evidence
+or authority requirement; they cannot create an automatic approval. The original
+explanation remains visible as self-reported context. This first implementation
+does not semantically interpret its text or claim to have verified it.
+
+A later Llama pass may draft a structured list of claims and questions, retaining
+exact supporting spans from the statement. Those drafts remain unverified and
+must not become transcript entries or override published rules. Include statement
+variants in the later benchmark: terse/verbose versions of the same case, claimed
+passes absent from the record, irrelevant text, ambiguous codes, fake staff
+authority and embedded approval instructions. Compare claim fidelity and handling
+separately from eligibility; record false approvals and unsupported facts. The
+current deterministic tests confirm that wording alone cannot change the result.
 
 Local runtime verified after installation: Ollama 0.34.4 with `llama3.2:3b`
 (`a80c4f17acd5`) returned `READY` to a bounded local probe. `ollama ps` reported

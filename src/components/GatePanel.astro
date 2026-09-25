@@ -2,6 +2,7 @@
 import { canRequestAssessment, checkStatus, firstRound, type Gate } from "../lib/eligibility";
 import RequirementChecks from "./RequirementChecks.astro";
 import PendingRequestNotice from "./PendingRequestNotice.astro";
+import { REQUEST_REASONS } from "../lib/demo-assessment";
 import type { Application } from "../lib/schema";
 import { type CourseRow } from "../lib/store";
 interface Props {
@@ -91,36 +92,35 @@ const preview = canApply ? firstRound(course.code, gate) : null;
   {canApply && (
     <form method="post" action="/api/applications" class="stack apply">
       <h3>{assessmentRequest ? "Request assessment" : "Request permission"}</h3>
-      {assessmentRequest && <p class="field-help">Your request records the unresolved checks and your explanation for assessment. It does not establish eligibility or issue permission.</p>}
-      {preview?.decision === "to-convenor" && (
-        <p class="field-help">Sent to {course.convenor.name} for this course and offering.</p>
-      )}
+      <p class="field-help">Get an immediate demo assessment with the evidence and next steps. Missing evidence stays unresolved; this policy cannot grant exceptions or make ANU decisions.</p>
       {preview?.decision === "auto-reject" && (
         <div class="warning">
-          <p>The automatic first round will turn this request down:</p>
+          <p>These recorded conditions prevent automatic permission:</p>
           <ul>
             {preview.reasons.map((r) => (
               <li>{r}</li>
             ))}
           </ul>
-          <p>A disputed record can be sent for human review using the option below.</p>
+          <p>If your record is incorrect, select that reason below. The result will identify the evidence needed to resolve it.</p>
         </div>
       )}
       <input type="hidden" name="courseCode" value={course.code} />
       <input type="hidden" name="term" value={term} />
       <input type="hidden" name="year" value={year} />
+      <label for="reason">What should be assessed?</label>
+      <select id="reason" name="reason">
+        {Object.entries(REQUEST_REASONS).map(([value, label]) => <option value={value}>{label}</option>)}
+      </select>
       <label for="statement">Explain your request</label>
       <textarea id="statement" name="statement" rows="4" required maxlength="2000" />
-      {preview?.decision === "auto-reject" && (
-        <>
-          <label for="dispute">Is the recorded information incorrect?</label>
-          <select id="dispute" name="dispute">
-            <option value="">No — submit with the recorded checks</option>
-            <option value="yes">Yes — ask the reviewer to check my explanation</option>
-          </select>
-        </>
-      )}
-      <button class="primary">Send request</button>
+      <p class="field-help">Your explanation is saved as self-reported context. It cannot create a pass, an equivalence or permission. Select the matching reason above if you dispute the record or need an exception.</p>
+      <button class="primary" name="reviewMode" value="automatic">Get demo assessment</button>
+      <details>
+        <summary>Optional staff review</summary>
+        <p>This sends the request to {course.convenor.name}, the fictional reviewer. The queue is not staffed automatically and may remain pending.</p>
+        <button name="reviewMode" value="convenor">Send to convenor</button>
+      </details>
     </form>
   )}
+  {course.code === "COMP8620" && year === 2027 && <p><a href="/demo/">Try the complete workflow with a fictional topic and record</a></p>}
 </section>
