@@ -53,7 +53,7 @@ eligibility checks or convert a missing referenced page into another year.
 The library overview groups Degrees, Specialisations, then Courses. Following
 John's question about the year mismatch and shared Find courses entries, the
 active enrolment flow now uses 2027. Both screens read the persistent catalogue;
-17 prototype rule interpretations are pinned to source hashes in
+18 prototype rule interpretations are pinned to source hashes in
 `src/data/enrolment-rules-2027.json`. Other sources remain browseable and may be
 saved when offered, but cannot claim automatic eligibility. Changed or conflicting
 sources require a fresh interpretation. See `docs/catalogue-data.md`.
@@ -107,6 +107,13 @@ Automatic incomplete results are not pending staff work. Identical automatic
 submissions reuse the saved result; new evidence or a changed reason gets a new
 snapshot. Staff review remains an explicit optional route with an unstaffed-queue
 notice. Converting a pending request preserves its original checks and events.
+COMP7710 now has a source-bound check for both completed and currently enrolled
+COMP1110/COMP1140/COMP6710. Keep these two exclusion types distinct; a course with
+only a completion exclusion must not acquire a concurrent-enrolment exclusion.
+Missing automatic rules are an application coverage gap, not a request for the
+student to fix the gap by rewriting their explanation. The full catalogue is not
+yet encoded; the COMP8620 scenario is one complete example, not a general model
+reviewer. Request pages use the course code as their main, prominent heading.
 
 ## Rules
 

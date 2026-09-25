@@ -120,13 +120,24 @@ Inspection of the current code and saved sources found:
   ENGN8501 have no corresponding saved 2027 page; do not invent their offerings.
   The imported catalogue also contains twelve codes absent from the current seed.
 
-`src/data/enrolment-rules-2027.json` binds 17 explicit prototype interpretations
+`src/data/enrolment-rules-2027.json` now binds 18 explicit prototype interpretations
 to the inspected source hashes. Unmatched, changed or conflicting snapshots
 receive no automatic check. Published wording is still shown for every course;
 missing interpretation does not mean no prerequisites. COMP6320 and COMP8535
 retain the existing prototype's grouping interpretation, not an assertion of
 official ANU validation. COMP8620 checks base prerequisites and carries its
 topic-specific review limit into both the student page and request timeline.
+
+The eighteenth interpretation follows John's COMP7710 request finding. Its saved
+2027 source (`26e64aa8e5553b48734121517dc2edf47a6de0b78f8faccb989bd6204403e046`,
+requisite block 0) excludes both completion and current enrolment in COMP1110,
+COMP1140 or COMP6710. `incompatible` retains completion semantics;
+`incompatibleEnrolled` records the separate concurrent exclusions. Current
+enrolments are scoped to the selected year and term in the fictional assessment.
+No blanket permission requirement is added. A complete record with none of these
+conflicts can enrol directly; missing record completeness remains unknown.
+Historical request snapshots retain their original explanation even after this
+interpretation is added. Reopening the course runs the current check.
 
 Offered courses without an interpretation now accept an assessment request.
 The saved check remains unknown and retains its source reference; submission

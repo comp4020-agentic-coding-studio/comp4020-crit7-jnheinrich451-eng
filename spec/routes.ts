@@ -10,6 +10,7 @@ export const ROUTES = [
   "/courses/COMP6466/",
   "/courses/COMP6242/",
   "/courses/COMP8620/",
+  "/courses/COMP7710/",
   "/courses/COMP6120/",
   "/courses/ENGN6627/",
   "/courses/COMP6490/",

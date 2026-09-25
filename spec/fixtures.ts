@@ -4,7 +4,7 @@ import { writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db } from "../src/lib/db";
-import { accounts, emailTokens, sessions, students, transcript } from "../src/lib/schema";
+import { accounts, emailTokens, enrolments, sessions, students, transcript } from "../src/lib/schema";
 import { createSession, digest, inviteStaff } from "../src/lib/auth";
 import { hashPassword } from "../src/lib/passwords";
 import { decide, getCourse, people, submitApplication } from "../src/lib/store";
@@ -16,9 +16,16 @@ for (const [uid, name] of [
   ["fixture-assessment-decline", "Assessment decline student"],
   ["fixture-demo", "Demo assessment student"],
   ["fixture-demo-other", "Other demo student"],
+  ["fixture-programming-clear", "Programming eligibility student"],
+  ["fixture-programming-conflict", "Programming conflict student"],
+  ["fixture-programming-current", "Programming current student"],
 ]) {
   db.insert(students).values({ uid, name, program: "VCOMP" }).run();
 }
+const programmingConflict = db.select().from(students).where(eq(students.uid, "fixture-programming-conflict")).get()!;
+db.insert(transcript).values({ studentId: programmingConflict.id, courseCode: "COMP6710", units: 6, grade: "HD", term: "2026 S1" }).run();
+const programmingCurrent = db.select().from(students).where(eq(students.uid, "fixture-programming-current")).get()!;
+db.insert(enrolments).values({ studentId: programmingCurrent.id, courseId: getCourse("COMP6710")!.id, year: 2027, term: "S1", via: "direct" }).run();
 const termStudent = db
   .insert(students)
   .values({ uid: "fixture-offering", name: "Offering test student", program: "MCOMP" })

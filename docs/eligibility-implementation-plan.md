@@ -128,7 +128,7 @@ Manually author and review a bounded reference set from the downloaded pages:
 
 Give each case source hashes and paragraph references, an explicit interpretation
 or unresolved issue, fictional record variants and expected condition results.
-The existing 17 rule interpretations supply regressions, not an official gold
+The active rule interpretations supply regressions, not an official gold
 standard. Preserve ambiguous source meaning rather than manufacturing one answer.
 No additional ANU course crawling or training dataset is required to begin.
 

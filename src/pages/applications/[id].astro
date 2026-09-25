@@ -62,9 +62,9 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
     </>
   ) : (
     <>
-      <h1>
-        <span class="code">{app.course.code}</span> enrolment request
-      </h1>
+      <h1 class="request-course">{app.course.code}</h1>
+      <p class="request-label">Enrolment request</p>
+      <p class="lede">{app.course.title}</p>
 
       <section class={`status status-${app.status}`} aria-labelledby="status-heading">
         <h2 id="status-heading">{status.label}</h2>
@@ -186,3 +186,9 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
     </>
   )}
 </Layout>
+
+<style>
+  .request-course { font-family: Arial, Helvetica, sans-serif; font-size: clamp(2.5rem, 5vw, 3.75rem); font-weight: 700; letter-spacing: 0.015em; margin-bottom: 0.3rem; }
+  .request-label { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.25rem; }
+  .request-label + .lede { margin-top: 0; color: var(--muted); }
+</style>

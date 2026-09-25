@@ -80,7 +80,7 @@ describe("source-bound manual reference cases", () => {
       }
     });
   }
-  it("preserves the 17 active source bindings and keeps the missing-section case inactive", () => {
+  it("preserves the active source bindings and keeps the missing-section case inactive", () => {
     for (const review of reviews) {
       const source = (catalogue.snapshots as CatalogueSnapshot[]).find(s => s.hash === review.sourceHash)!;
       expect(rulesForSource(review.code, review.year, source)).toBeDefined();

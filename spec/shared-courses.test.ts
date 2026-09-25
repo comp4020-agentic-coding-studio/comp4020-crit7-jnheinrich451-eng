@@ -77,8 +77,8 @@ describe("shared course evidence", () => {
 });
 
 describe("rules are bound to inspected source snapshots", () => {
-  it("retains all 17 explicit checks but requires review after source changes or conflicts", () => {
-    expect(reviews).toHaveLength(17);
+  it("retains all 18 explicit checks but requires review after source changes or conflicts", () => {
+    expect(reviews).toHaveLength(18);
     for (const review of reviews) {
       const source = sources.find(s => s.hash === review.sourceHash)!;
       expect(rulesForSource(review.code, 2027, source)).toBeDefined();

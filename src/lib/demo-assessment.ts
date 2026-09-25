@@ -84,7 +84,9 @@ export function assessDemo(input: {
   } else if (unmet.length) {
     outcome = "auto-rejected";
     reasons.push("The demo policy does not issue permission while a recorded requirement is unmet. This is not an ANU refusal.");
-    nextActions.push("Complete the unmet requirements, or submit a new assessment with the record-correction, equivalent-study or exception reason if applicable.");
+    if (unmet.some(c => c.kind !== "incompatibility"))
+      nextActions.push("Complete the unmet requirements, or submit a new assessment with the record-correction, equivalent-study or exception reason if applicable.");
+    nextActions.push(...unmet.flatMap(c => c.nextAction ? [c.nextAction] : []));
   } else if (unknown.length || result.outcome === "not-recorded" || input.rules?.reviewNote || (!input.scenario && !input.rules?.source)) {
     reasons.push("The available evidence cannot settle every condition. No permission has been issued and no reviewer is processing this automatic assessment.");
     if (input.rules?.reviewNote) nextActions.push(input.rules.reviewNote);

@@ -33,6 +33,7 @@ export interface Check {
   evidence?: string[];
   nextAction?: string;
   children?: RequirementResult[];
+  kind?: "incompatibility";
 }
 
 export type ConditionStatus = "met" | "unmet" | "unknown";
@@ -71,16 +72,24 @@ export function gate(courseCode: string, rules: CourseRules | undefined, s: Stud
     met: false, status: "unknown",
     text: `Eligibility conditions for ${courseCode} have not been interpreted`,
     evidence: [], ...(publishedSource ? { source: publishedSource } : {}),
-    nextAction: "Provide details of relevant study or equivalent qualifications so the published requirements can be assessed.",
+    nextAction: "The prototype needs a reviewed interpretation of this course's saved requirements. This is a gap in the automatic checks; changing your explanation cannot resolve it.",
   }] };
 
   const checks: Check[] = rules.requires ? topLevel(rules.requires).map((r) => evaluateRequirement(r, s, rules.source)) : [];
   const passedCodes = new Set(s.passed.map((p) => p.code));
-  const incompatible = (rules.incompatible ?? []).filter((c) => passedCodes.has(c));
-  for (const code of incompatible) {
-    checks.push({ met: false, status: "unmet", text: `You've passed ${code}, which is incompatible with ${courseCode}`, source: rules.source, evidence: [`Passed ${code}`] });
+  const completedConflicts = (rules.incompatible ?? []).filter((c) => passedCodes.has(c));
+  const enrolledConflicts = (rules.incompatibleEnrolled ?? []).filter(c => s.enrolled.includes(c) && !completedConflicts.includes(c));
+  const incompatible = [...new Set([...completedConflicts, ...enrolledConflicts])];
+  for (const code of completedConflicts) {
+    checks.push({ met: false, status: "unmet", kind: "incompatibility", text: `You've passed ${code}, which is incompatible with ${courseCode}`, source: rules.source, evidence: [`Passed ${code}`],
+      nextAction: "Choose a course compatible with your completed study. If this result is incorrect, request a record correction; completing more prerequisites does not remove an incompatibility." });
   }
-  if (s.complete !== true && (rules.incompatible ?? []).some(c => !passedCodes.has(c))) {
+  for (const code of enrolledConflicts) {
+    checks.push({ met: false, status: "unmet", kind: "incompatibility", text: `You're currently enrolled in ${code}, which cannot be taken together with ${courseCode}`, source: rules.source,
+      evidence: [`Currently enrolled in ${code} for this assessment's offering period`],
+      nextAction: "Review the conflicting enrolment for this term. If the record is incorrect, request a correction; automatic assessment cannot override the conflict." });
+  }
+  if (s.complete !== true && ((rules.incompatible ?? []).some(c => !passedCodes.has(c)) || (rules.incompatibleEnrolled ?? []).some(c => !s.enrolled.includes(c)))) {
     checks.push({ met: false, status: "unknown", text: "The incomplete record cannot exclude all incompatible courses", source: rules.source,
       evidence: [], nextAction: "Supply a complete completion record for the incompatibility check." });
   }
@@ -122,8 +131,8 @@ export function firstRound(courseCode: string, g: Gate): FirstRound {
       if (g.incompatible.length > 0) {
         return {
           decision: "auto-reject",
-          reasons: g.incompatible.map(
-            (c) => `You've passed ${c}, which is incompatible with ${courseCode}. This prototype treats incompatibility as a hard bar.`,
+          reasons: g.checks.filter(c => c.kind === "incompatibility" && checkStatus(c) === "unmet").map(
+            (c) => `${c.text}. This prototype treats incompatibility as a hard bar.`,
           ),
         };
       }

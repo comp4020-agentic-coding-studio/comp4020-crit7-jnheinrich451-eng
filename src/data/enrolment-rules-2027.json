@@ -310,6 +310,15 @@
     }
   },
   {
+    "code": "COMP7710",
+    "year": 2027,
+    "sourceHash": "26e64aa8e5553b48734121517dc2edf47a6de0b78f8faccb989bd6204403e046",
+    "rules": {
+      "incompatible": ["COMP1110", "COMP1140", "COMP6710"],
+      "incompatibleEnrolled": ["COMP1110", "COMP1140", "COMP6710"]
+    }
+  },
+  {
     "code": "COMP8300",
     "year": 2027,
     "sourceHash": "710ac8717a4aa82ad8674eb3f851ba0edb2f330c0de17b7e6a0cd32f4694980a",
