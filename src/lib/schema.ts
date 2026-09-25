@@ -187,3 +187,56 @@ export const authLimits = sqliteTable("auth_limits", {
   count: int().notNull(),
   resetsAt: int("resets_at").notNull(),
 });
+
+// Offline published catalogue evidence. Kept separate from the 2026 demo's
+// executable gates, enrolments and offerings. A title is never an identity.
+export const catalogueVersions = sqliteTable("catalogue_versions", {
+  id: int().primaryKey({ autoIncrement: true }),
+  kind: text().notNull(),
+  code: text().notNull(),
+  year: int().notNull(),
+}, t => [uniqueIndex("catalogue_identity").on(t.kind, t.code, t.year)]);
+
+/** Append-only semantic snapshots: changed source content does not overwrite
+ * the old wording or inherit its review. JSON follows CatalogueEvidence. */
+export const catalogueSnapshots = sqliteTable("catalogue_snapshots", {
+  id: int().primaryKey({ autoIncrement: true }),
+  versionId: int("version_id").notNull().references(() => catalogueVersions.id),
+  hash: text().notNull().unique(),
+  evidence: text().notNull(),
+  createdAt: createdAt(),
+});
+
+export const catalogueSources = sqliteTable("catalogue_sources", {
+  id: int().primaryKey({ autoIncrement: true }),
+  snapshotId: int("snapshot_id").notNull().references(() => catalogueSnapshots.id),
+  path: text().notNull(),
+  sha256: text().notNull(),
+  url: text(),
+  urlBasis: text("url_basis").notNull(),
+}, t => [uniqueIndex("catalogue_source_evidence").on(t.snapshotId, t.path, t.sha256)]);
+
+/** A mention in a source block, NOT an inferred prerequisite/membership edge.
+ * Targets can be absent or unversioned; retaining them exposes missing evidence. */
+export const catalogueReferences = sqliteTable("catalogue_references", {
+  id: int().primaryKey({ autoIncrement: true }),
+  snapshotId: int("snapshot_id").notNull().references(() => catalogueSnapshots.id),
+  position: int().notNull(),
+  section: text().notNull(),
+  block: int().notNull(),
+  quote: text().notNull(),
+  kind: text().notNull(),
+  code: text().notNull(),
+  year: int(),
+  url: text(),
+  basis: text().notNull(),
+}, t => [uniqueIndex("catalogue_reference_position").on(t.snapshotId, t.position)]);
+
+/** Review state is independent of imported text and survives every reseed.
+ * No automatic eligibility or planning consumes this table yet. */
+export const catalogueReviews = sqliteTable("catalogue_reviews", {
+  snapshotId: int("snapshot_id").primaryKey().references(() => catalogueSnapshots.id),
+  status: text().notNull().default("unreviewed"),
+  notes: text().notNull().default(""),
+  createdAt: createdAt(),
+});

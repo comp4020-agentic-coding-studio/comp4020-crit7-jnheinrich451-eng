@@ -1,0 +1,157 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { catalogueEntries, catalogueLink, catalogueMentions, catalogueSourcesFor, referenceLink } from "../lib/catalogue";
+import type { CatalogueKind } from "../lib/catalogue-types";
+
+const entries = catalogueEntries();
+const params = Astro.url.searchParams;
+const code = params.get("code")?.toUpperCase();
+const kind = params.get("kind") ?? "";
+const years = [...new Set(entries.map(e => e.year))].sort((a, b) => b - a);
+const year = Number(params.get("year") ?? years[0]);
+const query = params.get("q")?.trim() ?? "";
+const key = query.replace(/\s/g, "").toUpperCase();
+const selected = code ? entries.filter(e => e.code === code && e.kind === kind && e.year === year) : [];
+const unique = entries.filter((e, i) => entries.findIndex(other => other.id === e.id) === i);
+const results = unique.filter(e => e.year === year && (!kind || e.kind === kind) &&
+  (!key || e.code.includes(key) || e.evidence.title.toLowerCase().includes(query.toLowerCase())));
+if (code && !selected.length) Astro.response.status = 404;
+const title = code ? selected[0]?.evidence.title ?? "Source not available" : "Course library";
+const labels: Record<string, string> = { course: "Course", program: "Degree", specialisation: "Specialisation" };
+const mentions = code ? catalogueMentions(code).filter(row => row.catalogue_references.year === year &&
+  row.catalogue_references.kind === kind && row.catalogue_versions.code !== code) : [];
+const mentioningVersions = mentions.filter((r, i) => mentions.findIndex(other => other.catalogue_versions.id === r.catalogue_versions.id) === i);
+---
+
+<Layout title={title} actor={Astro.locals.actor}>
+  <div class="page-top">
+    <p class="eyebrow">Published catalogue · saved sources</p>
+    <h1>{title}</h1>
+    <p class="lede">Explore courses, degree requirements and the connections between them.</p>
+  </div>
+  <p class="library-notice">These saved pages describe the {years.join(", ")} catalogue. Your enrolment demo uses 2026 rules and a fictional record. Library requirements have not yet been turned into personal eligibility or a study plan.</p>
+
+  {code ? <>
+    <p><a href={`/catalogue/?year=${year}`}>Back to the library</a></p>
+    {!selected.length && <p>No saved source matches this code, kind and year. A missing source does not mean that a course is unavailable.</p>}
+    {selected.length > 1 && <p class="flash flash-error">More than one source version is stored for this entry. Compare the wording below; no version has been chosen automatically.</p>}
+    {selected.map((entry, variant) => {
+      const e = entry.evidence;
+      const sources = catalogueSourcesFor(entry.snapshotId);
+      const offeringHeaders = [...new Set(e.offerings.flatMap(o => Object.keys(o.fields)))];
+      return <article class="library-entry">
+        {selected.length > 1 && <h2>Source version {variant + 1}</h2>}
+        <p class="entry-meta"><strong>{e.code}</strong> · {e.year} · {labels[e.kind]}{e.units ? ` · ${e.units}` : ""}</p>
+        <p>{e.description}</p>
+        <p class="muted">Interpretation: {entry.review.status === "unreviewed" ? "awaiting review" : entry.review.status}. Published wording is shown below.</p>
+        {entry.review.notes && <p>{entry.review.notes}</p>}
+        {e.issues.length > 0 && <aside class="library-notice" aria-label="Source gaps"><ul>{e.issues.map(issue => <li>{issue}</li>)}</ul></aside>}
+
+        {e.sections.map(section => {
+          const references = section.blocks.flatMap(b => b.references).filter((r, i, all) =>
+            all.findIndex(other => other.kind === r.kind && other.code === r.code && other.year === r.year) === i);
+          return <section id={`${section.key}-${variant}`}>
+            <h2>{section.title}</h2>
+            {!section.present ? <p class="muted">This section was not present in the saved page. Its requirements are unknown.</p> :
+              section.blocks.length ? section.blocks.filter(block => block.text !== "Back to the top").map(block =>
+                <p class="source-block" style={`--depth: ${Math.min(block.depth, 3)}`}>{block.text.split(/(\b[A-Z]{4}\d{4}\b)/g).map(part => {
+                  const ref = block.references.find(r => r.code === part && r.year !== null);
+                  const link = ref ? referenceLink(ref, entries) : null;
+                  return link ? <a href={link}>{part}</a> : part;
+                })}</p>) :
+              <p class="muted">The saved section contains no text.</p>}
+            {references.length > 0 && <details>
+              <summary>Referenced entries ({references.length})</summary>
+              <p class="muted">Links and code mentions retain their original context above. They may describe options, prerequisites or exclusions.</p>
+              <ul class="reference-list">{references.map(ref => {
+                const link = referenceLink(ref, entries);
+                return <li>{link ? <a href={link}>{ref.code} · {ref.year}</a> : <span>{ref.code} · {ref.year ?? "year unspecified"} · saved source not linked</span>}</li>;
+              })}</ul>
+            </details>}
+          </section>;
+        })}
+
+        {e.kind === "course" && <section>
+          <h2>Published offerings</h2>
+          {e.availability === "explicit-none" && <p><strong>The page explicitly says there are no current offerings.</strong> This does not establish permanent discontinuation.</p>}
+          {e.availability === "unknown" && <p>Availability is unknown from this saved page.</p>}
+          {e.offerings.length > 0 && <>
+            <p class="muted">Future offerings are indicative. These dates are from the saved page and do not create an enrolment option in this demo.</p>
+            <div class="offering-scroll" tabindex="0" role="region" aria-label={`${e.code} offering dates`}>
+              <table>
+                <caption>{e.code}: sessions and dates as published</caption>
+                <thead><tr><th scope="col">Year</th><th scope="col">Session</th>{offeringHeaders.map(h => <th scope="col">{h}</th>)}</tr></thead>
+                <tbody>{e.offerings.map(o => <tr><td>{o.year ?? "Unknown"}</td><td>{o.session ?? "Unknown"}</td>{offeringHeaders.map(h => <td>{o.fields[h] ?? "—"}</td>)}</tr>)}</tbody>
+              </table>
+            </div>
+          </>}
+          {e.offeringText && <details><summary>Complete offering text</summary><p>{e.offeringText}</p></details>}
+        </section>}
+
+        <details class="source-details">
+          <summary>Source evidence ({sources.length} saved {sources.length === 1 ? "copy" : "copies"})</summary>
+          <p>Matching copies share this record. Their original file locations and checksums are retained.</p>
+          <ul>{sources.map(source => <li>
+            <p class="source-path">{source.path}</p>
+            {source.url && <p><a href={source.url}>Published ANU page</a> · {source.urlBasis === "canonical-link" ? "canonical URL in the saved page" : "saved page URL"}</p>}
+            <small class="source-hash">SHA-256: {source.sha256}</small>
+          </li>)}</ul>
+        </details>
+      </article>;
+    })}
+    {mentioningVersions.length > 0 && <section>
+      <h2>Where {code} is mentioned</h2>
+      <p>Open the full requirements to see whether the course is an option, a requirement or an exclusion.</p>
+      <ul>{mentioningVersions.map(row => {
+        const v = row.catalogue_versions;
+        const source = entries.find(e => e.id === v.id)!;
+        return <li><a href={catalogueLink(v.kind, v.code, v.year)}>{source.evidence.title} · {v.code} · {v.year}</a></li>;
+      })}</ul>
+    </section>}
+  </> : <>
+    <form method="get" class="library-search" role="search" aria-label="Search saved catalogue">
+      <div><label for="library-query">Course code or title</label><input id="library-query" name="q" value={query} placeholder="COMP 6670, 6670 or machine learning" /></div>
+      <div><label for="library-kind">Entry type</label><select id="library-kind" name="kind"><option value="">All entries</option>{Object.entries(labels).map(([value, label]) => <option value={value} selected={kind === value}>{label}</option>)}</select></div>
+      <div><label for="library-year">Catalogue year</label><select id="library-year" name="year">{years.map(y => <option value={y} selected={year === y}>{y}</option>)}</select></div>
+      <button type="submit">Search</button>
+    </form>
+    <p>{results.length} {results.length === 1 ? "entry" : "entries"} · {year}</p>
+    {!results.length && <p class="empty">No saved entries match. Try a shorter code or title.</p>}
+    <ul class="library-results">{results.map(entry => <li>
+      <div><a href={catalogueLink(entry.kind as CatalogueKind, entry.code, entry.year)}><strong>{entry.code}</strong> — {entry.evidence.title}</a><p class="muted">{labels[entry.kind]} · {entry.year}{entry.evidence.units ? ` · ${entry.evidence.units}` : ""}</p></div>
+      {entry.evidence.availability === "explicit-none" && <span class="availability">No current offerings published</span>}
+      {entry.evidence.availability === "unknown" && <span class="availability">Availability unknown</span>}
+    </li>)}</ul>
+  </>}
+</Layout>
+
+<style>
+  .page-top { display: block; }
+  .library-notice { padding: 1rem 1.2rem; background: var(--wash, #f7f5ef); border-left: 3px solid #86713e; }
+  .library-search { display: grid; grid-template-columns: minmax(15rem, 1fr) auto auto auto; gap: 1rem; align-items: end; margin: 2rem 0; }
+  .library-search label { display: block; margin-bottom: .4rem; }
+  .library-search input, .library-search select { width: 100%; }
+  .library-results { list-style: none; padding: 0; }
+  .library-results > li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.2rem 0; border-bottom: 1px solid #ddd; }
+  .library-results p { margin: .35rem 0 0; }
+  .availability { font-size: .85rem; color: #555; }
+  .library-entry { padding-bottom: 2rem; }
+  .library-entry section { margin-top: 2rem; }
+  .entry-meta { font-size: 1.1rem; }
+  .source-block { margin-left: calc(var(--depth) * 1.1rem); max-width: 80ch; white-space: normal; }
+  .source-details { margin-top: 2rem; }
+  details { padding: .8rem 0; }
+  summary { cursor: pointer; font-weight: 600; }
+  .reference-list { columns: 2; }
+  .source-path, .source-hash { overflow-wrap: anywhere; }
+  .offering-scroll { overflow-x: auto; max-width: 100%; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  caption { text-align: left; margin-bottom: .7rem; }
+  th, td { padding: .7rem; border-bottom: 1px solid #ddd; text-align: left; min-width: 7rem; }
+  @media (max-width: 760px) {
+    .library-search { grid-template-columns: 1fr; }
+    .library-results > li { display: block; }
+    .availability { display: block; margin-top: .5rem; }
+    .reference-list { columns: 1; }
+  }
+</style>

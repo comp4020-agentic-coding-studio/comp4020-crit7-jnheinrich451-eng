@@ -4,6 +4,9 @@ import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { seed } from "./seed";
+import catalogue from "../data/catalogue-sources.json";
+import type { CatalogueSnapshot } from "./catalogue-types";
+import { seedCatalogue } from "./seed-catalogue";
 
 // One SQLite file is the app's whole persistent state. In production
 // fly.toml points DATABASE_PATH at the machine's volume (/data), which is
@@ -28,3 +31,4 @@ migrate(db, { migrationsFolder: "./drizzle" });
 // Reference data follows the migrations: idempotent, so every boot brings the
 // catalogue and seeded records in line with src/data/.
 seed(db);
+seedCatalogue(db, catalogue.snapshots as CatalogueSnapshot[]);

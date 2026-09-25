@@ -26,6 +26,31 @@ integrated permission requests and explicit enrolment confirmation. Search accep
 full codes, spaced codes, numbers and titles; numeric matches must not silently
 choose a subject. Keep the published scope and functional guarantees below.
 
+For the proposed degree-planning increment, John selected Computing (Advanced)
+(VCOMP), 2026 commencement-year requirements as the first example. Planning is
+not implemented yet. Keep program/rule-year snapshots separate from offering
+years; the supplied MCOMP 2027 page is not VCOMP 2026 evidence. See
+`docs/MCOMP-2027-source-review.md` for the offline source review and next inputs.
+The later batch of three degrees and seven specialisations is also 2027; see
+`docs/uploaded-sources-2027.md`. Preserve John's reported ML-to-AI change as
+versioned evidence, not an automatic conversion of existing students' rules.
+John intentionally retains duplicate course downloads under specialisation
+folders. Preserve the raw copies; use code/year for course identity and the
+versioned specialisation rules for membership and counting. Folder names alone
+are not authoritative. See `docs/course-source-audit.md` for the current audit.
+Shared course titles do not establish equivalent codes or historical renumbering.
+Keep code/year identities separate and preserve published incompatibilities.
+Distinguish explicit no-current-offerings statements from missing availability;
+neither authorises inventing a semester or assuming permanent discontinuation.
+
+The offline source library is now implemented at `/catalogue/`. Its reproducible
+dataset is `src/data/catalogue-sources.json`, imported into separate SQLite
+catalogue tables at boot. See `docs/catalogue-data.md` for the model and import
+workflow. Imported references mean "mentioned in this source block"; they are
+not approved prerequisite, equivalence or credit-counting rules. Preserve source
+variants and reviews on reseed. Do not wire these unreviewed 2027 records into
+the 2026 eligibility gate or convert a missing referenced page into another year.
+
 ## Rules
 
 - **The schema is the ground truth.** Edit `src/lib/schema.ts`, run

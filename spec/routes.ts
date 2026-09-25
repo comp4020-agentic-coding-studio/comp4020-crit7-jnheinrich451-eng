@@ -17,4 +17,8 @@ export const ROUTES = [
   "/login/",
   "/register/",
   "/verify/",
+  "/catalogue/",
+  "/catalogue/?kind=course&code=COMP6434&year=2027",
+  "/catalogue/?kind=course&code=COMP8880&year=2027",
+  "/catalogue/?kind=specialisation&code=ARTIF-SPEC&year=2027",
 ];

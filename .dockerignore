@@ -13,3 +13,6 @@ dist
 mise.local.toml
 *.pem
 .claude
+# Raw browser downloads are local collection evidence. The normalized catalogue
+# under src/data is the only source material the runtime needs.
+assets
