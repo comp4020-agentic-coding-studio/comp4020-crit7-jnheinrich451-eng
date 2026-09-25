@@ -917,3 +917,89 @@ John found the mixed catalogue order unintuitive and challenged the visible
 year boundary preserved his earlier 2026 cohort choice. The layout now follows
 his requested hierarchy, and 2027 is documented as the recommended next demo
 target. No push or deployment was performed.
+
+## 2026-09-26 00:17 — Bound source collection to courses the prototype needs
+
+**Prompt:**
+
+> Ah, I missed COMP6442, in page COMP6361, maybe more, I see it is not linked. Hmm, there are bachelor degree courses not linked. I am wondering if I need to add them?
+
+**Result:**
+Recommended adding COMP6442's 2027 page and prioritising the five missing
+degree/specialisation-linked sources: COMP6442, COMP6490, COMP8405, ENGN6627 and
+MATH6005. A full undergraduate catalogue is not required for this postgraduate
+enrolment slice. A referenced prerequisite code can be checked against a
+student's record using the target course's published requirement, without
+recursively importing that prerequisite's own rules. Keep absent course pages
+as contextual references; collect them when the prototype needs to display or
+enrol in those courses, or when their details resolve a specific ambiguity.
+
+Distinguished two reasons for an unlinked code: a genuinely missing saved
+course page, and a source mention that has no explicit target year. Additional
+downloads do not automatically resolve an unspecified year. No link-resolution,
+eligibility or import behaviour was changed by this advice.
+
+**Verified:**
+Read COMP6361's imported requirement and references: COMP6442 explicitly links
+to 2027, but no matching imported or newly saved local course page exists.
+COMP6260 has an explicit 2027 reference and an existing source. Scanned local
+course HTML metadata without executing scripts, and checked the normalized
+reference collection. The degree/specialisation source gaps remain the same
+five codes; 58 distinct missing references have 1000–4000-level code patterns,
+which is a collection count rather than a claim that all are needed. Inspected
+the library's exact-kind/code/year link resolution. No application tests were
+run because this turn only inspected sources and recorded collection advice.
+
+**Commit:** none — source-link review and collection guidance only.
+
+## 2026-09-26 00:33 — Import the missing pages without guessing a code correction
+
+**Prompt:**
+
+> Oh, I didn't notice the 6442 download is failed. And here we are, except COMP8405. I find there is no COMP8405, but there is a course called COMP8045, **Advanced Topics in Computer Systems & Architecture**, I added into the courses/remained/8000
+
+**Result:**
+Imported COMP6442, COMP6490, ENGN6627 and MATH6005 as 2027 course sources. The
+library now contains 80 courses, three degrees and seven specialisations from
+109 catalogue HTML copies. References such as COMP6361 to COMP6442 now resolve
+to the saved page. Updated the download checklist, source audit and migration
+assessment; COMP6490 remains explicitly without current offerings.
+
+Read the saved Computer Systems specialisation: its course-choice list names
+COMP8045, while later explanatory advice links COMP8405. Preserved both source
+statements and documented the inconsistency without creating an alias, inferring
+a replacement or asserting that COMP8405 never existed. The original two
+matching 2027 COMP8045 catalogue copies were already present.
+
+The new similarly named download was a 2026 Second Semester class summary,
+class 9013, topic Systems for AI. Recorded its canonical URL and checksum in
+the audit rather than importing it as a 2027 catalogue course. Existing
+catalogue snapshots and the 2026 enrolment flow remain unchanged.
+
+**Verified:**
+Inspected local metadata and source paragraphs with no page-script execution or
+ANU course-page requests. Confirmed all 86 previous semantic snapshots remain
+byte-for-byte equal as parsed objects, with only the four named snapshots added.
+The final collection has 412 contextual references and 164 offering rows.
+Repeated the strict import and confirmed identical generated JSON by SHA-256.
+Node 24 / pnpm 11.9.0 Docker `pnpm check` passed with zero type errors, warnings
+or hints and 214 tests. Updated persistence tests to compare against the supplied
+manifest while still testing repeat imports, conflicts and preserved user state.
+New HTTP coverage checks the four pages, restored prerequisite link, unresolved
+COMP8405 and absence of an invented 2026 COMP8045 catalogue entry.
+
+Restarted the local preview. Chrome with JavaScript disabled confirmed groups
+3/7/80, navigation from COMP6361 to COMP6442 surviving reload, the other three
+pages opening, and COMP8045 linking to its 2027 source while COMP8405 stays
+unresolved. Browser evidence is `.data/catalogue-followup-browser.json`.
+
+**Commit:** [`3e28971`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/3e28971)
+
+**What happened:**
+The first import stopped at the class summary because it lacked catalogue
+identity metadata. Offline inspection identified the different document type
+and year. That file disappeared from Remained between reads; the agent did not
+move or delete it. Discarded a temporary checksum-based exclusion implementation
+once unnecessary, leaving the strict importer unchanged. The final import ran
+successfully against the remaining 109 valid catalogue files. No push or
+deployment was performed.
