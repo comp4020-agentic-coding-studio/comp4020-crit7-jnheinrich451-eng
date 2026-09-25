@@ -1,0 +1,49 @@
+# Local workflow review only. No real SMTP credentials or external mail relay.
+# Build with the Docker check workflow in CLAUDE.md before starting this stack.
+name: crit7-local
+
+services:
+  mailbox:
+    image: axllent/mailpit:v1.27.4
+    ports:
+      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:4323:4321"
+    environment:
+      MP_DATABASE: /data/mailpit.db
+    volumes:
+      - mailbox-data:/data
+    networks:
+      - local-only
+
+  app:
+    image: node:24
+    working_dir: /app
+    command: ["node", "dist/server/entry.mjs"]
+    # SMTP and app share loopback, satisfying the app's local-mail restriction.
+    network_mode: service:mailbox
+    depends_on:
+      - mailbox
+    environment:
+      HOST: 0.0.0.0
+      PORT: "4321"
+      APP_ORIGIN: http://127.0.0.1:4323
+      DATABASE_PATH: /data/app.db
+      SMTP_HOST: 127.0.0.1
+      SMTP_PORT: "1025"
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+      MAIL_FROM: "Local enrolment preview <preview@example.test>"
+    volumes:
+      - ../:/app:ro
+      - node-modules:/app/node_modules:ro
+      - app-data:/data
+
+networks:
+  local-only: {}
+
+volumes:
+  node-modules:
+    external: true
+    name: crit7_node_modules
+  app-data:
+  mailbox-data:

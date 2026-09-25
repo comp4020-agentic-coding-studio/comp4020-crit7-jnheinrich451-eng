@@ -5,6 +5,52 @@ signing in. This confirms email ownership only, not student status. The app is
 an independent prototype; it does not use ANU SSO or access university records.
 Students should use a separate prototype password.
 
+## Try the workflow without an external email service
+
+Use the separate local capture preview while Brevo/Fly setup is pending. It
+uses the same registration, verification and sign-in flow, with a local inbox
+instead of delivering messages to real addresses. This does not prove ownership
+of a real ANU inbox. Both browser ports are bound to this computer, and the
+preview network has no external mail relay. The real `.env` is not used.
+
+After building through the Docker check workflow in `CLAUDE.md`, run from the
+repository root (Docker Desktop must be running):
+
+```powershell
+docker compose -f config/local-preview.compose.yml up -d
+```
+
+1. Open <http://127.0.0.1:4323/register/>. Register with a fictional test name,
+   an address such as `student-demo@anu.edu.au`, and a separate password of
+   15–128 characters. The address is used only inside this local preview.
+2. Open the captured inbox at <http://127.0.0.1:8025>. Open the verification
+   message, follow its link, press the confirmation button, then sign in.
+3. Try finding COMP8620, saving an offering and requesting permission. Saving,
+   approval and enrolment remain separate actions.
+4. To act as its fictional reviewer, create an invitation in this same preview:
+
+   ```powershell
+   docker compose -f config/local-preview.compose.yml exec app node --import tsx scripts/invite-staff.ts reviewer-demo@anu.edu.au 1
+   ```
+
+   Open the invitation in the captured inbox and set a password. Use a private
+   browser window for the reviewer to keep the student session separate. On the
+   seeded catalogue, reviewer 1 is assigned COMP8620. If already invited, use
+   **Resend verification** on the sign-in page instead of inviting again.
+
+5. Review the student's request, then return to the student window to confirm
+   enrolment. Refresh to check the resulting state remains.
+
+The app and mailbox have separate persistent Docker volumes. Stop with
+`docker compose -f config/local-preview.compose.yml down`; this preserves the
+volumes. Do not add `--volumes` unless intentionally discarding local review data.
+After a new build, restart the app service to load it. Existing previews on
+ports 4321/4322 are independent. All previews on `127.0.0.1` share the browser's
+cookie scope across ports, so use only one of them per browser profile at a time.
+
+See `docs/workflow-review.md` for the review of John's supplied workflow and
+the proposed degree/specialisation planning increment.
+
 ## Configure email locally
 
 Copy `config/mail.env.example` to the gitignored `.env` and supply your provider's
