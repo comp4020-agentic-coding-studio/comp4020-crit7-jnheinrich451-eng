@@ -50,6 +50,11 @@ workflow. Imported references mean "mentioned in this source block"; they are
 not approved prerequisite, equivalence or credit-counting rules. Preserve source
 variants and reviews on reseed. Do not wire these unreviewed 2027 records into
 the 2026 eligibility gate or convert a missing referenced page into another year.
+The library overview groups Degrees, Specialisations, then Courses. Following
+John's question about the year mismatch, 2027 is the recommended next migration
+target; the running enrolment flow still uses 2026. See the concrete migration
+scope in `docs/catalogue-data.md`. A switch must align rules, offerings and the
+fictional record, while retaining existing requests under their original year.
 
 ## Rules
 

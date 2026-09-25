@@ -17,7 +17,14 @@ const results = unique.filter(e => e.year === year && (!kind || e.kind === kind)
   (!key || e.code.includes(key) || e.evidence.title.toLowerCase().includes(query.toLowerCase())));
 if (code && !selected.length) Astro.response.status = 404;
 const title = code ? selected[0]?.evidence.title ?? "Source not available" : "Course library";
-const labels: Record<string, string> = { course: "Course", program: "Degree", specialisation: "Specialisation" };
+const labels: Record<string, string> = { program: "Degree", specialisation: "Specialisation", course: "Course" };
+const groups: { kind: CatalogueKind; title: string }[] = [
+  { kind: "program", title: "Degrees" },
+  { kind: "specialisation", title: "Specialisations" },
+  { kind: "course", title: "Courses" },
+];
+const resultGroups = groups.map(group => ({ ...group, entries: results.filter(entry => entry.kind === group.kind) }))
+  .filter(group => group.entries.length > 0);
 const mentions = code ? catalogueMentions(code).filter(row => row.catalogue_references.year === year &&
   row.catalogue_references.kind === kind && row.catalogue_versions.code !== code) : [];
 const mentioningVersions = mentions.filter((r, i) => mentions.findIndex(other => other.catalogue_versions.id === r.catalogue_versions.id) === i);
@@ -117,11 +124,14 @@ const mentioningVersions = mentions.filter((r, i) => mentions.findIndex(other =>
     </form>
     <p>{results.length} {results.length === 1 ? "entry" : "entries"} · {year}</p>
     {!results.length && <p class="empty">No saved entries match. Try a shorter code or title.</p>}
-    <ul class="library-results">{results.map(entry => <li>
-      <div><a href={catalogueLink(entry.kind as CatalogueKind, entry.code, entry.year)}><strong>{entry.code}</strong> — {entry.evidence.title}</a><p class="muted">{labels[entry.kind]} · {entry.year}{entry.evidence.units ? ` · ${entry.evidence.units}` : ""}</p></div>
-      {entry.evidence.availability === "explicit-none" && <span class="availability">No current offerings published</span>}
-      {entry.evidence.availability === "unknown" && <span class="availability">Availability unknown</span>}
-    </li>)}</ul>
+    {resultGroups.map(group => <section class="library-group" aria-labelledby={`group-${group.kind}`}>
+      <h2 id={`group-${group.kind}`}>{group.title} <span class="group-count">({group.entries.length})</span></h2>
+      <ul class="library-results">{group.entries.map(entry => <li>
+        <div><a href={catalogueLink(entry.kind as CatalogueKind, entry.code, entry.year)}><strong>{entry.code}</strong> — {entry.evidence.title}</a><p class="muted">{labels[entry.kind]} · {entry.year}{entry.evidence.units ? ` · ${entry.evidence.units}` : ""}</p></div>
+        {entry.evidence.availability === "explicit-none" && <span class="availability">No current offerings published</span>}
+        {entry.evidence.availability === "unknown" && <span class="availability">Availability unknown</span>}
+      </li>)}</ul>
+    </section>)}
   </>}
 </Layout>
 
@@ -131,6 +141,8 @@ const mentioningVersions = mentions.filter((r, i) => mentions.findIndex(other =>
   .library-search { display: grid; grid-template-columns: minmax(15rem, 1fr) auto auto auto; gap: 1rem; align-items: end; margin: 2rem 0; }
   .library-search label { display: block; margin-bottom: .4rem; }
   .library-search input, .library-search select { width: 100%; }
+  .library-group { margin-top: 2.5rem; }
+  .group-count { font-weight: 400; color: var(--muted); font-size: 1rem; }
   .library-results { list-style: none; padding: 0; }
   .library-results > li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.2rem 0; border-bottom: 1px solid #ddd; }
   .library-results p { margin: .35rem 0 0; }

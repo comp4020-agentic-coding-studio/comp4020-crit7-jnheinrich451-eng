@@ -91,7 +91,40 @@ lives in its Docker `app-data` volume; ordinary local development uses
   semester-by-semester path. The 2027 AI/ML discrepancy is preserved in the
   published text and audit notes; it is not a transition policy.
 
-The next bounded increment should encode one reviewed requirement group with
-its source snapshot and an explanation of its AND/OR/counting semantics, then
-test it against a small fictional study plan. Do not try to flatten the entire
-collection into a single prerequisite list.
+## Recommended migration to a 2027 demo
+
+On 26 September John questioned keeping the active demo on 2026 while the saved
+catalogue is 2027. Recommendation: make 2027 the active enrolment and planning
+example. The current runtime is still 2026; grouping the library as Degrees,
+Specialisations and Courses does not change its rules or stored enrolments.
+
+The academic record should remain explicitly fictional. Matching the demo's
+rules and offerings to published 2027 evidence is separate from claiming access
+to anyone's real ANU grades or academic history.
+
+Inspection of the current code and saved sources found:
+
+- All 17 courses with executable prerequisite checks have 2027 source pages.
+  Fifteen requisite texts match after whitespace normalization. COMP8620's
+  difference is paragraph/punctuation spacing; its topic-specific prerequisite
+  clause still needs to remain visible when describing what the check covers.
+- COMP6528's saved source lists incompatibilities with ENGN6528, COMP4528 and
+  ENGN4528 that the current transcription/check omits. This is an implementation
+  gap to resolve, not proof that ANU changed the rule between years.
+- Sixty-six of the 70 current course codes have a saved 2027 page. Their coarse
+  semester/session sets match the current seed. COMP6442, COMP6490, ENGN6539 and
+  ENGN8501 have no corresponding saved 2027 page; do not invent their offerings.
+  The imported catalogue also contains ten codes absent from the current seed.
+
+The migration should bind active rules to their 2027 source snapshots, populate
+actual 2027 offerings, centralise the active-year defaults, and give the
+fictional profile a coherent study timeline. It must preserve existing 2026
+requests, approvals and enrolments under their original year; approval for one
+year cannot grant enrolment in another. Do not merely replace displayed 2026
+labels, or automatically declare all 76 imported courses eligible.
+
+After that alignment, encode one reviewed degree/specialisation requirement
+group with its source snapshot and an explanation of its AND/OR/counting
+semantics, then test it against a small fictional study plan. A 2027 example
+can use the supplied VCOMP source; obtaining 2026 commencement rules is needed
+only if we also retain that older cohort as a planning example.
