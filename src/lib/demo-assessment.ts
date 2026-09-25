@@ -16,7 +16,7 @@ export function requestReason(value: string): RequestReason {
 }
 
 // These are OUR prototype decisions, never attributed to ANU or an LLM.
-export const DEMO_POLICY = "demo-permission-v1";
+export const DEMO_POLICY = "demo-permission-v2";
 export const SCENARIO_KEY = "comp8620-topic-v1";
 export const SCENARIO = {
   key: SCENARIO_KEY,
@@ -33,7 +33,7 @@ export const SCENARIO = {
 
 export interface AssessmentReport {
   version: 1;
-  policy: typeof DEMO_POLICY;
+  policy: "demo-permission-v1" | typeof DEMO_POLICY;
   offering: { courseId: number; code: string; year: number; term: string };
   rules: CourseRules | null;
   rulesHash: string;
@@ -92,7 +92,7 @@ export function assessDemo(input: {
     if (input.rules?.reviewNote) nextActions.push(input.rules.reviewNote);
     if (!input.scenario && input.rules && !input.rules.source)
       nextActions.push("This historical rule transcription has no versioned source review for automatic permission. Use staff review or the separate fictional scenario.");
-  } else if (result.outcome === "permission-always" && result.requisitesMet) {
+  } else if ((result.outcome === "permission-always" || result.outcome === "permission-conditional") && result.requisitesMet) {
     outcome = "approved";
     reasons.push("Every recorded condition is met. Permission is issued under the demo policy, not by ANU or the course convenor.");
     nextActions.push(input.scenario ? "Confirm scenario enrolment to finish the example." : "Confirm enrolment for this offering; approval alone does not enrol you.");

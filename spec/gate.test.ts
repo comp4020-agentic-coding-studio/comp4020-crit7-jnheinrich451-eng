@@ -83,9 +83,10 @@ describe("the gate shows three outcomes, each with its own message", () => {
     expect(page.text).not.toContain("also has unmet prerequisites");
   });
 
-  it("courses without transcribed rules say so instead of guessing", async () => {
-    const page = await get("/courses/COMP6120/", as("Mei Lin"));
-    expect(page.text).toContain("Automatic eligibility check unavailable");
+  it("a missing requisite section stays unknown instead of implying no prerequisites", async () => {
+    const page = await get("/courses/MGMT7020/", as("Mei Lin"));
+    expect(page.text).toContain("Assessment incomplete");
+    expect(page.text).toContain("no requisite section");
     for (const h of HEADINGS) expect(page.text).not.toContain(h);
   });
 
@@ -95,7 +96,7 @@ describe("the gate shows three outcomes, each with its own message", () => {
       "Ready to enrol",
       "Permission needed",
       "Permission for everyone",
-      "Eligibility check unavailable",
+      "Assessment incomplete",
     ]) {
       expect(page.text).toContain(badge);
     }

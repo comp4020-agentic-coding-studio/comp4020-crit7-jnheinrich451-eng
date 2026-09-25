@@ -45,7 +45,7 @@
       "sourceHash": "d943da7c8129f147e20d2626b973ce9ede325289a8e06b70021302a5edb2c8a4",
       "section": "incompatibility",
       "blocks": [],
-      "interpretation": "The saved requisite section is absent. This case does not activate an enrolment rule for MGMT7020.",
+      "interpretation": "The saved requisite section is absent. Full catalogue coverage now records this as an explicit unknown rule; it cannot establish eligibility.",
       "requirement": {
         "unknown": "The saved MGMT7020 page has no requisite section",
         "nextAction": "Supply the applicable published requirements before interpreting eligibility."

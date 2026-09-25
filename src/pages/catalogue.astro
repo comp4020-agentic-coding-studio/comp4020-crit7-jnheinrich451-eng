@@ -3,7 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import { catalogueEntries, catalogueLink, catalogueMentions, catalogueSourcesFor, referenceLink } from "../lib/catalogue";
 import type { CatalogueKind } from "../lib/catalogue-types";
 import { ACTIVE_YEAR } from "../lib/academic-year";
-import { rulesForSource } from "../lib/course-rules";
+import { COVERAGE_LABELS, rulesForSource } from "../lib/course-rules";
 
 const entries = catalogueEntries();
 const params = Astro.url.searchParams;
@@ -38,7 +38,7 @@ const mentioningVersions = mentions.filter((r, i) => mentions.findIndex(other =>
     <h1>{title}</h1>
     <p class="lede">Explore courses, degree requirements and the connections between them.</p>
   </div>
-  <p class="library-notice">Find courses and this library share the {ACTIVE_YEAR} catalogue. Enrolment checks use a fictional academic record and a limited set of interpreted course rules. Degree and specialisation requirements are published information; personal study planning is not yet available.</p>
+  <p class="library-notice">Find courses and this library share the {ACTIVE_YEAR} catalogue. Enrolment checks use the saved requirements and a fictional academic record. Missing evidence or unclear wording remains unresolved. Degree and specialisation requirements are published information; personal study planning is not yet available.</p>
 
   {code ? <>
     <p><a href={`/catalogue/?year=${year}`}>Back to the library</a></p>
@@ -47,14 +47,15 @@ const mentioningVersions = mentions.filter((r, i) => mentions.findIndex(other =>
     {selected.map((entry, variant) => {
       const e = entry.evidence;
       const sources = catalogueSourcesFor(entry.snapshotId);
+      const rules = e.kind === "course" ? rulesForSource(e.code, e.year, entry, selected.length > 1) : undefined;
       const offeringHeaders = [...new Set(e.offerings.flatMap(o => Object.keys(o.fields)))];
       return <article class="library-entry">
         {selected.length > 1 && <h2>Source version {variant + 1}</h2>}
         <p class="entry-meta"><strong>{e.code}</strong> · {e.year} · {labels[e.kind]}{e.units ? ` · ${e.units}` : ""}</p>
         {e.kind === "course" && e.year === ACTIVE_YEAR && <p><a class="button" href={`/courses/${e.code}/?year=${e.year}`}>View offerings and enrolment</a></p>}
         <p>{e.description}</p>
-        <p class="muted">Interpretation: {entry.review.status === "unreviewed" ? "awaiting review" : entry.review.status}. Published wording is shown below.</p>
-        {rulesForSource(e.code, e.year, entry, selected.length > 1) && <p>A prototype enrolment check is available for this source. It does not assess degree or specialisation completion.</p>}
+        <p class="muted">Additional source review: {entry.review.status === "unreviewed" ? "awaiting review" : entry.review.status}. Published wording is shown below.</p>
+        {rules?.coverage && <p data-rule-coverage={rules.coverage}>{COVERAGE_LABELS[rules.coverage]}. These are prototype interpretations, not ANU decisions or degree-completion checks.</p>}
         {entry.review.notes && <p>{entry.review.notes}</p>}
         {e.issues.length > 0 && <aside class="library-notice" aria-label="Source gaps"><ul>{e.issues.map(issue => <li>{issue}</li>)}</ul></aside>}
 

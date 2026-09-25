@@ -52,6 +52,7 @@ const scenarios = requests.filter(app => app.scenarioKey && app.enrolmentConfirm
               ? progress.label
               : g.outcome === "not-recorded"
                 ? "Eligibility check unavailable"
+                : g.outcome === "assessment-incomplete" ? "Assessment incomplete"
                 : "Permission needed";
         const href = `/courses/${course.code}/?term=${encodeURIComponent(offering.term)}&year=${offering.year}`;
         return (

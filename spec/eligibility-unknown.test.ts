@@ -80,7 +80,7 @@ describe("source-bound manual reference cases", () => {
       }
     });
   }
-  it("preserves the active source bindings and keeps the missing-section case inactive", () => {
+  it("preserves source bindings and makes the missing-section case explicitly unknown", () => {
     for (const review of reviews) {
       const source = (catalogue.snapshots as CatalogueSnapshot[]).find(s => s.hash === review.sourceHash)!;
       expect(rulesForSource(review.code, review.year, source)).toBeDefined();
@@ -89,7 +89,7 @@ describe("source-bound manual reference cases", () => {
       expect(rulesForSource(review.code, 2028, source)).toBeUndefined();
     }
     const missing = (catalogue.snapshots as CatalogueSnapshot[]).find(s => s.evidence.code === "MGMT7020")!;
-    expect(rulesForSource("MGMT7020", 2027, missing)).toBeUndefined();
+    expect(gate("MGMT7020", rulesForSource("MGMT7020", 2027, missing), record()).outcome).toBe("assessment-incomplete");
   });
   it("COMP8620 keeps permission required while unknown topic conditions do not become failed prerequisites", () => {
     const source = (catalogue.snapshots as CatalogueSnapshot[]).find(s => s.evidence.code === "COMP8620")!;

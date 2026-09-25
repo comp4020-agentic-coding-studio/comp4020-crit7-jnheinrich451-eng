@@ -1,6 +1,7 @@
 ---
 import GatePanel from "../../components/GatePanel.astro";
 import { ACTIVE_YEAR } from "../../lib/academic-year";
+import { COVERAGE_LABELS } from "../../lib/course-rules";
 import { catalogueLink, catalogueEntries, referenceLink } from "../../lib/catalogue";
 import type { Term } from "../../data/courses";
 import Layout from "../../layouts/Layout.astro";
@@ -58,7 +59,8 @@ const saved =
               return link ? <a href={link}>{part}</a> : part;
             })}</p>)}
         </details>)}
-        <p class="muted">Saved ANU Programs &amp; Courses information, {year}. Future offerings are indicative. Automated checks cover only explicitly interpreted rules; your academic record is fictional.</p>
+        <p class="muted">Saved ANU Programs &amp; Courses information, {year}. Future offerings are indicative. Checks use the saved requirements and your fictional academic record.</p>
+        {rules?.coverage && <p data-rule-coverage={rules.coverage}>{COVERAGE_LABELS[rules.coverage]}. See your requirement checks for what can be decided.</p>}
         <p><a href={catalogueLink("course", course.code, year)}>Course library: sources, offering dates and related entries</a></p>
       </> : <details>
         <summary>Requisites and incompatibilities</summary>

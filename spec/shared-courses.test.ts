@@ -56,29 +56,29 @@ describe("shared course evidence", () => {
     expect((await page("/courses/ENGN8501/?year=2026")).status).toBe(200);
     expect((await page("/courses/COMP8620/?year=2028")).status).toBe(404);
   });
-  it("allows an assessment request for an unreviewed offering while blocking direct enrolment", async () => {
-    const doc = (await page("/courses/ENGN6627/")).doc;
-    expect(doc.querySelector("#gate-heading")?.textContent).toBe("Automatic eligibility check unavailable");
+  it("allows assessment of an explicit source gap while blocking direct enrolment", async () => {
+    const doc = (await page("/courses/MGMT7020/")).doc;
+    expect(doc.querySelector("#gate-heading")?.textContent).toBe("Assessment incomplete");
     expect(doc.querySelector("main")?.textContent).toContain("Requisite and Incompatibility");
     const offeringId = doc.querySelector<HTMLInputElement>('input[name="offeringId"]')!.value;
     await post("/api/selections", { offeringId, action: "add" });
-    expect((await page("/plan/")).doc.querySelector("main")?.textContent).toContain("ENGN6627");
+    expect((await page("/plan/")).doc.querySelector("main")?.textContent).toContain("MGMT7020");
     const term = doc.querySelector<HTMLOptionElement>('select[name="term"] option')!.value;
     expect(doc.querySelector('form[action="/api/applications"]')).toBeTruthy();
-    const result = await post("/api/enrol", { courseCode: "ENGN6627", year: "2027", term });
+    const result = await post("/api/enrol", { courseCode: "MGMT7020", year: "2027", term });
     const url = new URL(result.headers.get("location")!, base);
-    expect(url.pathname).toBe("/courses/ENGN6627/");
+    expect(url.pathname).toBe("/courses/MGMT7020/");
     expect(url.searchParams.get("year")).toBe("2027");
     expect(url.searchParams.has("error")).toBe(true);
-    const requested = await post("/api/applications", { courseCode: "ENGN6627", year: "2027", term, statement: "Assess the published requirements against my fictional record." });
+    const requested = await post("/api/applications", { courseCode: "MGMT7020", year: "2027", term, statement: "Assess the published requirements against my fictional record." });
     expect(requested.headers.get("location")).toMatch(/^\/applications\/\d+\/$/);
-    expect((await page(requested.headers.get("location")!)).doc.querySelector("main")?.textContent).toContain("Unknown: Eligibility conditions for ENGN6627 have not been interpreted");
+    expect((await page(requested.headers.get("location")!)).doc.querySelector("main")?.textContent).toContain("Unknown: The saved MGMT7020 page has no requisite section");
   });
 });
 
 describe("rules are bound to inspected source snapshots", () => {
-  it("retains all 18 explicit checks but requires review after source changes or conflicts", () => {
-    expect(reviews).toHaveLength(18);
+  it("accounts for all 80 saved courses but requires review after source changes or conflicts", () => {
+    expect(reviews).toHaveLength(80);
     for (const review of reviews) {
       const source = sources.find(s => s.hash === review.sourceHash)!;
       expect(rulesForSource(review.code, 2027, source)).toBeDefined();

@@ -1,7 +1,6 @@
 import {
   type CourseRules,
   PROGRAMS,
-  type ProgramKey,
   type Requirement,
   type RuleSource,
 } from "../data/requisites";
@@ -11,7 +10,8 @@ import {
 // routes call this and never re-derive eligibility themselves (CLAUDE.md).
 
 export interface StudentRecord {
-  program: ProgramKey | null;
+  program: string | null;
+  academicCareer?: "postgraduate" | "undergraduate";
   /** Complete within this fictional scenario, not verified university history.
    * Without this declaration, absent results remain unknown. */
   complete?: boolean;
@@ -51,11 +51,12 @@ export type Gate =
   | { outcome: "assessment-incomplete"; checks: Check[]; incompatible: string[] }
   | { outcome: "rules-not-met"; checks: Check[]; incompatible: string[] }
   | {
-      outcome: "permission-always";
+      outcome: "permission-always" | "permission-conditional";
       checks: Check[];
       incompatible: string[];
       requisitesMet: boolean;
       reviewNote?: string;
+      permissionReason?: string;
     };
 
 /** Offering availability is checked separately, before accepting a request. */
@@ -93,11 +94,19 @@ export function gate(courseCode: string, rules: CourseRules | undefined, s: Stud
     checks.push({ met: false, status: "unknown", text: "The incomplete record cannot exclude all incompatible courses", source: rules.source,
       evidence: [], nextAction: "Supply a complete completion record for the incompatibility check." });
   }
+  const permission = rules.permissionIf ? evaluateRequirement(rules.permissionIf, s, rules.source) : null;
+  if (permission?.status === "met") checks.push({ ...permission, text: `Permission applies: ${rules.permissionReason ?? permission.text}` });
+  if (permission?.status === "unknown") checks.push({ ...permission,
+    text: `Whether permission is required: ${permission.text}`,
+    nextAction: permission.nextAction ?? "Supply evidence to resolve the conditional permission requirement.",
+  });
   const requisitesMet = checks.every((c) => c.met);
 
   if (rules.permissionAlways) {
     return { outcome: "permission-always", checks, incompatible, requisitesMet, ...(rules.reviewNote ? { reviewNote: rules.reviewNote } : {}) };
   }
+  if (permission?.status === "met") return { outcome: "permission-conditional", checks, incompatible, requisitesMet,
+    permissionReason: rules.permissionReason ?? permission.text, ...(rules.reviewNote ? { reviewNote: rules.reviewNote } : {}) };
   if (checks.some(c => checkStatus(c) === "unmet")) return { outcome: "rules-not-met", checks, incompatible };
   if (!requisitesMet) return { outcome: "assessment-incomplete", checks, incompatible };
   return { outcome: "eligible", checks };
@@ -127,7 +136,8 @@ export function firstRound(courseCode: string, g: Gate): FirstRound {
       };
     case "rules-not-met":
     case "assessment-incomplete":
-    case "permission-always": {
+    case "permission-always":
+    case "permission-conditional": {
       if (g.incompatible.length > 0) {
         return {
           decision: "auto-reject",
@@ -139,7 +149,7 @@ export function firstRound(courseCode: string, g: Gate): FirstRound {
       const unmet = g.checks.filter((c) => checkStatus(c) === "unmet").map((c) => `Not met: ${c.text}`);
       const unknown = g.checks.filter((c) => checkStatus(c) === "unknown")
         .map((c) => `Unknown: ${c.text}${c.nextAction ? `. ${c.nextAction}` : ""}`);
-      if (g.outcome === "permission-always") {
+      if (g.outcome === "permission-always" || g.outcome === "permission-conditional") {
         // ANU's wording for these courses: "Students who meet the
         // pre-requisites can request a permission code".
         if (unmet.length > 0) {
@@ -151,7 +161,8 @@ export function firstRound(courseCode: string, g: Gate): FirstRound {
         return {
           decision: "to-convenor",
           reasons: [
-            unknown.length ? `Assessment incomplete. ${courseCode} needs a permission code from every student.` : `${g.reviewNote ? "Base prerequisites met" : "Requisites met"}. ${courseCode} needs a permission code from every student.`,
+            `${unknown.length ? "Assessment incomplete" : "Recorded prerequisites checked"}. ${courseCode} ${g.outcome === "permission-always" ? "needs a permission code from every student" : "requires permission in your circumstances"}.`,
+            ...(g.permissionReason ? [g.permissionReason] : []),
             ...g.checks.filter(c => checkStatus(c) === "met").map(c => `Met: ${c.text}`),
             ...unknown, ...(g.reviewNote ? [g.reviewNote] : []),
           ],
@@ -185,6 +196,17 @@ export function evaluateRequirement(r: Requirement, s: StudentRecord, inheritedS
     met: status === "met", status, text: describe(r, s), evidence,
     ...(source ? { source } : {}), ...(nextAction ? { nextAction } : {}),
   });
+  if ("interpretations" in r) {
+    const children = r.interpretations.map(child => evaluateRequirement(child, s, source));
+    const status = children.length && children.every(child => child.status === "met") ? "met"
+      : children.length && children.every(child => child.status === "unmet") ? "unmet" : "unknown";
+    return { ...result(status, children.flatMap(child => child.evidence), status === "unknown"
+      ? [...new Set([r.nextAction, ...children.filter(child => child.status === "unknown").flatMap(child => child.nextAction ? [child.nextAction] : [])])].join(" ") : undefined), children };
+  }
+  if ("not" in r) {
+    const child = evaluateRequirement(r.not, s, source);
+    return { ...result(child.status === "unknown" ? "unknown" : child.status === "met" ? "unmet" : "met", child.evidence, child.nextAction), children: [child] };
+  }
   if ("all" in r || "any" in r) {
     const children = ("all" in r ? r.all : r.any).map(child => evaluateRequirement(child, s, source));
     if (!children.length) return result("unknown", [], "Complete the empty requirement group before assessment.");
@@ -206,22 +228,42 @@ export function evaluateRequirement(r: Requirement, s: StudentRecord, inheritedS
   }
   if ("program" in r) return s.program === null
     ? result("unknown", [], "Supply the student's program.")
-    : result(s.program === r.program ? "met" : "unmet", [`Recorded program: ${s.program}`]);
-  const units = passedUnits(r.prefix, s);
-  const evidence = s.passed.filter(p => p.code.startsWith(r.prefix)).map(p => `${p.code}: ${p.units} passed units`);
+    : result(programName(s.program) === programName(r.program) ? "met" : "unmet", [`Recorded program: ${programName(s.program)}`]);
+  if ("career" in r) return s.academicCareer === undefined
+    ? result("unknown", [], "Supply the student's academic career; postgraduate study cannot be inferred from a course code.")
+    : result(s.academicCareer === r.career ? "met" : "unmet", [`Recorded academic career: ${s.academicCareer}`]);
+  if ("courseCount" in r) {
+    const codes = [...new Set([...s.passed.map(p => p.code), ...(r.orEnrolled ? s.enrolled : [])])].filter(code => code.startsWith(r.prefix));
+    return codes.length >= r.courseCount ? result("met", codes)
+      : s.complete === true ? result("unmet", codes) : result("unknown", codes, "Supply the remaining course completions and current enrolments.");
+  }
+  const counted = countedCourses(r, s);
+  const units = counted.reduce((n, p) => n + p.units, 0);
+  const evidence = counted.map(p => `${p.code}: ${p.units} passed units`);
   if (units >= r.units) return result("met", evidence);
+  if (s.passed.filter(p => matchesUnits(r, p.code)).length > counted.length)
+    return result("unknown", evidence, "Confirm whether repeated course entries carry additional credit. The prototype counts each course once until that is established.");
   return s.complete === true ? result("unmet", evidence)
     : result("unknown", evidence, "Supply the remaining results or confirm the fictional record is complete.");
 }
 
-function passedUnits(prefix: string, s: StudentRecord): number {
-  return s.passed.filter((p) => p.code.startsWith(prefix)).reduce((n, p) => n + p.units, 0);
+type UnitRequirement = Extract<Requirement, { units: number }>;
+const programName = (program: string): string => (PROGRAMS as Record<string, string>)[program] ?? program;
+const matchesUnits = (r: UnitRequirement, code: string) => "courses" in r ? r.courses.includes(code) : code.startsWith(r.prefix);
+function countedCourses(r: UnitRequirement, s: StudentRecord) {
+  const unique = new Map<string, { code: string; units: number }>();
+  for (const p of s.passed.filter(p => matchesUnits(r, p.code))) {
+    if (!unique.has(p.code) || unique.get(p.code)!.units < p.units) unique.set(p.code, p);
+  }
+  return [...unique.values()];
 }
 
 /** Plain-language requirement text, with the student's own standing noted
  *  where it helps ("you have 6"). */
 function describe(r: Requirement, s: StudentRecord, nested = false): string {
   if ("unknown" in r) return r.unknown;
+  if ("interpretations" in r) return r.label;
+  if ("not" in r) return `Must not satisfy: ${describe(r.not, s, true)}`;
   if ("all" in r || "any" in r) {
     if (!("all" in r ? r.all : r.any).length) return "An empty requirement group needs interpretation";
     const parts = ("all" in r ? r.all : r.any).map((x) => describe(x, s, true));
@@ -233,8 +275,10 @@ function describe(r: Requirement, s: StudentRecord, nested = false): string {
     const base = r.orEnrolled ? `${r.course} (passed or currently enrolled)` : r.course;
     return s.failed.includes(r.course) && !nested ? `${base}: attempted, not passed` : base;
   }
-  if ("program" in r) return `studying the ${PROGRAMS[r.program]}`;
-  return nested ? r.label : `${r.label} (you have ${passedUnits(r.prefix, s)})`;
+  if ("program" in r) return `studying the ${programName(r.program)}`;
+  if ("career" in r) return "Enrolled in a postgraduate program";
+  if ("courseCount" in r) return r.label;
+  return nested ? r.label : `${r.label} (you have ${countedCourses(r, s).reduce((n, p) => n + p.units, 0)})`;
 }
 
 function joinList(parts: string[], word: string): string {

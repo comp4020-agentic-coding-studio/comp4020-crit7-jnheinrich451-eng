@@ -14,6 +14,10 @@ const marks = { met: "✓", unmet: "✗", unknown: "?" };
         <div>
           <span class={status === "unknown" ? undefined : "visually-hidden"}>{labels[status]}:</span> {c.text}
           {c.nextAction && <p class="field-help">Next: {c.nextAction}</p>}
+          {c.children?.length && <details>
+            <summary>Individual conditions</summary>
+            <Astro.self checks={c.children} />
+          </details>}
           {(c.evidence?.length || c.source) && (
             <details>
               <summary>Evidence for this check</summary>

@@ -120,7 +120,7 @@ Inspection of the current code and saved sources found:
   ENGN8501 have no corresponding saved 2027 page; do not invent their offerings.
   The imported catalogue also contains twelve codes absent from the current seed.
 
-`src/data/enrolment-rules-2027.json` now binds 18 explicit prototype interpretations
+The initial `src/data/enrolment-rules-2027.json` bound 18 explicit prototype interpretations
 to the inspected source hashes. Unmatched, changed or conflicting snapshots
 receive no automatic check. Published wording is still shown for every course;
 missing interpretation does not mean no prerequisites. COMP6320 and COMP8535
@@ -139,7 +139,7 @@ conflicts can enrol directly; missing record completeness remains unknown.
 Historical request snapshots retain their original explanation even after this
 interpretation is added. Reopening the course runs the current check.
 
-Offered courses without an interpretation now accept an assessment request.
+Offered courses without an interpretation accept an assessment request.
 The saved check remains unknown and retains its source reference; submission
 does not itself establish eligibility or issue permission. Courses without a
 usable offering remain browseable without an enrolment request. See
@@ -167,3 +167,60 @@ group with its source snapshot and an explanation of its AND/OR/counting
 semantics, then test it against a small fictional study plan. A 2027 example
 can use the supplied VCOMP source; obtaining 2026 commencement rules is needed
 only if we also retain that older cohort as a planning example.
+
+## Full course-rule coverage after the follow-up
+
+John asked to propagate the checks across all courses. The source-bound JSON now
+accounts for all 80 course versions, with an interpretation note beside each tree:
+
+| Coverage | Courses | Meaning |
+| --- | ---: | --- |
+| `encoded` | 62 | The saved requisite clauses are expressible by the evaluator. A record may still be incomplete or fail. |
+| `partial` | 16 | The tree includes a specific unknown condition or an unresolved grouping. Known alternatives may still settle an individual case. |
+| `missing-source` | 2 | MGMT7020 and REGN8014 have no requisite section. They produce an explicit unknown, never an empty successful checklist. |
+
+This is prototype interpretation coverage, not official ANU validation. The two
+source gaps are bound to their saved page hashes with empty source-block lists.
+Changed, conflicting and wrong-year sources still invalidate an interpretation.
+Raw downloaded pages and duplicate provenance are preserved; no ANU crawling or
+database rewrite was used. The rules are bundled with the application and each
+request persists its complete rule, record and policy snapshots in SQLite.
+
+The evaluator now supports explicit six-unit choice lists, unique course counts,
+program exclusions, an explicit postgraduate-career fact, and conditional
+permission. Existing program keys retain their meaning. Other programs use their
+published codes when supplied, or exact names when no code was given; similar
+program names are not aliases. Corequisites use the selected year and term.
+Duplicate transcript entries count a course once; if possible repeat credit is
+needed to cross a threshold, the result asks for confirmation instead of inventing
+extra credit. No equivalence is inferred from matching titles or adjacent numbers.
+
+COMP8712's prior COMP3710/COMP6470 completion triggers permission, not exclusion.
+COMP8430's intensive-mode condition remains unknown because the offering data does
+not establish intensive mode. Neither course currently has a usable saved offering;
+encoding its rules does not open enrolment. COMP6490/8490, COMP8800 and COMP8980
+retain alternative AND/OR readings. The evaluator returns met or unmet only when
+the readings agree; otherwise it exposes the ambiguity and next action. Individual
+conditions can be expanded in the checklist. Earlier accepted COMP6320/8535 grouping
+interpretations remain labelled prototype choices as documented above.
+
+Topic announcements for COMP8011/8020/8045/8620/8650, COMP8536 equivalence,
+COMP8715 group/project approval, COMP8800 GPA and project registration,
+COMP8830 competitive selection, and LAWS8445 case-by-case acceptance remain
+explicit evidence requirements. MATH6213's exact-mark/equivalence/suitability
+advice is not converted from “should” into a hard rejection threshold. MATH6005's
+restriction is scoped to CECS students; a program name alone does not establish
+college applicability for other profiles.
+
+`demo-permission-v2` supports the conditional permission result. It does not read
+or obey student prose. Previously saved v1 reports and staff approvals remain
+unchanged. Ordinary permission-only courses such as COMP8820 can now demonstrate
+assessment, demo permission and explicitly confirmed profile enrolment without
+the separate COMP8620 scenario. This is still a demo policy, not university authority.
+
+`spec/catalogue-rule-coverage.test.ts` checks all source identities and explicit
+course mentions, 91 source-authored record examples, and the new operators and
+evidence boundaries. `spec/expanded-course-flow.test.ts` covers corequisite scope,
+new profile permission, confirmation, historical-report preservation and unavailable
+offerings through HTTP. The original three reference cases remain a small seed
+for the future Llama benchmark; these tests are not a claim of model accuracy.

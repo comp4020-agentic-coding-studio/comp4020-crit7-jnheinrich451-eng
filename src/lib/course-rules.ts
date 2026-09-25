@@ -11,9 +11,19 @@ export function rulesForSource(code: string, year: number, source?: { hash: stri
   const review = reviews.find(r => r.code === code && r.year === year && r.sourceHash === source.hash);
   if (!review) return undefined;
   const section = source.evidence.sections.find(s => s.key === "incompatibility");
-  if (!section?.present || !section.blocks.length) return undefined;
+  const missing = !section?.present || !section.blocks.length;
+  // An explicitly recorded source gap produces an unknown check, never an empty
+  // successful checklist. A newly missing section still invalidates other rules.
+  if (missing && (review.coverage !== "missing-source" || !review.rules.requires || !("unknown" in review.rules.requires))) return undefined;
   return { ...review.rules,
-    source: { code, year, hash: source.hash, section: section.key, blocks: section.blocks.map((_, i) => i) },
-    text: section.blocks.map(b => b.text).join(" "),
+    coverage: review.coverage,
+    source: { code, year, hash: source.hash, section: "incompatibility", blocks: section?.blocks.map((_, i) => i) ?? [] },
+    text: missing ? "The saved page has no requisite section. Its requirements are unknown." : section.blocks.map(b => b.text).join(" "),
   } as CourseRules;
 }
+
+export const COVERAGE_LABELS = {
+  encoded: "Saved requirements encoded for automatic checks",
+  partial: "Some conditions may need additional evidence or clarification",
+  "missing-source": "Requisite information is missing from the saved page",
+};

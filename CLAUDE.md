@@ -53,9 +53,11 @@ eligibility checks or convert a missing referenced page into another year.
 The library overview groups Degrees, Specialisations, then Courses. Following
 John's question about the year mismatch and shared Find courses entries, the
 active enrolment flow now uses 2027. Both screens read the persistent catalogue;
-18 prototype rule interpretations are pinned to source hashes in
-`src/data/enrolment-rules-2027.json`. Other sources remain browseable and may be
-saved when offered, but cannot claim automatic eligibility. Changed or conflicting
+All 80 course versions are accounted for in `src/data/enrolment-rules-2027.json`:
+62 fully encoded prototype interpretations, 16 with explicit unresolved conditions
+or alternative readings, and two missing-requisite source gaps (MGMT7020/REGN8014).
+Each is pinned to its source hash and has an interpretation note. Coverage does
+not guarantee a verdict for every record. Changed or conflicting
 sources require a fresh interpretation. See `docs/catalogue-data.md`.
 Historical 2026 rules, requests, approvals and enrolments retain their year;
 approval never transfers across years. Existing registered profiles are preserved.
@@ -83,8 +85,12 @@ The first foundation increment is now implemented: three-valued requirement
 results, explicit fictional-record completeness, source/evidence references and
 unknown topic conditions for 2027 COMP8620. New request snapshots retain these
 results; historical boolean checks remain readable. The initial manual reference
-cases are in `src/data/eligibility-reference.json`. GPA, exact marks, conditional
-permission and versioned authoring remain future work. Automated assessment reports
+cases are in `src/data/eligibility-reference.json`; wider course examples are in
+`spec/catalogue-rule-coverage.test.ts`. Conditional permission, explicit course-list
+credits, distinct-course counts, program exclusions and postgraduate career are
+implemented. GPA, exact marks, equivalence and discretionary evidence remain
+unknown where needed; do not infer them from prose. Versioned authoring remains
+future work. Automated assessment reports
 now save the offering, rule and record snapshots, selected request reason, student
 statement and versioned demo policy. COMP8620's complete fictional topic scenario
 is at `/demo/`; its permissions and confirmation are isolated from profile
@@ -111,9 +117,11 @@ COMP7710 now has a source-bound check for both completed and currently enrolled
 COMP1110/COMP1140/COMP6710. Keep these two exclusion types distinct; a course with
 only a completion exclusion must not acquire a concurrent-enrolment exclusion.
 Missing automatic rules are an application coverage gap, not a request for the
-student to fix the gap by rewriting their explanation. The full catalogue is not
-yet encoded; the COMP8620 scenario is one complete example, not a general model
-reviewer. Request pages use the course code as their main, prominent heading.
+student to fix the gap by rewriting their explanation. Every supplied course is
+now accounted for, including missing evidence; no general model reviewer is running.
+The COMP8620 scenario remains isolated. Ordinary source-bound permission courses
+can also complete the profile workflow when every recorded condition is met.
+Request pages use the course code as their main, prominent heading.
 Keep that heading in the gold Georgia serif style at its larger size.
 The former My semester page is now My courses: saved candidates, confirmed
 academic enrolments, and completed demo scenarios are separate sections.
@@ -124,6 +132,14 @@ academic record used by eligibility. Approval still requires explicit confirmati
 An automatic exception result says Exception decision needed, with no staff review
 in progress. Its unmet academic check is separate from the unresolved waiver;
 display changes must not rewrite saved reports or historical events.
+Use demo-permission-v2 for new assessments with conditional permissions; saved v1
+reports retain their policy and facts. A permission condition is not a failed
+prerequisite or an incompatibility. Unknown intensive mode cannot be inferred from
+semester/session names. Ambiguous AND/OR groups retain their plausible readings:
+agreeing results can settle the group; disagreement is unknown. Repeated rows
+cannot manufacture credit or distinct-course counts. Unknown project approval,
+competitive selection, equivalence, GPA and mark-based suitability cannot receive
+automatic permission. Offered-course checks never invent an unavailable offering.
 
 ## Rules
 

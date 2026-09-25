@@ -35,7 +35,7 @@ saves unknown conditions and available source references; it does not infer that
 permission is required or refuse submission solely because a rule is missing.
 The interface and submission endpoint share the same eligibility-based request
 guard, with offering availability checked separately. A pending-request notice
-appears on the course, request, My requests and My semester pages only while the
+appears on the course, request, My requests and My courses pages only while the
 matching request has `with-convenor` status. It disappears on the next page load
 after approval or either type of rejection. Pending/approved duplicate submissions
 return the existing request; a rejected request remains in history if a new one
@@ -43,17 +43,21 @@ is submitted. The subsequent automated increment is described below.
 
 `src/data/eligibility-reference.json` contains three source-bound reference cases
 (COMP6242, COMP8620, MGMT7020), with six fictional record scenarios. The missing
-MGMT7020 section is a reference case only; it does not activate a course rule.
+MGMT7020 section is now also an explicit unknown entry in the full course coverage.
 These cases exercise the prerequisite evaluator, not complete enrolment decisions.
 They are not yet a held-out LLM benchmark. Conditions and source references are
 saved in the existing application check snapshots and survive a reload. The
-full versioned rule-authoring workflow and richer operators remain outstanding.
+full versioned rule-authoring workflow remains outstanding. The follow-up added
+source-bound interpretations or gaps for all 80 course versions, conditional
+permission, course-list credits, course counts, program negation, explicit academic
+career and conservative alternative-reading evaluation. See `catalogue-data.md`
+for the 62 encoded / 16 partial / 2 missing-source breakdown and scope limits.
 The initial foundation required no migration. The subsequent report increment
 uses generated migration `0006_smiling_redwing.sql`; historical snapshots without
 statuses or reports still render correctly.
 
 The first B increment is implemented in `src/lib/demo-assessment.ts` and the
-existing request store. `demo-permission-v1` saves the rule tree and digest,
+existing request store. `demo-permission-v1` originally saved the rule tree and digest,
 record, offering, gate, request reason, explanation, outcome and next steps in
 an application report. Submission, assessment and result events are transactional.
 Automatic met, unmet and incomplete results are immediate, with no fabricated
@@ -73,6 +77,10 @@ scenario. Legacy 2026 transcriptions remain available for staff review and do no
 acquire automatic approval from the new policy. Existing human approvals remain
 valid for their original offering. Change the policy identifier when changing
 decision semantics; previously saved reports retain their original version.
+New assessments now use `demo-permission-v2`, which also allows permission when a
+published conditional trigger applies and all recorded requirements are met.
+The wider source-authored cases are in `spec/catalogue-rule-coverage.test.ts`;
+no live model or model benchmark has been added by the coverage work.
 
 ### Student explanations: context, claims and decisions
 

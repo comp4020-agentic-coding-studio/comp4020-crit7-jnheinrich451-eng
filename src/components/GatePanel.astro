@@ -48,6 +48,12 @@ const preview = canApply ? firstRound(course.code, gate) : null;
       <h2 id="gate-heading">Permission code needed</h2>
       <p>One or more requirements are not met by your fictional record.</p>
     </>
+  ) : gate.outcome === "permission-conditional" ? (
+    <>
+      <h2 id="gate-heading">Permission required in your circumstances</h2>
+      <p>{gate.permissionReason}</p>
+      <p>{hasUnmet ? "Your fictional record also has unmet requirements." : hasUnknown ? "Some requirements remain unresolved." : "Your recorded prerequisites are met. Request permission before confirming enrolment."}</p>
+    </>
   ) : gate.outcome === "permission-always" ? (
     <>
       <h2 id="gate-heading">Permission code required for all students</h2>

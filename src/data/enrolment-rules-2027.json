@@ -1,8 +1,63 @@
 [
   {
+    "code": "COMP6034",
+    "year": 2027,
+    "sourceHash": "50ef8a86e9851f50e26ceebfe90525336c9920707f1d4cc1e25115e68a8b2cf7",
+    "coverage": "encoded",
+    "interpretation": "The program requirement applies to either listed completion.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "program": "VCOMP"
+          },
+          {
+            "any": [
+              {
+                "course": "COMP6800"
+              },
+              {
+                "course": "COMP2700"
+              }
+            ]
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3704"
+      ]
+    }
+  },
+  {
+    "code": "COMP6120",
+    "year": 2027,
+    "sourceHash": "772886bf71e1f9d9e7d65b726870715622cb23d5756e03882be086dbd8327512",
+    "coverage": "encoded",
+    "interpretation": "Either completion or current study of either listed software course qualifies.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "course": "COMP6442",
+            "orEnrolled": true
+          },
+          {
+            "course": "COMP2100",
+            "orEnrolled": true
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP2120"
+      ]
+    }
+  },
+  {
     "code": "COMP6240",
     "year": 2027,
     "sourceHash": "996a6a72be867cd1312287e1c9cc890ab5b9efbe8b96f73065747d4e954058a1",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "incompatible": [
         "COMP2400",
@@ -14,6 +69,8 @@
     "code": "COMP6242",
     "year": 2027,
     "sourceHash": "bf75668796f6b42f8afe9b831f13c6fc695d52fe4e2939bd41c62444a6a070b1",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "all": [
@@ -54,9 +111,61 @@
     }
   },
   {
+    "code": "COMP6250",
+    "year": 2027,
+    "sourceHash": "011fc791dac5dd09aada88770886aba5a5ca2766b36486c622dc2b40f7037124",
+    "coverage": "encoded",
+    "interpretation": "Any one of the four named computing programs qualifies.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "GDCOMP"
+          },
+          {
+            "program": "MCOMP"
+          },
+          {
+            "program": "VCOMP"
+          },
+          {
+            "program": "MMLCV"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "code": "COMP6260",
+    "year": 2027,
+    "sourceHash": "4bd87eb366b15a9c458b6f864d003c477bf49967de68a192434f5f4cbc5c6e57",
+    "coverage": "encoded",
+    "interpretation": "Only the published completion incompatibility is specified; no prerequisite is invented.",
+    "rules": {
+      "incompatible": [
+        "COMP1600"
+      ]
+    }
+  },
+  {
+    "code": "COMP6261",
+    "year": 2027,
+    "sourceHash": "93ff0efbc9a1875810c6f325ab47b19518b6bd1c71191dd148c6da593441a7dd",
+    "coverage": "encoded",
+    "interpretation": "Either named completion excludes enrolment.",
+    "rules": {
+      "incompatible": [
+        "COMP2610",
+        "ENGN8534"
+      ]
+    }
+  },
+  {
     "code": "COMP6262",
     "year": 2027,
     "sourceHash": "6a67d7acbec723dc59ee11772da2cf886670914f4557eaaf6905c22d65fd06a8",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "incompatible": [
         "PHIL2080",
@@ -65,9 +174,80 @@
     }
   },
   {
+    "code": "COMP6300",
+    "year": 2027,
+    "sourceHash": "80c58a68a42aaa58787e63a0e413b184c47b46c28a10eb3d7383822cd1961aaa",
+    "coverage": "encoded",
+    "interpretation": "Program alternatives and the listed programming completions are joined by OR; exclusions apply to all paths.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "MCOMP"
+          },
+          {
+            "program": "VCOMP"
+          },
+          {
+            "any": [
+              {
+                "course": "COMP6710"
+              },
+              {
+                "course": "COMP7710"
+              },
+              {
+                "course": "COMP1110"
+              }
+            ]
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP2300",
+        "ENGN2219",
+        "COMP6719"
+      ]
+    }
+  },
+  {
+    "code": "COMP6310",
+    "year": 2027,
+    "sourceHash": "6e68445b515b2189478f659d87412b85c3836af10e2927e794476fc8b952af27",
+    "coverage": "encoded",
+    "interpretation": "COMP6300 and one programming completion are both required.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "course": "COMP6300"
+          },
+          {
+            "any": [
+              {
+                "course": "COMP6710"
+              },
+              {
+                "course": "COMP7710"
+              },
+              {
+                "course": "COMP1110"
+              }
+            ]
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP2310"
+      ]
+    }
+  },
+  {
     "code": "COMP6320",
     "year": 2027,
     "sourceHash": "07675c0288c84edde843d6b3ab781df088d5c0810fe1af7cf25a96787c8e2812",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "all": [
@@ -107,9 +287,82 @@
     }
   },
   {
+    "code": "COMP6330",
+    "year": 2027,
+    "sourceHash": "1576ca19c8bf6d80b0868a97f195b9e5f45231f20c08c4e9158172651c33d753",
+    "coverage": "encoded",
+    "interpretation": "Only COMP6300 explicitly permits current enrolment; COMP2300 and ENGN2219 require completion.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "VCOMP"
+          },
+          {
+            "course": "COMP6300",
+            "orEnrolled": true
+          },
+          {
+            "course": "COMP2300"
+          },
+          {
+            "course": "ENGN2219"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3300"
+      ]
+    }
+  },
+  {
+    "code": "COMP6331",
+    "year": 2027,
+    "sourceHash": "0f4e5924cb353f3e7ca0829a556c38c8f69de773f201ec27e067eb57e4e51b9e",
+    "coverage": "encoded",
+    "interpretation": "The three parenthesised prerequisite groups are alternatives, not cumulative requirements.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "course": "COMP6710"
+          },
+          {
+            "course": "COMP7710"
+          },
+          {
+            "course": "COMP1110"
+          },
+          {
+            "course": "COMP1140"
+          },
+          {
+            "course": "COMP6310"
+          },
+          {
+            "course": "COMP2310"
+          },
+          {
+            "course": "COMP6442"
+          },
+          {
+            "course": "COMP2100"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3310",
+        "ENGN3539",
+        "ENGN6539"
+      ]
+    }
+  },
+  {
     "code": "COMP6361",
     "year": 2027,
     "sourceHash": "7ca1be92818a9054484c901893791933d2446be6533780d13a821a6d764a135a",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "any": [
@@ -131,9 +384,183 @@
     }
   },
   {
+    "code": "COMP6363",
+    "year": 2027,
+    "sourceHash": "7fb4cbfaf2627c3cb032a2a98b401dbd90bd90609a774fdc0775cce19d269d90",
+    "coverage": "encoded",
+    "interpretation": "Either named computing masters program qualifies.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "MCOMP"
+          },
+          {
+            "program": "VCOMP"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3630"
+      ]
+    }
+  },
+  {
+    "code": "COMP6390",
+    "year": 2027,
+    "sourceHash": "0102a62614afb1ba02e3b0672563d616953ae276c0fd260c6b0e572793f15bdf",
+    "coverage": "encoded",
+    "interpretation": "The program routes are alternatives to six passed units from the named list.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "MCOMP"
+          },
+          {
+            "program": "VCOMP"
+          },
+          {
+            "units": 6,
+            "courses": [
+              "COMP6442",
+              "COMP6710",
+              "COMP6720",
+              "COMP6730",
+              "COMP7710"
+            ],
+            "label": "At least 6 passed units from COMP6442, COMP6710, COMP6720, COMP6730, COMP7710"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3900"
+      ]
+    }
+  },
+  {
+    "code": "COMP6434",
+    "year": 2027,
+    "sourceHash": "c8cf860e1bd38148273b5debb90ea89280d328a7e5b44ff487dd69abe35c65ed",
+    "coverage": "encoded",
+    "interpretation": "Two separate six-unit requirements; each counts only its published list. COMP8930 is preserved as written, not changed to COMP8430.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "units": 6,
+            "courses": [
+              "COMP1110",
+              "COMP1140",
+              "COMP6730",
+              "COMP6710"
+            ],
+            "label": "At least 6 passed units from COMP1110, COMP1140, COMP6730, COMP6710"
+          },
+          {
+            "units": 6,
+            "courses": [
+              "COMP2400",
+              "COMP6240"
+            ],
+            "label": "At least 6 passed units from COMP2400, COMP6240"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3430",
+        "COMP8930"
+      ]
+    }
+  },
+  {
+    "code": "COMP6442",
+    "year": 2027,
+    "sourceHash": "8efd2a2a636f8e877dbd50daa78eaec165b1627c48aafcb509c206989899afae",
+    "coverage": "encoded",
+    "interpretation": "Three explicit OR paths: programming plus mathematics/corequisite; MMLCV plus programming; VCOMP. Incompatibility remains outside all paths.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "all": [
+              {
+                "any": [
+                  {
+                    "course": "COMP6710"
+                  },
+                  {
+                    "course": "COMP7710"
+                  },
+                  {
+                    "course": "COMP1110"
+                  },
+                  {
+                    "course": "COMP1140"
+                  }
+                ]
+              },
+              {
+                "any": [
+                  {
+                    "course": "MATH6005",
+                    "orEnrolled": true
+                  },
+                  {
+                    "course": "COMP6260",
+                    "orEnrolled": true
+                  },
+                  {
+                    "course": "MATH1005",
+                    "orEnrolled": true
+                  },
+                  {
+                    "course": "COMP1600",
+                    "orEnrolled": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "program": "MMLCV"
+              },
+              {
+                "any": [
+                  {
+                    "course": "COMP6710"
+                  },
+                  {
+                    "course": "COMP7710"
+                  },
+                  {
+                    "course": "COMP1110"
+                  },
+                  {
+                    "course": "COMP1140"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "program": "VCOMP"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP2100"
+      ]
+    }
+  },
+  {
     "code": "COMP6445",
     "year": 2027,
     "sourceHash": "d7241a4d92d5dd59632cb9dea01e6acacf67a060a9f6fd1f44b346a1edc13180",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "any": [
@@ -155,6 +582,8 @@
     "code": "COMP6464",
     "year": 2027,
     "sourceHash": "da6648f74a805ab6304f23ea65075b5bbff38864611250c3fe9f26c9c6974218",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "any": [
@@ -191,6 +620,8 @@
     "code": "COMP6466",
     "year": 2027,
     "sourceHash": "b53c80926be0da9b3b8211d88bbeaa2f129a0a647a090f9e6481678b335611c1",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "any": [
@@ -224,9 +655,106 @@
     }
   },
   {
+    "code": "COMP6470",
+    "year": 2027,
+    "sourceHash": "dfd8d46af128b43ac0ef83f64628a73b78e0d390e091313f670384bf64990e0f",
+    "coverage": "encoded",
+    "interpretation": "The saved requisite section specifies permission for everyone and no other academic check. Demo approval is not the School issuing an independent-study contract.",
+    "rules": {
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "COMP6490",
+    "year": 2027,
+    "sourceHash": "4ad02b0b6f25a6540dc1d5a4875b46a5ade47e1299e5cf330b45cce1400c3eae",
+    "coverage": "partial",
+    "interpretation": "The unparenthesised VCOMP OR ... AND ... admits two readings. A decision is made only if both readings agree; shorthand codes are expanded without aliases.",
+    "rules": {
+      "requires": {
+        "interpretations": [
+          {
+            "any": [
+              {
+                "program": "VCOMP"
+              },
+              {
+                "all": [
+                  {
+                    "units": 6,
+                    "courses": [
+                      "COMP6240",
+                      "COMP2400",
+                      "COMP6260",
+                      "COMP1600",
+                      "COMP6442",
+                      "COMP2100"
+                    ],
+                    "label": "At least 6 passed units from COMP6240, COMP2400, COMP6260, COMP1600, COMP6442, COMP2100"
+                  },
+                  {
+                    "units": 6,
+                    "courses": [
+                      "COMP6730",
+                      "COMP1730",
+                      "COMP6710",
+                      "COMP1110"
+                    ],
+                    "label": "At least 6 passed units from COMP6730, COMP1730, COMP6710, COMP1110"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "any": [
+                  {
+                    "program": "VCOMP"
+                  },
+                  {
+                    "units": 6,
+                    "courses": [
+                      "COMP6240",
+                      "COMP2400",
+                      "COMP6260",
+                      "COMP1600",
+                      "COMP6442",
+                      "COMP2100"
+                    ],
+                    "label": "At least 6 passed units from COMP6240, COMP2400, COMP6260, COMP1600, COMP6442, COMP2100"
+                  }
+                ]
+              },
+              {
+                "units": 6,
+                "courses": [
+                  "COMP6730",
+                  "COMP1730",
+                  "COMP6710",
+                  "COMP1110"
+                ],
+                "label": "At least 6 passed units from COMP6730, COMP1730, COMP6710, COMP1110"
+              }
+            ]
+          }
+        ],
+        "label": "COMP6490: whether the second six-unit group also applies to the VCOMP alternative",
+        "nextAction": "Clarify the AND/OR grouping in the published COMP6490 requirement before deciding this case."
+      },
+      "incompatible": [
+        "COMP4650",
+        "COMP6990"
+      ]
+    }
+  },
+  {
     "code": "COMP6528",
     "year": 2027,
     "sourceHash": "936dd6aa62bc85c2c1837fc0bc2f470adca196fdde92324b01c9f788c64c8079",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "any": [
@@ -255,6 +783,8 @@
     "code": "COMP6540",
     "year": 2027,
     "sourceHash": "fc7b9931cea5903b2a9bd84f089ad6679b68d08842be36b4a69c56937be21a83",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "any": [
@@ -282,9 +812,258 @@
     }
   },
   {
+    "code": "COMP6670",
+    "year": 2027,
+    "sourceHash": "f4ac1ede9ede968e48713ca0d5ece1f65ebd99be5b0e27785588599f903bc733",
+    "coverage": "encoded",
+    "interpretation": "Current enrolment applies only to the postgraduate programming group; undergraduate alternatives require completion.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "VCOMP"
+          },
+          {
+            "course": "COMP6710",
+            "orEnrolled": true
+          },
+          {
+            "course": "COMP7710",
+            "orEnrolled": true
+          },
+          {
+            "course": "COMP6730",
+            "orEnrolled": true
+          },
+          {
+            "course": "COMP1110"
+          },
+          {
+            "course": "COMP1140"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3670"
+      ]
+    }
+  },
+  {
+    "code": "COMP6710",
+    "year": 2027,
+    "sourceHash": "94500472a0d0f3151d44a4e952d48137729b9cbe479dd0c83b2536711652703b",
+    "coverage": "encoded",
+    "interpretation": "VCOMP is explicitly excluded. Do not turn this into a positive VCOMP prerequisite or invent a concurrent-course exclusion.",
+    "rules": {
+      "requires": {
+        "not": {
+          "program": "VCOMP"
+        }
+      },
+      "incompatible": [
+        "COMP1110",
+        "COMP1140",
+        "COMP7710"
+      ]
+    }
+  },
+  {
+    "code": "COMP6720",
+    "year": 2027,
+    "sourceHash": "937f779ad552aa4f88983b6fa646dd5ee45b1a9223bc26197d65533d483d2493",
+    "coverage": "encoded",
+    "interpretation": "The saved paragraph specifies the completion exclusion only.",
+    "rules": {
+      "incompatible": [
+        "COMP1720"
+      ]
+    }
+  },
+  {
+    "code": "COMP6730",
+    "year": 2027,
+    "sourceHash": "9ea8f632813c47547fab8525243e2b336ea29152be4222c2656c6f1e967b5903",
+    "coverage": "encoded",
+    "interpretation": "Every listed successfully completed course is an exclusion.",
+    "rules": {
+      "incompatible": [
+        "COMP1100",
+        "COMP1130",
+        "COMP1730",
+        "COMP6710",
+        "COMP7710"
+      ]
+    }
+  },
+  {
+    "code": "COMP6780",
+    "year": 2027,
+    "sourceHash": "1e2451c1f9c9d27f193233df2bbfb628b420237e43ac4a15e8e189386fa08af9",
+    "coverage": "encoded",
+    "interpretation": "Requires verified postgraduate career in the fictional record, not a postgraduate-looking course number.",
+    "rules": {
+      "requires": {
+        "career": "postgraduate"
+      },
+      "incompatible": [
+        "COMP1710"
+      ]
+    }
+  },
+  {
+    "code": "COMP6800",
+    "year": 2027,
+    "sourceHash": "1ca4ad4ee1942a38c10bc9f1bac150dbb6e2ca7daaa7afbaaf39cd0a72eb2000",
+    "coverage": "encoded",
+    "interpretation": "Only the named Computing (Advanced) program qualifies.",
+    "rules": {
+      "requires": {
+        "program": "VCOMP"
+      },
+      "incompatible": [
+        "COMP2700"
+      ]
+    }
+  },
+  {
+    "code": "COMP7710",
+    "year": 2027,
+    "sourceHash": "26e64aa8e5553b48734121517dc2edf47a6de0b78f8faccb989bd6204403e046",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
+    "rules": {
+      "incompatible": [
+        "COMP1110",
+        "COMP1140",
+        "COMP6710"
+      ],
+      "incompatibleEnrolled": [
+        "COMP1110",
+        "COMP1140",
+        "COMP6710"
+      ]
+    }
+  },
+  {
+    "code": "COMP8011",
+    "year": 2027,
+    "sourceHash": "1887f5706512030dc47e708d8bfa13fcb17bb90b55c70455bd7ac867c2e4b3bb",
+    "coverage": "partial",
+    "interpretation": "Twelve COMP6 units are checkable; announced topic conditions are not supplied. Permission applies to everyone.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "units": 12,
+            "prefix": "COMP6",
+            "label": "At least 12 passed units of 6000-level COMP courses"
+          },
+          {
+            "unknown": "Additional prerequisites for the announced COMP8011 topic are absent from the saved page",
+            "nextAction": "Supply the topic announcement for this offering of COMP8011 and interpret its additional conditions."
+          }
+        ]
+      },
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "COMP8020",
+    "year": 2027,
+    "sourceHash": "84fc152e525b106175f2ef03701d703b65eab319877cbce01caeb296e7179055",
+    "coverage": "partial",
+    "interpretation": "Base completion, additional announced topic conditions and blanket permission are separate.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "course": "COMP6390"
+          },
+          {
+            "unknown": "Additional prerequisites for the announced COMP8020 topic are absent from the saved page",
+            "nextAction": "Supply the topic announcement for this offering of COMP8020 and interpret its additional conditions."
+          }
+        ]
+      },
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "COMP8045",
+    "year": 2027,
+    "sourceHash": "02d2e13467c34200edf8fd60425de668ef4752923fcd9db24bc1056e35cfb4ff",
+    "coverage": "partial",
+    "interpretation": "Twelve COMP6 units are checkable; announced topic conditions are not supplied. Permission applies to everyone.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "units": 12,
+            "prefix": "COMP6",
+            "label": "At least 12 passed units of 6000-level COMP courses"
+          },
+          {
+            "unknown": "Additional prerequisites for the announced COMP8045 topic are absent from the saved page",
+            "nextAction": "Supply the topic announcement for this offering of COMP8045 and interpret its additional conditions."
+          }
+        ]
+      },
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "COMP8131",
+    "year": 2027,
+    "sourceHash": "b3cbd634635fe80dadd806abf6da943f86212c761e27218928048700b8a920a0",
+    "coverage": "encoded",
+    "interpretation": "Both VCOMP and COMP6800 completion are required.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "program": "VCOMP"
+          },
+          {
+            "course": "COMP6800"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP4130"
+      ]
+    }
+  },
+  {
+    "code": "COMP8260",
+    "year": 2027,
+    "sourceHash": "369e4af3401a7fcb06d68f12135aba1e8b6f68512871a93ab19c03472c3328d3",
+    "coverage": "encoded",
+    "interpretation": "Any one of the four named computing programs qualifies.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "GDCOMP"
+          },
+          {
+            "program": "MCOMP"
+          },
+          {
+            "program": "VCOMP"
+          },
+          {
+            "program": "MMLCV"
+          }
+        ]
+      }
+    }
+  },
+  {
     "code": "COMP8280",
     "year": 2027,
     "sourceHash": "b694f25cda8734961114eac4d0473f62d03289d92e44654662e1577b1769823b",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "any": [
@@ -310,18 +1089,11 @@
     }
   },
   {
-    "code": "COMP7710",
-    "year": 2027,
-    "sourceHash": "26e64aa8e5553b48734121517dc2edf47a6de0b78f8faccb989bd6204403e046",
-    "rules": {
-      "incompatible": ["COMP1110", "COMP1140", "COMP6710"],
-      "incompatibleEnrolled": ["COMP1110", "COMP1140", "COMP6710"]
-    }
-  },
-  {
     "code": "COMP8300",
     "year": 2027,
     "sourceHash": "710ac8717a4aa82ad8674eb3f851ba0edb2f330c0de17b7e6a0cd32f4694980a",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "any": [
@@ -357,9 +1129,33 @@
     }
   },
   {
+    "code": "COMP8350",
+    "year": 2027,
+    "sourceHash": "adc914b71b7f9059694722e423d2025f2de2724d9e31ebcac1d5d50414c2161c",
+    "coverage": "encoded",
+    "interpretation": "Either prerequisite completion qualifies; the incompatibility remains independent.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "course": "COMP6390"
+          },
+          {
+            "course": "COMP6720"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP4350"
+      ]
+    }
+  },
+  {
     "code": "COMP8410",
     "year": 2027,
     "sourceHash": "ec4a1254da4a213677699da0c00f647d00abbe62f2e8a8eca4b01a0abde76398",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "all": [
@@ -400,9 +1196,251 @@
     }
   },
   {
+    "code": "COMP8430",
+    "year": 2027,
+    "sourceHash": "212b0608fc327b59ebd21dd94aedeac5f220f832d6287f695f938b3e53ce8a9c",
+    "coverage": "partial",
+    "interpretation": "Permission is conditional on intensive mode; neither all students nor all summer offerings are assumed to need it.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "any": [
+              {
+                "course": "COMP7230"
+              },
+              {
+                "course": "COMP6730"
+              },
+              {
+                "course": "COMP6710"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "course": "COMP7240"
+              },
+              {
+                "course": "COMP6240"
+              }
+            ]
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3430"
+      ],
+      "permissionIf": {
+        "unknown": "Whether this offering is in intensive mode is not recorded",
+        "nextAction": "Supply the offering delivery-mode evidence; a session name alone does not establish intensive mode."
+      },
+      "permissionReason": "A permission code is required when COMP8430 is taken in intensive mode."
+    }
+  },
+  {
+    "code": "COMP8460",
+    "year": 2027,
+    "sourceHash": "59fbb8fde9036e84874ea74283705f1a8ff8ac40e746f1508d1087779214b79d",
+    "coverage": "encoded",
+    "interpretation": "Either algorithms completion qualifies.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "course": "COMP6466"
+          },
+          {
+            "course": "COMP3600"
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP4600"
+      ]
+    }
+  },
+  {
+    "code": "COMP8490",
+    "year": 2027,
+    "sourceHash": "4428311742c9644f3c4c4b77d7a6af95d0e3f0d16f771af890526f40414f6dde",
+    "coverage": "partial",
+    "interpretation": "The unparenthesised VCOMP OR ... AND ... admits two readings. A decision is made only if both readings agree; shorthand codes are expanded without aliases.",
+    "rules": {
+      "requires": {
+        "interpretations": [
+          {
+            "any": [
+              {
+                "program": "VCOMP"
+              },
+              {
+                "all": [
+                  {
+                    "units": 6,
+                    "courses": [
+                      "COMP6240",
+                      "COMP2400",
+                      "COMP6260",
+                      "COMP1600",
+                      "COMP6442",
+                      "COMP2100"
+                    ],
+                    "label": "At least 6 passed units from COMP6240, COMP2400, COMP6260, COMP1600, COMP6442, COMP2100"
+                  },
+                  {
+                    "units": 6,
+                    "courses": [
+                      "COMP6730",
+                      "COMP1730",
+                      "COMP6710",
+                      "COMP1110"
+                    ],
+                    "label": "At least 6 passed units from COMP6730, COMP1730, COMP6710, COMP1110"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "any": [
+                  {
+                    "program": "VCOMP"
+                  },
+                  {
+                    "units": 6,
+                    "courses": [
+                      "COMP6240",
+                      "COMP2400",
+                      "COMP6260",
+                      "COMP1600",
+                      "COMP6442",
+                      "COMP2100"
+                    ],
+                    "label": "At least 6 passed units from COMP6240, COMP2400, COMP6260, COMP1600, COMP6442, COMP2100"
+                  }
+                ]
+              },
+              {
+                "units": 6,
+                "courses": [
+                  "COMP6730",
+                  "COMP1730",
+                  "COMP6710",
+                  "COMP1110"
+                ],
+                "label": "At least 6 passed units from COMP6730, COMP1730, COMP6710, COMP1110"
+              }
+            ]
+          }
+        ],
+        "label": "COMP8490: whether the second six-unit group also applies to the VCOMP alternative",
+        "nextAction": "Clarify the AND/OR grouping in the published COMP8490 requirement before deciding this case."
+      },
+      "incompatible": [
+        "COMP4650",
+        "COMP6490",
+        "COMP6990"
+      ]
+    }
+  },
+  {
+    "code": "COMP8500",
+    "year": 2027,
+    "sourceHash": "5d5262a75734f5cfd79743cf0ac50f5d2037a7c320149783da7f21efc6c51dee",
+    "coverage": "encoded",
+    "interpretation": "MCOMP and MMLCV are separate paths. COMP6250 is accepted in the MMLCV path only; the software-engineering corequisite belongs to MCOMP only.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "all": [
+              {
+                "program": "MCOMP"
+              },
+              {
+                "any": [
+                  {
+                    "course": "COMP6442"
+                  },
+                  {
+                    "course": "COMP2100"
+                  }
+                ]
+              },
+              {
+                "any": [
+                  {
+                    "course": "COMP8260"
+                  },
+                  {
+                    "course": "COMP8280"
+                  }
+                ]
+              },
+              {
+                "any": [
+                  {
+                    "course": "COMP6120",
+                    "orEnrolled": true
+                  },
+                  {
+                    "course": "COMP2120",
+                    "orEnrolled": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "program": "MMLCV"
+              },
+              {
+                "any": [
+                  {
+                    "course": "COMP6442"
+                  },
+                  {
+                    "course": "COMP2100"
+                  }
+                ]
+              },
+              {
+                "any": [
+                  {
+                    "course": "COMP6250"
+                  },
+                  {
+                    "course": "COMP8260"
+                  },
+                  {
+                    "course": "COMP8280"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP8755",
+        "COMP8830",
+        "COMP8800",
+        "COMP8715"
+      ]
+    }
+  },
+  {
     "code": "COMP8535",
     "year": 2027,
     "sourceHash": "aa1e1e01d0ff7636a2f80701d4f7962a647af83b1d27aa9872415d4b4ad5ecde",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "all": [
@@ -426,9 +1464,76 @@
     }
   },
   {
+    "code": "COMP8536",
+    "year": 2027,
+    "sourceHash": "c28c023bfd934dd06a7112f001c023ff2e19bc2effbe124dab45d011c1ce2840",
+    "coverage": "partial",
+    "interpretation": "Known listed completions can settle the OR branch. An absent named completion does not rule out the explicitly allowed equivalence path. Exact program names are retained when the paragraph supplies no program code. Existing Computing profiles are not treated as equivalent programs.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "any": [
+              {
+                "program": "Master of Engineering"
+              },
+              {
+                "program": "MMLCV"
+              },
+              {
+                "program": "VCOMP"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "course": "COMP6710"
+              },
+              {
+                "course": "COMP6730"
+              },
+              {
+                "unknown": "Equivalent programming study has not been established",
+                "nextAction": "Supply the transcript and syllabus for an authorised equivalence decision."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "code": "COMP8539",
+    "year": 2027,
+    "sourceHash": "7b669880c8032ee464b1894863b5c7a23fe7b5e8304e569b2f18a9a048f18081",
+    "coverage": "encoded",
+    "interpretation": "Do not add ENGN6528 as a prerequisite synonym; it is not listed in this paragraph.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "course": "COMP6528"
+          },
+          {
+            "course": "COMP4528"
+          },
+          {
+            "course": "ENGN4528"
+          }
+        ]
+      },
+      "incompatible": [
+        "ENGN8501"
+      ]
+    }
+  },
+  {
     "code": "COMP8600",
     "year": 2027,
     "sourceHash": "0d2d65b7015d9d7518606d41a2cefcb120aa6fd7fd9e2dbe66de5890c061f70c",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "any": [
@@ -446,13 +1551,100 @@
     }
   },
   {
+    "code": "COMP8610",
+    "year": 2027,
+    "sourceHash": "c2177b6c9d90295c855abf38be3d538818d99e6a792e5303937a9d686154a2ae",
+    "coverage": "encoded",
+    "interpretation": "Three OR paths: VCOMP; MMLCV with programming; programming with one listed additional completion.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "VCOMP"
+          },
+          {
+            "all": [
+              {
+                "program": "MMLCV"
+              },
+              {
+                "any": [
+                  {
+                    "course": "COMP6710"
+                  },
+                  {
+                    "course": "COMP1110"
+                  },
+                  {
+                    "course": "COMP1140"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "any": [
+                  {
+                    "course": "COMP6710"
+                  },
+                  {
+                    "course": "COMP1110"
+                  },
+                  {
+                    "course": "COMP1140"
+                  }
+                ]
+              },
+              {
+                "any": [
+                  {
+                    "course": "COMP6390"
+                  },
+                  {
+                    "course": "COMP6442"
+                  },
+                  {
+                    "course": "COMP6540"
+                  },
+                  {
+                    "course": "COMP6780"
+                  },
+                  {
+                    "course": "COMP6720"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP4610",
+        "COMP6461"
+      ]
+    }
+  },
+  {
     "code": "COMP8620",
     "year": 2027,
     "sourceHash": "76a7b02a678a1decce52c04eaef9856b11e98b17d2cd17e2f15217406eea64c6",
+    "coverage": "partial",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "all": [
-          { "any": [{ "course": "COMP6320" }, { "course": "COMP3620" }] },
+          {
+            "any": [
+              {
+                "course": "COMP6320"
+              },
+              {
+                "course": "COMP3620"
+              }
+            ]
+          },
           {
             "unknown": "Additional prerequisites for the announced COMP8620 topic are not in the saved evidence",
             "nextAction": "Supply the topic announcement for this offering and review its prerequisite conditions."
@@ -467,9 +1659,39 @@
     }
   },
   {
+    "code": "COMP8650",
+    "year": 2027,
+    "sourceHash": "bc507608557955b611ffdc3f987f64fa19fe07cfbb95a03bf7b0343840e0917c",
+    "coverage": "partial",
+    "interpretation": "Base ML prerequisite does not settle the separately announced topic conditions.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "any": [
+              {
+                "course": "COMP6670"
+              },
+              {
+                "course": "COMP8600"
+              }
+            ]
+          },
+          {
+            "unknown": "Additional prerequisites for the announced COMP8650 topic are absent from the saved page",
+            "nextAction": "Supply the topic announcement for this offering of COMP8650 and interpret its additional conditions."
+          }
+        ]
+      },
+      "permissionAlways": true
+    }
+  },
+  {
     "code": "COMP8691",
     "year": 2027,
     "sourceHash": "6c8610295d1e7afdc6c3f7dc451b496224347a060a5c34486527a232f23cc7ef",
+    "coverage": "encoded",
+    "interpretation": "Retains the existing source-bound prototype interpretation; see prior source review and tests.",
     "rules": {
       "requires": {
         "any": [
@@ -484,6 +1706,903 @@
       "incompatible": [
         "COMP4690"
       ]
+    }
+  },
+  {
+    "code": "COMP8703",
+    "year": 2027,
+    "sourceHash": "e8d2641890eee1a86325bfb7f045239980619a19a072453abdeeedb226b9dcce",
+    "coverage": "encoded",
+    "interpretation": "The program restriction applies to both completion alternatives.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "program": "VCOMP"
+          },
+          {
+            "any": [
+              {
+                "course": "COMP6034"
+              },
+              {
+                "course": "COMP3704"
+              }
+            ]
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP3703",
+        "COMP4703"
+      ]
+    }
+  },
+  {
+    "code": "COMP8712",
+    "year": 2027,
+    "sourceHash": "da626df109422a1769efa80d56aa92d00c1b8ee207bcb6ec02cb8916231499ef",
+    "coverage": "encoded",
+    "interpretation": "Prior project completion triggers permission; it is not an incompatibility or a waiver of COMP6442 and COMP6310.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "course": "COMP6442"
+          },
+          {
+            "course": "COMP6310"
+          }
+        ]
+      },
+      "permissionIf": {
+        "any": [
+          {
+            "course": "COMP3710"
+          },
+          {
+            "course": "COMP6470"
+          }
+        ]
+      },
+      "permissionReason": "Students who previously completed COMP3710 or COMP6470 must contact CSS Student Services for a permission code."
+    }
+  },
+  {
+    "code": "COMP8715",
+    "year": 2027,
+    "sourceHash": "ba3edf311761c8f5801ff55b96242915741aeee8a5b3bc35fa7e31c21a65f13e",
+    "coverage": "partial",
+    "interpretation": "Academic paths are separate from the mandatory approved-project/group condition. No blanket permission-code requirement is inferred from project approval.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "any": [
+              {
+                "all": [
+                  {
+                    "program": "MCOMP"
+                  },
+                  {
+                    "any": [
+                      {
+                        "course": "COMP6442"
+                      },
+                      {
+                        "course": "COMP2100"
+                      }
+                    ]
+                  },
+                  {
+                    "any": [
+                      {
+                        "course": "COMP6250"
+                      },
+                      {
+                        "course": "COMP8260"
+                      },
+                      {
+                        "course": "COMP8280"
+                      }
+                    ]
+                  },
+                  {
+                    "any": [
+                      {
+                        "course": "COMP2120",
+                        "orEnrolled": true
+                      },
+                      {
+                        "course": "COMP6120",
+                        "orEnrolled": true
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "all": [
+                  {
+                    "program": "MMLCV"
+                  },
+                  {
+                    "any": [
+                      {
+                        "course": "COMP6442"
+                      },
+                      {
+                        "course": "COMP2100"
+                      }
+                    ]
+                  },
+                  {
+                    "any": [
+                      {
+                        "course": "COMP6250"
+                      },
+                      {
+                        "course": "COMP8260"
+                      },
+                      {
+                        "course": "COMP8280"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unknown": "Membership of an approved student project group before the end of week 1 is not established",
+            "nextAction": "Supply evidence of group membership, timing, convener approval and the applicable project eligibility criteria."
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP8755",
+        "COMP8830",
+        "COMP8800"
+      ]
+    }
+  },
+  {
+    "code": "COMP8800",
+    "year": 2027,
+    "sourceHash": "006271e142fd95d71e8bb6ab1f9eb6a6e7f92949d2d24f77ff98825ef646a974",
+    "coverage": "partial",
+    "interpretation": "Unparenthesised program scope is unresolved when its readings disagree. GPA and project-registration evidence cannot be inferred from course completions.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "interpretations": [
+              {
+                "all": [
+                  {
+                    "any": [
+                      {
+                        "program": "VCOMP"
+                      },
+                      {
+                        "program": "MMLCV"
+                      }
+                    ]
+                  },
+                  {
+                    "all": [
+                      {
+                        "course": "COMP6445",
+                        "orEnrolled": true
+                      },
+                      {
+                        "any": [
+                          {
+                            "course": "COMP6250"
+                          },
+                          {
+                            "course": "COMP8260"
+                          },
+                          {
+                            "course": "COMP8280"
+                          }
+                        ]
+                      },
+                      {
+                        "units": 36,
+                        "prefix": "COMP",
+                        "label": "At least 36 passed COMP units"
+                      },
+                      {
+                        "unknown": "The required GPA of 6 out of 7 is not available",
+                        "nextAction": "Supply the applicable verified GPA and its calculation scope; grades alone do not establish it."
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "any": [
+                  {
+                    "program": "VCOMP"
+                  },
+                  {
+                    "all": [
+                      {
+                        "program": "MMLCV"
+                      },
+                      {
+                        "all": [
+                          {
+                            "course": "COMP6445",
+                            "orEnrolled": true
+                          },
+                          {
+                            "any": [
+                              {
+                                "course": "COMP6250"
+                              },
+                              {
+                                "course": "COMP8260"
+                              },
+                              {
+                                "course": "COMP8280"
+                              }
+                            ]
+                          },
+                          {
+                            "units": 36,
+                            "prefix": "COMP",
+                            "label": "At least 36 passed COMP units"
+                          },
+                          {
+                            "unknown": "The required GPA of 6 out of 7 is not available",
+                            "nextAction": "Supply the applicable verified GPA and its calculation scope; grades alone do not establish it."
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "label": "COMP8800: the scope of the academic conditions following the program alternatives",
+            "nextAction": "Clarify the AND/OR grouping in the published COMP8800 requirement before deciding this case."
+          },
+          {
+            "unknown": "Completion of project enrolment steps and submission of the Student Project Registration Form are not established",
+            "nextAction": "Supply confirmation of the project registration form and the published project enrolment steps."
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP8715",
+        "COMP8830"
+      ],
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "COMP8820",
+    "year": 2027,
+    "sourceHash": "14898e0b1fa0f4419d69dd8ab3300236df52a47748321d7b29249e07d1a2e57b",
+    "coverage": "encoded",
+    "interpretation": "The saved requisite section specifies blanket permission only; its shell code is not treated as a substitute for another course.",
+    "rules": {
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "COMP8830",
+    "year": 2027,
+    "sourceHash": "5f226f1400f49e0658ac1f969b1fa22b254e6950c3d522ef721614158ff22a5f",
+    "coverage": "partial",
+    "interpretation": "Both program alternatives require the listed academic completions; neither academic success nor a student statement establishes competitive selection.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "any": [
+              {
+                "program": "MCOMP"
+              },
+              {
+                "program": "MMLCV"
+              }
+            ]
+          },
+          {
+            "course": "COMP6442"
+          },
+          {
+            "any": [
+              {
+                "course": "COMP6250"
+              },
+              {
+                "course": "COMP8260"
+              },
+              {
+                "course": "COMP8280"
+              }
+            ]
+          },
+          {
+            "unknown": "The competitive-entry selection decision is not recorded",
+            "nextAction": "Supply the authorised competitive-entry outcome for this offering."
+          }
+        ]
+      },
+      "incompatible": [
+        "COMP8715",
+        "COMP8755",
+        "COMP8800"
+      ],
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "COMP8880",
+    "year": 2027,
+    "sourceHash": "4bf024afc6c82cf12624321234baa1aba3164162732ccbe2b4a71fe0eb6d9ee2",
+    "coverage": "encoded",
+    "interpretation": "Kept separate from COMP8980 despite the shared title; no reciprocal incompatibility is invented.",
+    "rules": {
+      "requires": {
+        "course": "COMP6670"
+      },
+      "incompatible": [
+        "COMP4880"
+      ]
+    }
+  },
+  {
+    "code": "COMP8980",
+    "year": 2027,
+    "sourceHash": "991e5d1a734b412faade0b7c8c0158e90cf7d91d23cbc90ba59c66f7cb69502a",
+    "coverage": "partial",
+    "interpretation": "Preserve the explicit MADAN code and both plausible AND/OR readings. Shared title does not identify COMP8880 with this course.",
+    "rules": {
+      "requires": {
+        "interpretations": [
+          {
+            "any": [
+              {
+                "course": "COMP6670"
+              },
+              {
+                "all": [
+                  {
+                    "any": [
+                      {
+                        "course": "COMP6710"
+                      },
+                      {
+                        "course": "COMP6730"
+                      },
+                      {
+                        "course": "COMP7230"
+                      }
+                    ]
+                  },
+                  {
+                    "all": [
+                      {
+                        "course": "COMP8410"
+                      },
+                      {
+                        "course": "STAT6039"
+                      },
+                      {
+                        "program": "MADAN"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "any": [
+                  {
+                    "course": "COMP6670"
+                  },
+                  {
+                    "any": [
+                      {
+                        "course": "COMP6710"
+                      },
+                      {
+                        "course": "COMP6730"
+                      },
+                      {
+                        "course": "COMP7230"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "all": [
+                  {
+                    "course": "COMP8410"
+                  },
+                  {
+                    "course": "STAT6039"
+                  },
+                  {
+                    "program": "MADAN"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "label": "COMP8980: whether COMP8410, STAT6039 and MADAN apply to the COMP6670 alternative",
+        "nextAction": "Clarify the AND/OR grouping in the published COMP8980 requirement before deciding this case."
+      },
+      "incompatible": [
+        "COMP4880",
+        "COMP8880"
+      ]
+    }
+  },
+  {
+    "code": "ENGN6213",
+    "year": 2027,
+    "sourceHash": "f62525c4bbbc0860b38a8116ce0cb43aa2fa9c62d9ae50ce7320c789383b8393",
+    "coverage": "encoded",
+    "interpretation": "Exact program names are retained when the paragraph supplies no program code. Existing Computing profiles are not treated as equivalent programs.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "Master of Engineering"
+          },
+          {
+            "program": "MCOMP"
+          },
+          {
+            "program": "VCOMP"
+          }
+        ]
+      },
+      "incompatible": [
+        "ENGN4213"
+      ]
+    }
+  },
+  {
+    "code": "ENGN6528",
+    "year": 2027,
+    "sourceHash": "16e604fbf12134570a92e3783dce21bb92aabeacf61e320832e17d9518e556f3",
+    "coverage": "encoded",
+    "interpretation": "Exact program names are retained when the paragraph supplies no program code. Existing Computing profiles are not treated as equivalent programs.",
+    "rules": {
+      "requires": {
+        "program": "Master of Engineering"
+      },
+      "incompatible": [
+        "COMP6528",
+        "COMP4528",
+        "ENGN4528"
+      ]
+    }
+  },
+  {
+    "code": "ENGN6627",
+    "year": 2027,
+    "sourceHash": "f3833469fb1dfa5191c14399677ebd5e4e0dd962628369f190771db3b9939d6d",
+    "coverage": "encoded",
+    "interpretation": "Electrical Engineering is not broadened to any engineering masters. Exact program names are retained when the paragraph supplies no program code. Existing Computing profiles are not treated as equivalent programs.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "Master of Engineering in Electrical Engineering"
+          },
+          {
+            "program": "MMLCV"
+          }
+        ]
+      },
+      "incompatible": [
+        "ENGN4627"
+      ]
+    }
+  },
+  {
+    "code": "ENGN8100",
+    "year": 2027,
+    "sourceHash": "51b1d52ffb2686fac68aa80cd05900fadb2a22c9f22cbb5d3081df3cda6df575",
+    "coverage": "encoded",
+    "interpretation": "Exact program names are retained when the paragraph supplies no program code. Existing Computing profiles are not treated as equivalent programs.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "Master of Engineering"
+          },
+          {
+            "program": "MCOMP"
+          },
+          {
+            "program": "VCOMP"
+          },
+          {
+            "program": "Master of Project Management"
+          },
+          {
+            "program": "Master of Business Information Systems"
+          },
+          {
+            "program": "Graduate Certificate in Nuclear Technology and Regulation"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "code": "ENGN9820",
+    "year": 2027,
+    "sourceHash": "7cc65b3cb230f50667b7f75a0bf85c37b9717f3f282a685b8cd8d3073f1f7633",
+    "coverage": "encoded",
+    "interpretation": "The saved requisite section specifies blanket School of Engineering permission only.",
+    "rules": {
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "ENVS6025",
+    "year": 2027,
+    "sourceHash": "c4ce140e00e6e4eb9eda07bf1ca14c59d3c26ac7e3971f553420c75390ddcd9f",
+    "coverage": "encoded",
+    "interpretation": "Completion exclusion only; no prerequisite is invented.",
+    "rules": {
+      "incompatible": [
+        "ENVS3040"
+      ]
+    }
+  },
+  {
+    "code": "INFS8004",
+    "year": 2027,
+    "sourceHash": "148ff0e2f830f848fd5ffa55ad7b33366b1ebc1a4d328c9c3ce127e54965d36f",
+    "coverage": "encoded",
+    "interpretation": "The explicitly named MMGNT program OR completion of INFS7004 qualifies.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "MMGNT"
+          },
+          {
+            "course": "INFS7004"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "code": "INFS8205",
+    "year": 2027,
+    "sourceHash": "507ed2e1e18f77bb27fbcb5c433723464d197f4eb20407eab1886ae2b66f7f68",
+    "coverage": "encoded",
+    "interpretation": "MMGNT is an alternative to any one listed completion.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "MMGNT"
+          },
+          {
+            "any": [
+              {
+                "course": "INFS8004"
+              },
+              {
+                "course": "INFS8008"
+              },
+              {
+                "course": "INFS8210"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "code": "LAWS8445",
+    "year": 2027,
+    "sourceHash": "684c85521f1be488c6d87567b792997e192c3d4004e4d26d5bec4573c54a1b2a",
+    "coverage": "partial",
+    "interpretation": "Named law-program paths and the wider graduate application path are retained separately. Case-by-case acceptance is unresolved; no grade or statement supplies it. Permission is attached to the general graduate route, not invented as blanket permission for ordinary law students.",
+    "rules": {
+      "requires": {
+        "all": [
+          {
+            "any": [
+              {
+                "any": [
+                  {
+                    "all": [
+                      {
+                        "any": [
+                          {
+                            "program": "MLLM"
+                          },
+                          {
+                            "program": "CLAW"
+                          },
+                          {
+                            "program": "MFIML"
+                          }
+                        ]
+                      },
+                      {
+                        "course": "LAWS8586",
+                        "orEnrolled": true
+                      }
+                    ]
+                  },
+                  {
+                    "program": "Graduate Certificate of New Technologies Law"
+                  },
+                  {
+                    "all": [
+                      {
+                        "program": "MJD"
+                      },
+                      {
+                        "courseCount": 5,
+                        "prefix": "LAWS61",
+                        "orEnrolled": true,
+                        "label": "Five distinct 6100-level LAWS courses, completed or currently enrolled"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "career": "postgraduate"
+              }
+            ]
+          },
+          {
+            "unknown": "Case-by-case acceptance by the ANU College of Law is not established",
+            "nextAction": "Supply the College of Law acceptance and applicable permission decision."
+          }
+        ]
+      },
+      "incompatible": [
+        "LAWS4245"
+      ],
+      "permissionIf": {
+        "all": [
+          {
+            "not": {
+              "any": [
+                {
+                  "all": [
+                    {
+                      "any": [
+                        {
+                          "program": "MLLM"
+                        },
+                        {
+                          "program": "CLAW"
+                        },
+                        {
+                          "program": "MFIML"
+                        }
+                      ]
+                    },
+                    {
+                      "course": "LAWS8586",
+                      "orEnrolled": true
+                    }
+                  ]
+                },
+                {
+                  "program": "Graduate Certificate of New Technologies Law"
+                },
+                {
+                  "all": [
+                    {
+                      "program": "MJD"
+                    },
+                    {
+                      "courseCount": 5,
+                      "prefix": "LAWS61",
+                      "orEnrolled": true,
+                      "label": "Five distinct 6100-level LAWS courses, completed or currently enrolled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "career": "postgraduate"
+          }
+        ]
+      },
+      "permissionReason": "The general graduate-program application path requires appropriate permission from the College of Law."
+    }
+  },
+  {
+    "code": "MATH6005",
+    "year": 2027,
+    "sourceHash": "864a9aa7ca24d1b41e924f449af25f0a592728d31fe095b14cc04ec10341767f",
+    "coverage": "partial",
+    "interpretation": "The paragraph restricts CECS students, not all students. GDCOMP and MCOMP satisfy that restriction; other program names alone do not establish its applicability.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "any": [
+              {
+                "program": "GDCOMP"
+              },
+              {
+                "program": "MCOMP"
+              }
+            ]
+          },
+          {
+            "unknown": "Whether the CECS-only program restriction applies to this student is not established",
+            "nextAction": "Confirm the student’s college and the applicable enrolment rule before applying the CECS restriction."
+          }
+        ]
+      },
+      "incompatible": [
+        "MATH1005"
+      ]
+    }
+  },
+  {
+    "code": "MATH6111",
+    "year": 2027,
+    "sourceHash": "d2575af7d0e8765120ea6072d44ac090f6fe2383e533838890c9d3f2ad082ea8",
+    "coverage": "encoded",
+    "interpretation": "The completion exclusion and blanket permission requirement are independent.",
+    "rules": {
+      "incompatible": [
+        "MATH3511"
+      ],
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "MATH6112",
+    "year": 2027,
+    "sourceHash": "46219c7350c7bf26873d24fd26a978d63bc79c60384fc85702157dd42ce292ab",
+    "coverage": "encoded",
+    "interpretation": "The completion exclusion and blanket permission requirement are independent.",
+    "rules": {
+      "incompatible": [
+        "MATH3512"
+      ],
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "MATH6114",
+    "year": 2027,
+    "sourceHash": "0f276d7bdc8f130e13ffb2274c7825ea0a74aebb36415b3c9b123e047a0b53d4",
+    "coverage": "encoded",
+    "interpretation": "The completion exclusion and blanket permission requirement are independent.",
+    "rules": {
+      "incompatible": [
+        "MATH3301"
+      ],
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "MATH6213",
+    "year": 2027,
+    "sourceHash": "0e084e00fdfdc1ff64288c69e74608a5811ad1c59828f1e60932a129e94149d2",
+    "coverage": "partial",
+    "interpretation": "The published 60+ / 50–59 wording is suitability advice, not a basis for inventing a hard prerequisite failure. Marks and equivalence are absent from the current record.",
+    "rules": {
+      "requires": {
+        "unknown": "Suitability advice requires a mark of 60+ in study equivalent to MATH2320/MATH6110, or convener consultation for marks of 50–59",
+        "nextAction": "Supply the exact mark, equivalence evidence and any convener suitability advice. The word “should” is not converted into an automatic failing threshold."
+      },
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "MATH6406",
+    "year": 2027,
+    "sourceHash": "80c7ffd6c43237752b8109c7ab606b05ba034671fe42cb524c9ef6ead9725425",
+    "coverage": "encoded",
+    "interpretation": "The saved requisite section specifies blanket Mathematical Sciences Institute permission only.",
+    "rules": {
+      "permissionAlways": true
+    }
+  },
+  {
+    "code": "MATH8201",
+    "year": 2027,
+    "sourceHash": "d3c9f359177aab80e0180bae673089504a089426d3d5a3696d76bbf77f234e5d",
+    "coverage": "encoded",
+    "interpretation": "Exact program names are retained when the paragraph supplies no program code. Existing Computing profiles are not treated as equivalent programs.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "Master of Science in Mathematical Sciences"
+          },
+          {
+            "program": "Master of Mathematical Sciences (Advanced)"
+          },
+          {
+            "program": "Master of Science in Astronomy and Astrophysics"
+          },
+          {
+            "program": "Master of Science in Astronomy and Astrophysics (Advanced)"
+          }
+        ]
+      },
+      "incompatible": [
+        "MATH6201",
+        "MATH4201"
+      ]
+    }
+  },
+  {
+    "code": "MATH8343",
+    "year": 2027,
+    "sourceHash": "dd1ad7e85fcccb171b1db4afed18d8ac5d2ca615d97fdac38c2f525fd6f12afb",
+    "coverage": "encoded",
+    "interpretation": "Exact program names are retained when the paragraph supplies no program code. Existing Computing profiles are not treated as equivalent programs.",
+    "rules": {
+      "requires": {
+        "any": [
+          {
+            "program": "Master of Mathematical Sciences (Advanced)"
+          },
+          {
+            "program": "Master of Science in Mathematical Sciences"
+          }
+        ]
+      },
+      "incompatible": [
+        "MATH3343",
+        "MATH4343",
+        "MATH6203"
+      ]
+    }
+  },
+  {
+    "code": "MGMT7020",
+    "year": 2027,
+    "sourceHash": "d943da7c8129f147e20d2626b973ce9ede325289a8e06b70021302a5edb2c8a4",
+    "coverage": "missing-source",
+    "interpretation": "Explicit source gap. No eligibility or permission requirement can be inferred.",
+    "rules": {
+      "requires": {
+        "unknown": "The saved MGMT7020 page has no requisite section",
+        "nextAction": "Supply the applicable published requirements for MGMT7020; a missing section does not mean there are no prerequisites."
+      }
+    }
+  },
+  {
+    "code": "REGN8014",
+    "year": 2027,
+    "sourceHash": "7671aa174fcfac3a6a86813a5811af097e740ba34ea1c82f9ae48e27f8da2ecb",
+    "coverage": "missing-source",
+    "interpretation": "Explicit source gap. No eligibility or permission requirement can be inferred.",
+    "rules": {
+      "requires": {
+        "unknown": "The saved REGN8014 page has no requisite section",
+        "nextAction": "Supply the applicable published requirements for REGN8014; a missing section does not mean there are no prerequisites."
+      }
     }
   }
 ]

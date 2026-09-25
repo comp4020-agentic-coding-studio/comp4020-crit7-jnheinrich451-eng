@@ -90,9 +90,9 @@ describe("automated reports over HTTP", () => {
   });
 
   it("persists unknowns and the original record after a later enrolment", async () => {
-    const course = await page("/courses/ENGN6627/?year=2027");
+    const course = await page("/courses/MATH6005/?year=2027");
     const term = course.querySelector<HTMLInputElement>('form[action="/api/applications"] input[name="term"]')!.value;
-    const path = await post("/api/applications", { courseCode: "ENGN6627", year: "2027", term, statement: "Please assess this course." });
+    const path = await post("/api/applications", { courseCode: "MATH6005", year: "2027", term, statement: "Please assess this course." });
     const before = await page(path);
     const report = before.querySelector("[data-assessment-policy]")!.textContent;
     expect(heading(before)).toBe("Evidence or decision needed");

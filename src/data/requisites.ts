@@ -23,9 +23,16 @@ export interface RuleSource {
 export type Requirement = (
   | { all: Requirement[] }
   | { any: Requirement[] }
+  | { not: Requirement }
+  /** Evaluate each plausible reading; disagreement remains unknown. */
+  | { interpretations: Requirement[]; label: string; nextAction: string }
   | { course: string; orEnrolled?: true }
-  | { program: ProgramKey }
+  /** Existing program keys or an exact published program name; never guessed codes. */
+  | { program: string }
+  | { career: "postgraduate" }
   | { units: number; prefix: string; label: string }
+  | { units: number; courses: string[]; label: string }
+  | { courseCount: number; prefix: string; orEnrolled?: true; label: string }
   | { unknown: string; nextAction: string }
 ) & { source?: RuleSource };
 
@@ -48,6 +55,10 @@ export interface CourseRules {
   incompatibleEnrolled?: string[];
   /** Every student needs a permission code, whatever their record says. */
   permissionAlways?: true;
+  /** A permission code applies only when this condition is met. */
+  permissionIf?: Requirement;
+  permissionReason?: string;
+  coverage?: "encoded" | "partial" | "missing-source";
   /** Limits of the automated check; retained in the request's review history. */
   reviewNote?: string;
 }

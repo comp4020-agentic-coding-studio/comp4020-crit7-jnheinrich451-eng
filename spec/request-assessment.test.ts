@@ -24,7 +24,7 @@ async function post(path: string, person: string, fields: Record<string, string>
 async function offering(person: string) {
   const doc = await page("/courses/ENGN6627/?year=2027", person);
   const form = doc.querySelector('form[action="/api/applications"]')!;
-  expect(form?.textContent).toContain("Request assessment");
+  expect(form?.textContent).toContain("Request permission");
   const term = form.querySelector<HTMLInputElement>('input[name="term"]')!.value;
   return { courseCode: "ENGN6627", term, year: "2027" };
 }
@@ -48,7 +48,7 @@ describe("assessment entry and pending-request lifecycle", () => {
     expect(course.querySelector('form[action="/api/enrol"]')).toBeNull();
     for (const route of [path, "/applications/", "/plan/"]) await expectReminder(route, approval, id, true);
     const before = await page(path, approval);
-    expect(before.querySelector('[data-check-status="unknown"]')?.textContent).toContain("ENGN6627");
+    expect(before.querySelector('[data-check-status="unmet"]')?.textContent).toContain("Master of Engineering in Electrical Engineering");
     expect(before.querySelector('[data-source-hash]')).toBeTruthy();
     expect(before.querySelector("main")?.textContent).toContain("Sent to Dr Sam Achterberg, convenor of ENGN6627");
     const events = before.querySelectorAll(".timeline > li").length;
@@ -59,7 +59,7 @@ describe("assessment entry and pending-request lifecycle", () => {
     expect((await page("/applications/", approval)).querySelectorAll(`a[href="${path}"]`)).toHaveLength(1);
     expect((await page(coursePath(fields), decline)).querySelector("[data-pending-request]")).toBeNull();
     const blocked = await post("/api/enrol", approval, fields);
-    expect(new URL(blocked, base).searchParams.get("error")).toContain("Request an assessment");
+    expect(new URL(blocked, base).searchParams.get("error")).toContain("need a permission code");
 
     await post(`/api${path}decision`, "Dr Sam Achterberg", { decision: "approve", note: "Approved for this fictional test scenario." });
     for (const route of [path, coursePath(fields), "/applications/", "/plan/"]) await expectReminder(route, approval, id, false);
