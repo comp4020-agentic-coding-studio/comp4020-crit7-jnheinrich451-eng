@@ -2393,3 +2393,37 @@ barred from automatic permission, and it dropped qualifiers such as
 "explicitly", "alone", "existing" and "optional". The audit caught these, and
 each was restored to the original wording before commit. Another session
 committed record.astro work mid-turn; it was left untouched.
+
+## 2026-09-26 17:45 — Fly redeploy with SMTP secrets; Brevo blocks unauthorised IPs
+
+**Prompt:**
+
+> I pushed, and if can ship now? I need to let it stay online to check SMTP if it has issue
+
+**Result:**
+Preflight had found the live Fly app on an old build (`/catalogue/`, `/demo/`,
+`/login/` returned 404) and no secrets set on Fly. With John's choice, SMTP
+settings were staged as Fly secrets from the local `.env` without printing
+values. APP_ORIGIN was set to the fly.dev origin, and the sender display name
+changed from plain "ANU" to "ANU enrolment prototype" so mail to @anu.edu.au
+inboxes doesn't read as a real ANU message. The current `main` was then deployed.
+Making the repo public is deferred until John has confirmed real delivery.
+`fly.toml` auto-stop was left as the course requires; the app restarts on
+request.
+
+**Verified:**
+Post-deploy probes: 200 on `/`, 401 anonymous `/api/events`, same-origin login
+POST 200 (not 403), cross-site POST 403. linkinator scanned 279 internal links
+with none broken. `.dockerignore` excludes `.env` and `mise.local.toml` from the
+build upload.
+
+**Commit:** none — deployment and Fly secrets only; no repo change besides this entry.
+
+**What happened:**
+A nodemailer `verify()` inside the Fly machine failed with EAUTH 525. The same
+check from this PC returned "525 5.7.1 Unauthorized IP address". Brevo's
+authorised-IP protection blocks both the local IP and Fly's egress IP
+(75.102.33.82 at the time), so this is not a credential or app fault. Real
+delivery needs John to authorise the IP or turn off IP blocking in Brevo. Fly's
+shared egress IP isn't guaranteed static, so authorising a single IP may break
+again after a machine move.
