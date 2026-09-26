@@ -66,6 +66,23 @@ export const studyPlanEvents = sqliteTable("study_plan_events", {
   createdAt: createdAt(),
 });
 
+/** Adviser exchanges preserve preferences and provenance, never academic facts. */
+export const adviserRuns = sqliteTable("adviser_runs", {
+  id: int().primaryKey({ autoIncrement: true }),
+  studentId: int("student_id").notNull().references(() => students.id),
+  preferences: text().notNull(),
+  targetUnits: int("target_units").notNull(),
+  contextHash: text("context_hash").notNull(),
+  snapshot: text().notNull(),
+  status: text().notNull(),
+  response: text(),
+  model: text(),
+  modelDigest: text("model_digest"),
+  elapsedMs: int("elapsed_ms"),
+  startedAt: int("started_at").notNull(),
+  createdAt: createdAt(),
+});
+
 /** Past results. Codes are text, not course ids: a transcript holds
  *  undergraduate and other courses the postgraduate catalogue doesn't list. */
 export const transcript = sqliteTable("transcript", {

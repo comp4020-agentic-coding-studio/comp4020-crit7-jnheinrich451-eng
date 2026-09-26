@@ -577,6 +577,14 @@ th {
 .suggestion-list > li { border: 1px solid var(--line); padding: 1.1rem; }
 .suggestion-list h4 { font-size: 1rem; margin: 0; }
 .suggestion-list h4 a { text-decoration: none; color: var(--ink); }
+.course-adviser { margin: 1.5rem 0; padding: 1.25rem; border: 1px solid var(--gold); background: #f5f2e9; }
+.course-adviser h3 { font: 1.65rem Georgia, serif; margin-top: 0.4rem; }
+.course-adviser label { display: block; font-weight: 600; margin-bottom: 0.4rem; }
+.course-adviser textarea { width: 100%; min-width: 0; box-sizing: border-box; resize: vertical; }
+.course-adviser .planning-controls { margin: 0.8rem 0; }
+.adviser-reply { border-top: 1px solid var(--gold); margin-top: 1.25rem; padding-top: 0.5rem; }
+.interest-match { border-left: 3px solid var(--gold); padding-left: 0.8rem; overflow-wrap: anywhere; }
+.interest-match p { font-size: 0.9rem; }
 .plan-row {
   display: grid;
   grid-template-columns: 1fr auto;

@@ -6,6 +6,7 @@ import { type AddressInfo, createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { TestProject } from "vitest/node";
+import { ollamaFixture } from "./ollama-fixture";
 
 declare module "vitest" {
   export interface ProvidedContext {
@@ -71,6 +72,9 @@ export default async function setup(project: TestProject): Promise<() => void> {
   });
   await new Promise<void>((resolve) => smtp.listen(0, "127.0.0.1", resolve));
   const smtpPort = (smtp.server.address() as AddressInfo).port;
+  const model = ollamaFixture();
+  await new Promise<void>(resolve => model.listen(0, "127.0.0.1", resolve));
+  const modelPort = (model.address() as AddressInfo).port;
   const env = {
     ...process.env,
     HOST: "127.0.0.1",
@@ -82,6 +86,8 @@ export default async function setup(project: TestProject): Promise<() => void> {
     SMTP_PASSWORD: "",
     MAIL_FROM: "prototype@example.test",
     APP_ORIGIN: baseUrl,
+    OLLAMA_BASE_URL: `http://127.0.0.1:${modelPort}`,
+    OLLAMA_MODEL: "llama3.2:3b",
   };
   const fixtureFile = join(directory, "fixtures.json");
   const fixture = spawn("node", ["--import", "tsx", "spec/fixtures.ts"], {
@@ -120,5 +126,6 @@ export default async function setup(project: TestProject): Promise<() => void> {
   return () => {
     server.kill();
     smtp.close();
+    model.close();
   };
 }

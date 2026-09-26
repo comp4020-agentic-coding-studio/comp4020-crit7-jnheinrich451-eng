@@ -69,10 +69,15 @@ function loadCourse(course: PlanningCourse, year: number, term: string): LoadCou
   return { code: course.code, year, term, units: course.units, sourceHash: course.source?.hash,
     windows: windows?.length && windows.every(w => w.start && w.end) ? windows as { start: string; end: string }[] : null };
 }
-export function planStudy(input: {
+export interface PlanningInput {
   program: string; year: number; term: string; results: AcademicResult[]; confirmed: LoadCourse[];
   courses: PlanningCourse[]; sources: Source[]; savedCodes?: string[]; limit?: number;
-}) {
+  /** Preferences only reorder candidates; the same gates still select the combination. */
+  preferredCodes?: string[];
+  /** A personal ceiling is separate from the institutional/approved limit. */
+  targetUnits?: number;
+}
+export function planStudy(input: PlanningInput) {
   const validSource = (code: string, hash: string) => {
     const rows = input.sources.filter(s => s.evidence.code === code && s.evidence.year === policy.year);
     return rows.length === 1 && rows[0].hash === hash;
@@ -123,8 +128,12 @@ export function planStudy(input: {
         .filter(o => semesterIndex(`${o.year} ${o.term}`)! > cutoff)
         .sort((a, b) => semesterIndex(`${a.year} ${a.term}`)! - semesterIndex(`${b.year} ${b.term}`)!)[0];
       return { course, result, offered, later, ...priorityFor(course), saved: saved.some(c => c.code === course.code) };
-    }).sort((a, b) => b.score - a.score || a.course.code.localeCompare(b.course.code)) : [];
+    }).sort((a, b) => {
+      const preference = (code: string) => { const i = input.preferredCodes?.indexOf(code) ?? -1; return i < 0 ? 1000 : i; };
+      return preference(a.course.code) - preference(b.course.code) || b.score - a.score || a.course.code.localeCompare(b.course.code);
+    }) : [];
   const options: typeof candidates = [], attention: typeof candidates = [], later: typeof candidates = [];
+  const optionExclusions: Record<string, string> = {};
   const proposed = [...reserved];
   // Hypothetical contributions choose useful options without filling space
   // reserved for the compulsory project. These are never eligibility facts.
@@ -148,17 +157,27 @@ export function planStudy(input: {
     const usefulCredit = beforeContribution.allocated < 96 - projectRemaining && afterContribution.allocated > beforeContribution.allocated;
     const usefulLevel = beforeContribution.advancedUnits + projectRemaining < 48 && afterContribution.advancedUnits > beforeContribution.advancedUnits;
     const usefulAI = afterContribution.aiUnits > beforeContribution.aiUnits || afterContribution.aiAdvancedUnits > beforeContribution.aiAdvancedUnits && beforeContribution.aiAdvancedUnits < 12;
-    if (!usefulCredit && !usefulLevel && !usefulAI && candidates.some(c => c.offered && c.score > 0)) continue;
+    if (!usefulCredit && !usefulLevel && !usefulAI && candidates.some(c => c.offered && c.score > 0)) {
+      optionExclusions[candidate.course.code] = "Left out to preserve useful degree credit and space for the compulsory project."; continue;
+    }
     const issue = gate(candidate.course.code, candidate.course.rules, plannedRecord).outcome !== "eligible"
       || plannedRecord.enrolled.some(code => byCode.get(code)?.rules?.incompatibleEnrolled?.includes(candidate.course.code));
-    if (issue || projectLoad(proposed, load, input.limit ?? 24).state !== "within-limit") { constrained = true; continue; }
+    const projected = projectLoad(proposed, load, input.limit ?? 24);
+    const exceedsPreference = input.targetUnits !== undefined && (projected.maximum === null || projected.maximum > input.targetUnits);
+    if (issue || projected.state !== "within-limit" || exceedsPreference) {
+      optionExclusions[candidate.course.code] = issue ? "Needs another check alongside the other courses in this combination." : "Does not fit the selected unit limit alongside the other courses, or its load cannot be confirmed.";
+      constrained = true; continue;
+    }
     if (options.length < 4) { options.push(candidate); proposed.push(load); anticipated.push(hypothetical); }
+    else optionExclusions[candidate.course.code] = "Four options are already included in this suggestion.";
   }
-  return { supported, progress, options, attention: attention.slice(0, 4), later: later.slice(0, 5), saved,
+  return { supported, progress, options, optionExclusions, attention: attention.slice(0, 4), later: later.slice(0, 5), saved,
+    // Individually eligible candidates, not a jointly approved semester plan.
+    adviserPool: candidates.filter(c => c.offered && !c.saved && c.result.outcome === "eligible" && c.course.units !== null),
     reservedUnits: sum(saved.filter(c => positive(c.units)).map(c => ({ units: c.units! }))), constrained,
     proposedUnits: sum(options.map(c => ({ units: c.course.units! }))),
     unknownDates: !record.complete, future: input.year !== policy.year,
-    exceedsOneSemester: progress.minimumFurtherUnits > (input.limit ?? 24),
+    exceedsOneSemester: progress.minimumFurtherUnits > Math.min(input.limit ?? 24, input.targetUnits ?? 36),
     hasPriorities: candidates.some(c => c.offered && c.score > 0),
     attentionLabel: (result: ReturnType<typeof gate>) => result.outcome === "rules-not-met" ? "Prerequisite or incompatibility needs attention"
       : "checks" in result && result.checks.some(c => checkStatus(c) === "unknown") ? "Evidence or permission review needed"

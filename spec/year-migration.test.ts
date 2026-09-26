@@ -12,7 +12,7 @@ import type { CatalogueSnapshot } from "../src/lib/catalogue-types";
 import { seed } from "../src/lib/seed";
 import { seedCatalogue } from "../src/lib/seed-catalogue";
 import { seedPublishedOfferings } from "../src/lib/seed-offerings";
-import { accounts, applicationEvents, applications, courses, enrolments, enrolmentEvents, offerings, selections, students, transcript, studyPlans, studyPlanEvents } from "../src/lib/schema";
+import { accounts, adviserRuns, applicationEvents, applications, courses, enrolments, enrolmentEvents, offerings, selections, students, transcript, studyPlans, studyPlanEvents } from "../src/lib/schema";
 import { generateProfile } from "../src/lib/profile-template";
 
 it("upgrades a populated 2026 database without changing profiles, approvals, events or enrolments", () => {
@@ -111,8 +111,10 @@ it("preserves generated templates, marks and changed planning preferences across
     db.insert(studyPlans).values({ studentId: student.id, ruleYear: 2027, specialisation: template.specialisation,
       planningYear: 2028, planningTerm: "S1", templateId: template.id, templateSnapshot: JSON.stringify(template) }).run();
     db.insert(studyPlanEvents).values({ studentId: student.id, detail: "Selected 2028 S1" }).run();
+    db.insert(adviserRuns).values({ studentId: student.id, preferences: "Computer vision", targetUnits: 18,
+      contextHash: "fixture-context", snapshot: "{}", status: "complete", response: '{"matches":[],"reason":"no-match"}', startedAt: 123 }).run();
     const state = () => ({ results: db.select().from(transcript).where(eq(transcript.studentId, student.id)).all(),
-      plans: db.select().from(studyPlans).all(), events: db.select().from(studyPlanEvents).all() });
+      plans: db.select().from(studyPlans).all(), events: db.select().from(studyPlanEvents).all(), advice: db.select().from(adviserRuns).all() });
     const before = state(); migrateDatabase(client); seed(db); seed(db);
     expect(state()).toEqual(before); expect(client.pragma("foreign_key_check")).toEqual([]);
   } finally { client.close(); }

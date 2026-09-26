@@ -6,9 +6,13 @@ import type { generateProfile } from "../lib/profile-template";
 import { catalogueLink } from "../lib/catalogue";
 import { offeringFor, TERM_LABELS } from "../lib/store";
 import type { Term } from "../data/courses";
+import CourseAdviser from "./CourseAdviser.astro";
+import { adviserView } from "../lib/adviser-store";
 interface Props { student: Student }
 const { student } = Astro.props;
-const g = profileGuidance(student), p = g.progress;
+const adviser = adviserView(student);
+const standard = profileGuidance(student, adviser.input);
+const g = { ...standard, ...(adviser.personalised ?? {}) }, p = g.progress;
 const template = g.plan?.templateSnapshot ? JSON.parse(g.plan.templateSnapshot) as ReturnType<typeof generateProfile> : null;
 const periodLabel = (period: string) => { const [year, term] = period.split(" "); return `${year} ${TERM_LABELS[term as Term]}`; };
 const title = periodLabel(`${g.year} ${g.term}`);
@@ -33,6 +37,7 @@ const linkFor = (code: string) => g.future ? catalogueLink("course", code, PLANN
     {!g.supported ? <p class="warning">The saved degree or specialisation source no longer matches the reviewed interpretation. Suggestions are unavailable until it is reviewed.</p> : <>
       {g.future && <p class="warning">These are indicative later options from the 2027 pages. Future rules and offerings may change; enrolment is not open here for {g.year}.</p>}
       {g.unknownDates && <p class="warning">Some results have an unknown study period. They are excluded from dated progress and eligibility remains uncertain.</p>}
+      <CourseAdviser adviser={adviser} />
       <details class="planning-progress" data-planning-progress><summary>What your completed study covers</summary>
         <p>Partial planning checks, based on {p.recordedUnits} recorded completed units before this semester. Current enrolments and saved courses are not passed credit.</p>
         <dl class="facts">
@@ -55,6 +60,10 @@ const linkFor = (code: string) => g.future ? catalogueLink("course", code, PLANN
         <h4><a href={linkFor(course.code)}><span class="enrolled-code">{course.code}</span> {course.title}</a></h4>
         <p class="meta">{course.units} units · {g.future ? "Meets current saved checks; future offering indicative" : "Recorded eligibility checks met"}</p>
         <p>{reasons.join(" ")}</p>
+        {adviser.active && adviser.response?.matches.filter(m => m.code === course.code).map(match => <div class="interest-match" data-interest-match>
+          <p><strong>Suggested for the interests you described</strong></p>
+          <p>Excerpt from the saved course description: <q>{match.courseQuote}</q></p>
+        </div>)}
         <p class="field-help"><a data-source-hash={course.source?.hash} href={catalogueLink("course", course.code, 2027)}>Course evidence</a>{unlocks.length > 0 && <> · Later requirements: {unlocks.map((code, i) => <>{i ? ", " : ""}<a href={catalogueLink("course", code, 2027)}>{code}</a></>)}</>}</p>
         {!g.future && <form action="/api/selections" method="post"><input type="hidden" name="action" value="add" /><input type="hidden" name="offeringId" value={offeringFor(g.courses.find(c => c.code === course.code)!.id, g.term, g.year)?.id} /><button aria-label={`Save suggested ${course.code}`}>Save course</button></form>}
       </li>)}</ul> : <p class="empty">{g.constrained || g.saved.length ? "No further priority fits alongside your current selection. Review My courses to change it." : "No additional course is prioritised in this plan. Review the next steps below or browse courses at your preference."}</p>}

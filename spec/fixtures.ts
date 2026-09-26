@@ -9,6 +9,7 @@ import { createSession, digest, inviteStaff } from "../src/lib/auth";
 import { hashPassword } from "../src/lib/passwords";
 import { decide, getCourse, people, submitApplication } from "../src/lib/store";
 import { submitOverload } from "../src/lib/overload-store";
+import { generateProfile } from "../src/lib/profile-template";
 if (process.env.SPEC_FIXTURE !== "1" || !process.env.SPEC_FIXTURE_FILE)
   throw new Error("Test fixture context required");
 const passwordHash = await hashPassword("Fixture-only password 2026!");
@@ -36,9 +37,13 @@ for (const [uid, name] of [
   ["fixture-change-race", "Course change race student"],
   ["fixture-swap-incompat", "Swap incompatibility student"],
   ["fixture-planning-legacy", "Planning legacy student"],
+  ["fixture-adviser", "Adviser student"],
 ]) {
   db.insert(students).values({ uid, name, program: uid === "fixture-swap-incompat" ? "MCOMP" : "VCOMP" }).run();
 }
+const adviserStudent = db.select().from(students).where(eq(students.uid, "fixture-adviser")).get()!;
+for (const { courseCode, grade, units, term, mark, program, institution } of generateProfile("adviser-http").records)
+  db.insert(transcript).values({ studentId: adviserStudent.id, courseCode, grade, units, term, mark, program, institution }).run();
 const programmingConflict = db.select().from(students).where(eq(students.uid, "fixture-programming-conflict")).get()!;
 for (const uid of ["fixture-staff-exception", "fixture-staff-equivalence", "fixture-staff-correction"]) {
   const student = db.select().from(students).where(eq(students.uid, uid)).get()!;

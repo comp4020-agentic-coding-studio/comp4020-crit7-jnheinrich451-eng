@@ -145,10 +145,20 @@ production image. No preset public staff credentials are shipped.
 ## Teaching-team access after deployment
 
 John selected individual invitations to the markers' real `@anu.edu.au` inboxes.
+The same real-inbox requirement applies to public student registration. A
+fictional address works in the local captured-mail preview, but cannot complete
+verification through the deployed SMTP workflow. Academic records are fictional;
+the account holder must control a real inbox.
 Local captured email is only a development aid: an arbitrary address will not
 give access on Fly. The marker must receive the invitation, set a prototype
 password and verify it. No public staff sign-up or shared reviewer password is
 provided.
+
+Next-stage access review: confirm real SMTP delivery after deployment and arrange
+student/reviewer testing with distinct real addresses. John asked whether
+fictional addresses could work publicly; this increment adds no verification
+bypass, public captured inbox or guest-account flow. Any later guest demonstration
+should be an explicitly separate access mode.
 
 Before the marking session, the project owner should:
 

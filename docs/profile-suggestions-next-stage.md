@@ -70,7 +70,10 @@ substitutions and graduation remain unverified. The normal course gate still
 does not authorise enrolling again after a completed research-project instance;
 the guidance identifies required continuation and directs students to the program
 team. Other programs and specialisations remain outside this first increment.
-No LLM is used to generate academic facts or decide suggestions.
+The base planner and academic template remain deterministic. The later optional
+preference adviser can prioritise ready courses using Llama; the same planner
+rechecks the combination. See `docs/course-adviser.md`. No LLM generates facts
+or decides eligibility, permission or enrolment.
 
 ## Original agreed direction
 

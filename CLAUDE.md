@@ -203,6 +203,18 @@ interpretations. 2028 options use indicative rows in 2027 sources, not invented
 substitutions, full degree audits and graduation remain unverified. Suggestions
 do not promise on-time graduation or authorise repeated project enrolment.
 
+John authorised the preference-aware course adviser. It accepts study interests
+and an explicit unit preference in My profile, persisting exchanges separately
+from academic facts. A bounded server-side Ollama call selects source passage IDs
+from ready options; the app renders original excerpts and rechecks the combination
+through the deterministic planner. Personal unit ceilings are separate from
+institutional limits. Context changes invalidate old advice. The model cannot
+approve, enrol or edit records. Missing or failed inference retains labelled
+rule-based planning. Local compose uses Windows Ollama; Fly needs a separately
+reachable service before live AI is available there. See `docs/course-adviser.md`
+for validation, runtime limits and smoke-test scope. This does not implement
+model-based prerequisite extraction or permission review.
+
 ## Rules
 
 - **The schema is the ground truth.** Edit `src/lib/schema.ts`, run
