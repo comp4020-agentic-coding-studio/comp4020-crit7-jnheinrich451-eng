@@ -583,6 +583,12 @@ th {
 .course-adviser textarea { width: 100%; min-width: 0; box-sizing: border-box; resize: vertical; }
 .course-adviser .planning-controls { margin: 0.8rem 0; }
 .adviser-reply { border-top: 1px solid var(--gold); margin-top: 1.25rem; padding-top: 0.5rem; }
+.adviser-shortlist { list-style: none; padding: 0; display: grid; gap: 0.75rem; }
+.adviser-shortlist > li { padding: 0.8rem 1rem; border-left: 3px solid var(--gold); background: #fff; }
+.adviser-shortlist a { display: block; overflow-wrap: anywhere; }
+.adviser-shortlist .field-help { display: block; margin-top: 0.35rem; }
+.suggestion-list > li, #suggested-options-heading { scroll-margin-top: 1rem; }
+.suggestion-list > li:target { outline: 2px solid var(--gold); outline-offset: 2px; }
 .interest-match { border-left: 3px solid var(--gold); padding-left: 0.8rem; overflow-wrap: anywhere; }
 .interest-match p { font-size: 0.9rem; }
 .plan-row {

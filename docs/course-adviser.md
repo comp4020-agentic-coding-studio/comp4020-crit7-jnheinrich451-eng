@@ -12,6 +12,12 @@ saved/confirmed courses, approval limit or sources invalidate old advice. Ask
 again for the new context; GET never calls a model. Use standard suggestions
 dismisses the preference while preserving the exchange.
 
+The reply names the checked course codes and titles directly, distinguishing
+interest matches from other study-plan suggestions. Each links to its detailed
+course card, with a separate View course details and save link. Detailed options
+appear immediately after the adviser, before the completed-study breakdown.
+Empty and stale results do not display a misleading course shortlist.
+
 The explicit unit field sets the preference; a number in the message does not.
 Confirmed and saved courses reserve capacity. Personal ceilings below 24 units
 are separate from the institutional load evaluator, whose normal limit is 24.

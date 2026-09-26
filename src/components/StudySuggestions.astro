@@ -38,6 +38,21 @@ const linkFor = (code: string) => g.future ? catalogueLink("course", code, PLANN
       {g.future && <p class="warning">These are indicative later options from the 2027 pages. Future rules and offerings may change; enrolment is not open here for {g.year}.</p>}
       {g.unknownDates && <p class="warning">Some results have an unknown study period. They are excluded from dated progress and eligibility remains uncertain.</p>}
       <CourseAdviser adviser={adviser} />
+      <h3 id="suggested-options-heading">{adviser.active ? "Your suggested courses: details and next steps" : g.hasPriorities ? "Options for this semester" : "Choose at your preference"}</h3>
+      <p>These options fit together within the recorded load limit, allowing for confirmed enrolments and {g.reservedUnits} units of saved candidates. Suggestions leave degree space for the compulsory research project. Saving a course updates the options; it does not enrol you.</p>
+      {g.options.length ? <ul class="suggestion-list" data-suggestion-options>{g.options.map(({course, reasons, unlocks}) => <li id={`suggested-${course.code}`}>
+        <h4><a href={linkFor(course.code)}><span class="enrolled-code">{course.code}</span> {course.title}</a></h4>
+        <p class="meta">{course.units} units · {g.future ? "Meets current saved checks; future offering indicative" : "Recorded eligibility checks met"}</p>
+        <p>{reasons.join(" ")}</p>
+        {adviser.active && adviser.response?.matches.filter(m => m.code === course.code).map(match => <div class="interest-match" data-interest-match>
+          <p><strong>Suggested for the interests you described</strong></p>
+          <p>Excerpt from the saved course description: <q>{match.courseQuote}</q></p>
+        </div>)}
+        <p class="field-help"><a data-source-hash={course.source?.hash} href={catalogueLink("course", course.code, 2027)}>Course evidence</a>{unlocks.length > 0 && <> · Later requirements: {unlocks.map((code, i) => <>{i ? ", " : ""}<a href={catalogueLink("course", code, 2027)}>{code}</a></>)}</>}</p>
+        {!g.future && <form action="/api/selections" method="post"><input type="hidden" name="action" value="add" /><input type="hidden" name="offeringId" value={offeringFor(g.courses.find(c => c.code === course.code)!.id, g.term, g.year)?.id} /><button aria-label={`Save suggested ${course.code}`}>Save course</button></form>}
+      </li>)}</ul> : <p class="empty">{g.constrained || g.saved.length ? "No further priority fits alongside your current selection. Review My courses to change it." : "No additional course is prioritised in this plan. Review the next steps below or browse courses at your preference."}</p>}
+      {g.saved.length > 0 && <p data-planning-saved>Already saved: {g.saved.map(c => c.code).join(", ")}. <a href="/plan/#saved-heading">Review saved courses</a>.</p>}
+      {g.exceedsOneSemester && <p class="planning-note">Your remaining recorded requirements extend beyond one normal semester. These suggestions are still useful if you take longer; they are not a promised completion date.</p>}
       <details class="planning-progress" data-planning-progress><summary>What your completed study covers</summary>
         <p>Partial planning checks, based on {p.recordedUnits} recorded completed units before this semester. Current enrolments and saved courses are not passed credit.</p>
         <dl class="facts">
@@ -53,21 +68,6 @@ const linkFor = (code: string) => g.future ? catalogueLink("course", code, PLANN
         {p.projectUnits === 12 && <p>The research project needs a second 12-unit instance in the next consecutive semester. Confirm continuation arrangements with the program team; the earlier completion does not itself approve another instance.</p>}
         <p><a data-source-hash={PLANNING_POLICY.program.hash} href={catalogueLink("program", PLANNING_POLICY.program.code, 2027)}>Saved degree requirements</a> · <a data-source-hash={PLANNING_POLICY.specialisation.hash} href={catalogueLink("specialisation", PLANNING_POLICY.specialisation.code, 2027)}>Saved specialisation requirements</a></p>
       </details>
-      {g.exceedsOneSemester && <p class="planning-note">Your remaining recorded requirements extend beyond one normal semester. These suggestions are still useful if you take longer; they are not a promised completion date.</p>}
-      <h3>{g.hasPriorities ? "Options for this semester" : "Choose at your preference"}</h3>
-      <p>These options fit together within the recorded load limit, allowing for confirmed enrolments and {g.reservedUnits} units of saved candidates. Suggestions leave degree space for the compulsory research project. Saving a course updates the options; it does not enrol you.</p>
-      {g.options.length ? <ul class="suggestion-list" data-suggestion-options>{g.options.map(({course, reasons, unlocks}) => <li>
-        <h4><a href={linkFor(course.code)}><span class="enrolled-code">{course.code}</span> {course.title}</a></h4>
-        <p class="meta">{course.units} units · {g.future ? "Meets current saved checks; future offering indicative" : "Recorded eligibility checks met"}</p>
-        <p>{reasons.join(" ")}</p>
-        {adviser.active && adviser.response?.matches.filter(m => m.code === course.code).map(match => <div class="interest-match" data-interest-match>
-          <p><strong>Suggested for the interests you described</strong></p>
-          <p>Excerpt from the saved course description: <q>{match.courseQuote}</q></p>
-        </div>)}
-        <p class="field-help"><a data-source-hash={course.source?.hash} href={catalogueLink("course", course.code, 2027)}>Course evidence</a>{unlocks.length > 0 && <> · Later requirements: {unlocks.map((code, i) => <>{i ? ", " : ""}<a href={catalogueLink("course", code, 2027)}>{code}</a></>)}</>}</p>
-        {!g.future && <form action="/api/selections" method="post"><input type="hidden" name="action" value="add" /><input type="hidden" name="offeringId" value={offeringFor(g.courses.find(c => c.code === course.code)!.id, g.term, g.year)?.id} /><button aria-label={`Save suggested ${course.code}`}>Save course</button></form>}
-      </li>)}</ul> : <p class="empty">{g.constrained || g.saved.length ? "No further priority fits alongside your current selection. Review My courses to change it." : "No additional course is prioritised in this plan. Review the next steps below or browse courses at your preference."}</p>}
-      {g.saved.length > 0 && <p data-planning-saved>Already saved: {g.saved.map(c => c.code).join(", ")}. <a href="/plan/#saved-heading">Review saved courses</a>.</p>}
       {g.attention.length > 0 && <details data-planning-attention open><summary>Relevant courses needing another step</summary><ul>
         {g.attention.map(({course, result, reasons}) => <li><p><a href={linkFor(course.code)}><strong>{course.code}</strong> {course.title}</a> — {course.units === null ? "Choose the credit value before assessing the load" : g.attentionLabel(result)}.</p><p>{reasons[0]}</p>{"checks" in result && result.checks.filter(c => c.nextAction && !c.met).slice(0, 2).map(c => <p class="field-help">{c.nextAction}</p>)}</li>)}
       </ul></details>}

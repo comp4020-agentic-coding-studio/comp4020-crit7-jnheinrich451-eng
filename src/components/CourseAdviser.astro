@@ -6,6 +6,7 @@ interface Props { adviser: ReturnType<typeof adviserView> }
 const { adviser: a } = Astro.props;
 const run = a.run;
 const effectiveLimit = Math.min(a.input.limit ?? 24, run?.targetUnits ?? 24);
+const checkedOptions = a.active ? a.personalised?.options ?? [] : [];
 const omitted = a.active ? a.response?.matches.filter(m => !a.personalised?.options.some(c => c.course.code === m.code)) ?? [] : [];
 ---
 <aside class="course-adviser" aria-labelledby="adviser-heading" data-course-adviser>
@@ -30,7 +31,16 @@ const omitted = a.active ? a.response?.matches.filter(m => !a.personalised?.opti
       : run.status === "pending" ? <p>{a.expired ? "The last request was interrupted. Update your suggestions to try again." : "The adviser is working. Reload this page in a moment to see the result."}</p>
       : <>
         <p><strong>{a.response?.reason === "matched" ? "Your interests have been matched to course evidence." : a.response?.reason === "no-match" ? "No clear interest match was found in the available options." : a.response?.reason === "no-options" ? "There are no ready courses to match in this semester." : a.response?.reason === "not-configured" ? "Your unit preference has been applied without AI matching." : "The AI adviser couldn’t complete this request."}</strong></p>
-        <p>{run.status === "fallback" ? "Rule-based suggestions remain available below." : "See your checked options below."} They use a {effectiveLimit}-unit ceiling{run.targetUnits > effectiveLimit ? ` within your approved limit, rather than the requested ${run.targetUnits} units` : ""}.</p>
+        {run.status === "fallback" && <p>Rule-based suggestions remain available below.</p>}
+        {checkedOptions.length > 0 ? <>
+          <h4>Your suggested courses</h4>
+          <ul class="adviser-shortlist" data-adviser-shortlist>{checkedOptions.map(({ course }) => <li>
+            <a href={`#suggested-${course.code}`}><span class="enrolled-code">{course.code}</span> {course.title}</a>
+            <span class="field-help">{course.units} units · {a.response?.matches.some(m => m.code === course.code) ? "Matches your interests" : "Suggested from your study plan"}</span>
+          </li>)}</ul>
+          <p><a class="button" href="#suggested-options-heading">View course details and save</a></p>
+        </> : <p>No additional courses are suggested for this plan. <a href="#suggested-options-heading">Review your selection and next steps</a>.</p>}
+        <p class="field-help">Suggestions use a {effectiveLimit}-unit ceiling{run.targetUnits > effectiveLimit ? ` within your approved limit, rather than the requested ${run.targetUnits} units` : ""}, including confirmed and saved courses. This is a maximum, not a promise to fill every unit.</p>
         {omitted.length > 0 && <ul>{omitted.map(m => <li><a href={catalogueLink("course", m.code, 2027)}>{m.code}</a>: {a.personalised?.optionExclusions[m.code] ?? "Not part of the checked combination."}</li>)}</ul>}
         <details><summary>How these suggestions were checked</summary>
           <p>When AI matching is available, Llama selects original course excerpts. The planner checks your record, study load and space for required study. An interest match does not approve enrolment or guarantee graduation.</p>
