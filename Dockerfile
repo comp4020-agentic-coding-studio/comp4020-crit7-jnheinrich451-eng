@@ -4,6 +4,7 @@
 # server and its production dependencies.
 
 ARG NODE_VERSION=24
+FROM tailscale/tailscale:v1.102.4@sha256:2667499ed87ae29218f292556ba062918402dd5e92e93637af14867e4df12dd3 AS tailscale
 FROM node:${NODE_VERSION}-slim AS base
 
 LABEL fly_launch_runtime="Astro"
@@ -32,12 +33,16 @@ RUN pnpm prune --prod
 # --- runtime stage: just the built server and its production deps ----------
 FROM base
 
+RUN apt-get update -qq && apt-get install --no-install-recommends -y ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=tailscale /usr/local/bin/tailscale /usr/local/bin/tailscale
+COPY --from=tailscale /usr/local/bin/tailscaled /usr/local/bin/tailscaled
 COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/dist /app/dist
 # the committed migrations, applied at boot (see src/lib/db.ts)
 COPY --from=build /app/drizzle /app/drizzle
+COPY scripts/start-server.mjs /app/scripts/start-server.mjs
 
 ENV HOST=0.0.0.0
 ENV PORT=4321
 EXPOSE 4321
-CMD ["node", "./dist/server/entry.mjs"]
+CMD ["node", "./scripts/start-server.mjs"]

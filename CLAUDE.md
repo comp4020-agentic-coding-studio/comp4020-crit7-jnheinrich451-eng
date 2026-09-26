@@ -239,8 +239,13 @@ See `docs/course-adviser.md` for validation, runtime limits and timings.
   selects John's mini-PC over private Tailscale Serve (no public Funnel or model
   exposure). An optional server-only `OLLAMA_HOST_HEADER` supplies the upstream
   hostname, and native HTTPS keeps TLS verification tied to `OLLAMA_BASE_URL`
-  because Node fetch discarded the Host override. Fly needs its own reachable
-  service or tailnet access before live AI works there.
+  because Node fetch discarded the Host override.
+- Fly can join the private tailnet using the optional userspace daemon in the
+  app container. Persist its identity under `/data/tailscale`; bind its outbound
+  proxy to loopback and scope `OLLAMA_PROXY_URL` to model requests only. Keep
+  TLS verification and the existing inference deadline. Device approval is an
+  operator action; missing connectivity must preserve rule-based fallback.
+  See `docs/fly-mini-pc.md`. Do not expose Ollama through a public Funnel.
 
 ## Rules
 

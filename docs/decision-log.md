@@ -219,3 +219,17 @@ Fly still needs tailnet access before it can use this endpoint. No public Funnel
 or model exposure was configured. See `docs/course-adviser.md` for timings and
 the distinction between first-prompt and warm performance.
 
+## 27 September 2026: private Fly connection; guest inbox deferred
+
+John authorised connecting Fly to the mini PC. The implementation adds an
+optional userspace Tailscale daemon to the existing app container and a proxy
+used only by Ollama calls. The device identity persists on the existing volume;
+the owner approves its first login. TLS verification, model deadlines and the
+rule-based fallback remain intact. See `docs/fly-mini-pc.md` for operation;
+deployment and live verification are recorded separately when completed.
+
+John asked to consider dummy email access in the following stage, not implement
+it now. Proposed direction: isolated guest identities and a captured demo inbox,
+clearly separated from real ANU ownership verification. An arbitrary fictional
+address cannot receive real SMTP mail. Keep the current verified registration
+unchanged until that guest workflow and its data boundaries are agreed.
