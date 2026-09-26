@@ -2182,3 +2182,52 @@ John's screenshot showed only a successful matching message and a vague
 down the page, separated from the adviser by academic-progress content. The
 previous functional checks passed but did not establish that the answer was
 easy to find. The correction makes the result explicit at the response point.
+
+## 2026-09-26 16:37 - Aligned course codes and shipping preparation
+
+**Prompt:**
+
+> Wow good, and a minor fix, the font here is not aligned haha, and then we prepare the PROCESS.md and reflections! And prepare the ship, and we fix the SMTP after deployed page. Oh and another thing, the demo column, if after deployed can delete?
+
+John clarified the removable section as the COMP8620 scenario and confirmed
+his crit group as "Bada - Monday 15:30".
+
+**Result:**
+Suggested course codes use Cambria with lining numerals, preserving their gold
+serif appearance while aligning the letter and digit heights. Prepared a concise
+PROCESS.md with four real commit citations and a reflection draft based on the
+recorded prompts. Personal reflection wording remains for John's review. Kept
+the README replacement as a separate draft because the About page is John's
+account of the work. The shipping report distinguishes local checks from pending
+publication, current-build deployment, production SMTP and Fly-to-mini-PC access.
+The Bada cutoff is 28 September at 13:30 Canberra time. The COMP8620 scenario can
+be removed from the main interface after the first deployed check while retaining
+its history and Help entry; no demo removal was made in this increment.
+
+**Verified:**
+Read the shared harness, published Crit 7 contract, assessment guidance and group
+schedule, and applied the installed course preflight skill. Docker Node 24 /
+pnpm 11.9.0 passed check: zero diagnostics and 495 tests in 25 files. Evidence
+checks passed and all four process citations resolve. Chrome with JavaScript
+disabled, a disposable test database and real mini-PC inference displayed the
+gold course code in the new font at 1920 x 1080 and 390 x 844. Both screenshots
+were inspected and neither viewport overflowed horizontally. Stopped the isolated
+server and refreshed the normal preview, whose homepage returned 200.
+
+GitHub remains private; after fetching origin there were 28 unpushed commits
+before this increment. Existing Fly homepage and CSS returned 200, but that does
+not verify this local build. No push, deployment, visibility change or real SMTP
+delivery was performed. The preflight report records the plugin update warning
+and remaining acceptance steps. Preserved John's unrelated AGENTS.md change.
+
+**Commit:** [`2d757aa`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/2d757aa)
+
+**What happened:**
+The secret scanner first flagged credential-like text in untracked raw browser
+downloads. Added assets/ to Git ignore without deleting those files; the app uses
+the tracked normalized catalogue, and Docker already excluded raw assets. The
+rerun completed with two surfaces requiring review: current verify.astro and
+publishable history. Both were the URL-token-reading expression, with historical
+matches in 0660604 and 20fb86f, not embedded credentials. Its exit code remained
+2; the findings were manually classified rather than reported as a clean scan.
+The deadline helper lacked jq, so the public group JSON was read directly.
