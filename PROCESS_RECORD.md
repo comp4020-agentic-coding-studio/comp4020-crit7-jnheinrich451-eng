@@ -2073,3 +2073,73 @@ institutional policy unchanged. Targeted checks then passed. A later typecheck
 caught a synthetic pool-size fixture missing CourseRules.text; corrected that
 fixture and reran the full successful check. The user's pre-existing AGENTS.md
 trailing blank still fails an unstaged whitespace check; the staged work passed.
+
+## 2026-09-26 15:36 — Private mini-PC inference for the course adviser
+
+**Prompt:**
+
+> Yes please, could you do that?
+
+John approved incorporating the required proxy Host header into the app and
+benchmarking the actual adviser on his Ryzen 5 7430U / 16 GB Windows mini PC.
+The previous turn had established that Tailscale reached Ollama, but a normal
+request returned 403 while curl with the local Host header returned 200.
+
+**Result:**
+Added optional server-side OLLAMA_HOST_HEADER for discovery and generation.
+Native HTTP/HTTPS is used only for this override; default connections retain
+fetch. TLS SNI and certificate verification use the endpoint hostname, independently
+of the forwarded Host. Redirects are not followed and the existing abort signal
+covers the response body. Invalid authorities fail before transport. Student
+form values cannot change connection configuration, and academic decision rules
+and the 45-second request deadline remain unchanged.
+
+Compose now accepts optional connection variables. The ignored
+`.env.adviser-minipc` selects John's private endpoint; the running local preview
+was recreated with this file. The example configuration, shared harness and
+adviser documentation explain the proxy setup, first-prompt cost and deployment
+boundary. Fly still needs private network access; nothing was pushed or deployed.
+
+**Verified:**
+Read CLAUDE.md, the published Crit 7 contract, existing diff and transport/tests.
+Docker Node 24 / pnpm 11.9.0 check passed with zero diagnostics in 115 files and
+495 tests across 25 files. Real HTTP tests cover direct and proxy connections,
+wire-level Host enforcement, malformed configuration, redirect rejection and
+abort during a stalled response body. The built app's model fixture now requires
+the Host override, so the existing persistence/identity/fallback flow tests
+exercise the new transport too.
+
+The four existing fictional development cases all passed through Docker against
+the mini PC's Ollama 0.34.4, using the real 13-course pool and model digest
+a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72.
+Vision matched COMP8539 in 23.855 seconds; software engineering matched COMP6120
+in 1.988 seconds; guaranteed marks and instruction override returned no match
+in 1.666 and 2.647 seconds. The first request spent 2.57 seconds loading and
+19.87 seconds processing the prompt. Later calls reused a warm shared prefix.
+The running-model API reported zero VRAM use, about 4.1 GB residency and a
+16,384-token context. This is a sequential development smoke test, not a
+concurrency test or an independent accuracy benchmark.
+
+Chrome with JavaScript disabled exercised the built app and real mini-PC model
+using disposable fixtures: advice, reload, six-unit ceiling, changed interests,
+explicit course save, stale advice and dismissal. All four POSTs returned 303;
+desktop/mobile widths had no overflow. Ten transcript results remained ten and
+no enrolments were created. Stopped the disposable test server afterwards.
+Backed up the persistent preview, then compared all 25 table fingerprints after
+restart: no differences, zero foreign-key errors, homepage 200. Private addresses
+and benchmark/browser evidence stay in ignored local files.
+
+**Commit:** [`5a3a6d0`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/5a3a6d0)
+
+**What happened:**
+The initial Node 24 fetch probe still returned 403 despite specifying Host;
+this ruled out a headers-only change. Native HTTPS initially failed because
+Node derived TLS SNI from the upstream Host. Explicit URL-based SNI fixed the
+handshake while retaining certificate verification, then the live adviser passed.
+
+The first backup attempt hit the preview container's read-only source mount;
+repeated it with a helper that had read-only database access and a writable
+evidence directory. A bounded read-only review was requested from the installed
+Claude CLI, but it returned no output after several minutes and was stopped.
+No Claude review is claimed. John's existing AGENTS.md change and assets were
+preserved; only the connection files and this record were staged.
