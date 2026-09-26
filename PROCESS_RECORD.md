@@ -2231,3 +2231,43 @@ publishable history. Both were the URL-token-reading expression, with historical
 matches in 0660604 and 20fb86f, not embedded credentials. Its exit code remained
 2; the findings were manually classified rather than reported as a clean scan.
 The deadline helper lacked jq, so the public group JSON was read directly.
+
+## 2026-09-26 16:55 - Process account follows John's layered decisions
+
+**Prompt:**
+
+> And for PROCESS.md, the second section How I get there, those I think, can introduce the critical decisions and implementations, and how I guide you with ideas including harness.
+
+John requested a brief motivation and rebuild overview, then the progression
+from permission requests and persistent data through SMTP verification, real
+catalogue evidence, review routes, overload and planning. He highlighted his
+manual course downloads, coherent profile generation and mini-PC hosting choice.
+
+**Result:**
+Revised PROCESS.md to follow that progression in roughly 270 words. Removed
+the agent-collaboration introduction, retained the reported motivation, and
+connected each implementation stage to John's direction and actual commits.
+Distinguished the explored LLM-review idea from the implemented rule-based
+permission/overload assessments and Llama course adviser. Human review remains
+an optional route for uncertainty and exceptions, not automatic approval.
+The mini-PC avoids paid inference hosting; Fly connectivity remains pending.
+README manual work is deferred as requested. Preserved John's removal of the
+draft banner and his unrelated AGENTS.md edit.
+
+**Verified:**
+Read the current diff, CLAUDE.md, process-record skill, implementation chronology
+and cited commits. Docker Node 24 / pnpm 11.9.0 check passed with 495 tests in
+25 files; check:evidence resolved all eight PROCESS.md commit citations. No
+application code, profile data or deployment changed. The published Crit 7 JSON
+could not be re-fetched through either HTTP tool this turn; the contract had
+been read during the preceding shipping preparation, and this edit changes no
+product scope or course requirements.
+
+**Commit:** [`1f4cb87`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/1f4cb87)
+
+**What happened:**
+The previous draft emphasized selected technical corrections and agent
+collaboration more than John's layered direction of the rebuild. His revision
+request supplied the intended narrative. The revised account keeps the practical
+decisions and their evidence without becoming a feature manual or claiming that
+an LLM currently approves applications.
