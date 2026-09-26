@@ -45,6 +45,7 @@ const demo = Astro.url.searchParams.get("mode") === "demo";
       </p>
       <button class="primary">{demo ? "Create demo account & open inbox" : "Create account & send verification"}</button>
     </form>
+    <p class="field-help">{demo ? "Demo reviewing is limited to requests from your own demo profile." : "Registration gives you student access. To review other students’ requests, you need a separate invitation from the project owner."} <a href="/reviewer-access/">About reviewer access</a></p>
     <p class="muted">
       Your generated program and grades are demonstration data. This is not ANU's enrolment service and does
       not access your university record.

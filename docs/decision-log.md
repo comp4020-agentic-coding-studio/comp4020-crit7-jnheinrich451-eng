@@ -345,3 +345,18 @@ ownership-checked route for course and overload requests, label the saved actor
 as Demo reviewer, and retain explicit enrolment confirmation and load limits.
 Public signup cannot grant real reviewer authority. No real invitation is sent
 as a side effect of deployment or testing.
+
+## 2026-09-27 — Visible reviewer scope and readable assignments
+
+John asked whether registering as a student permits access to other students'
+requests and showed the reviewer dropdown extending beyond the screen. Public
+registration grants no reviewer role: an owner-issued invitation is required,
+and the resulting role is limited to requests sent for the assigned courses or
+the separate overload role. Demo reviewing remains limited to the visitor's own
+requests. The access page, registration and Help now state these distinctions.
+
+Replaced the owner form's long native select with a responsive radio-card grid.
+Each assignment shows its availability and every course code in wrapping rows;
+assigned slots remain disabled and pending invitations retain their existing
+resend rule. This is a presentation change using the existing server-side
+invitation checks and the same submitted assignment ID.

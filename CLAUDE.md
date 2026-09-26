@@ -200,6 +200,11 @@ See `docs/accounts-and-data.md`.
   web management. Recipients accept a single-use link before the role is granted;
   pending invitations reserve a slot, can be cancelled, and can be resent.
   The public access page exposes no invitation history or recipient addresses.
+- Explain that registration does not grant reviewer access: invited reviewers
+  see only requests sent for their assigned courses or overload role; demo
+  reviewing stays limited to the visitor's own requests. The owner chooses
+  assignments from a responsive radio grid with visible status and all course
+  codes wrapped in rows, never a long clipped dropdown.
 
 ### Study load, overload, drop and swap
 

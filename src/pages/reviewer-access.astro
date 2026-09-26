@@ -12,6 +12,7 @@ const pending = account ? pendingInvitation(account.id) : undefined;
 <Layout title="Reviewer access" actor={actor}>
   <h1>Reviewer access</h1>
   <p class="lede">Try both sides of enrolment, or accept an invitation to review assigned courses.</p>
+  <p class="note"><strong>Reviewer access is by invitation.</strong> Registering creates a student account. Only the project owner can invite an account to become an assigned reviewer.</p>
   <section class="surface" aria-labelledby="demo-review-heading">
     <h2 id="demo-review-heading">Try demo reviewing</h2>
     <p>A demo student can review their own fictional permission and overload requests. Decisions are labelled as a simulation and affect only that demo profile.</p>
@@ -21,6 +22,7 @@ const pending = account ? pendingInvitation(account.id) : undefined;
   <section class="surface" aria-labelledby="invited-review-heading">
     <h2 id="invited-review-heading">Invited reviewer access</h2>
     <p>Use one verified ANU email and password for both student and reviewer views. The project owner assigns a fictional reviewer and emails a personal invitation; public registration does not grant this role.</p>
+    <p>An invited course reviewer can see other students’ requests sent to them for their assigned courses, including the explanation, eligibility evidence and timeline. They cannot browse other students’ profiles or requests outside that assignment. The separate program-load reviewer handles overload requests sent for review.</p>
     <p>Open the emailed link to accept. An existing verified account keeps its password and student record. New reviewers choose a password and can create a fictional student view after signing in.</p>
     {account?.convenorId ? <form method="post" action="/api/auth/switch-role">
       <input type="hidden" name="role" value={actor?.kind === "convenor" ? "student" : "reviewer"} />
@@ -31,16 +33,31 @@ const pending = account ? pendingInvitation(account.id) : undefined;
   </section>
   {manager && <section class="surface" aria-labelledby="invite-heading" data-invitation-manager>
     <h2 id="invite-heading">Manage reviewer invitations</h2>
-    <p>Your verified account manages invitations. You can invite your own address to test both views. Each fictional reviewer assignment belongs to one account.</p>
-    <form method="post" action="/api/reviewer-access" class="stack">
+    <p>Your verified account manages invitations. You can invite your own address to test both views, or invite different people to different assignments. Each account can hold one reviewer assignment, and each assignment belongs to one account.</p>
+    <form method="post" action="/api/reviewer-access" class="stack invitation-form">
       <input type="hidden" name="action" value="invite" />
       <label for="invite-email">Recipient ANU email</label>
       <input id="invite-email" name="email" type="email" autocomplete="email" required maxlength="254" />
-      <label for="reviewer-slot">Reviewer assignment</label>
-      <select id="reviewer-slot" name="convenorId" required>
-        {slots.map(slot => <option value={slot.id} disabled={slot.assigned}>{slot.name} · {slot.purpose === "overload" ? "Overload review" : slot.courses.join(", ")}{slot.assigned ? " · Assigned" : slot.pending ? " · Invitation pending" : ""}</option>)}
-      </select>
-      <p class="field-help">Submitting again for the same pending recipient and assignment sends a fresh link. Another recipient cannot take that reserved assignment.</p>
+      <fieldset class="reviewer-assignments" aria-describedby="assignment-help">
+        <legend>Reviewer assignment</legend>
+        <p id="assignment-help" class="field-help">Choose one assignment. All assigned courses are shown below. An assigned reviewer is unavailable; a pending invitation can be resent only to its existing recipient.</p>
+        <div class="reviewer-grid">
+          {slots.map(slot => <div class:list={["reviewer-option", { assigned: slot.assigned }]}>
+            <div class="reviewer-option-heading">
+              <input id={`reviewer-${slot.id}`} type="radio" name="convenorId" value={slot.id} required disabled={slot.assigned}
+                aria-describedby={`reviewer-status-${slot.id} reviewer-scope-${slot.id}`} />
+              <label for={`reviewer-${slot.id}`}>{slot.name}</label>
+              <span id={`reviewer-status-${slot.id}`} class="reviewer-availability">{slot.assigned ? "Assigned" : slot.pending ? "Invitation pending" : "Available"}</span>
+            </div>
+            <div id={`reviewer-scope-${slot.id}`}>
+              <p class="field-help">{slot.purpose === "overload" ? "Overload review across programs. Course permissions remain with the assigned course reviewer." : "Course permission requests"}</p>
+              {slot.purpose !== "overload" && (slot.courses.length ? <ul class="reviewer-courses" aria-label={`Courses assigned to ${slot.name}`}>
+                {slot.courses.map(code => <li>{code}</li>)}
+              </ul> : <p class="field-help">No courses assigned.</p>)}
+            </div>
+          </div>)}
+        </div>
+      </fieldset>
       <button class="primary">Send reviewer invitation</button>
     </form>
     <h3>Invitation history</h3>
@@ -53,3 +70,23 @@ const pending = account ? pendingInvitation(account.id) : undefined;
     </li>)}</ul> : <p>No invitations have been created yet.</p>}
   </section>}
 </Layout>
+
+<style>
+  .surface + .surface { margin-top: 1.25rem; }
+  .invitation-form { max-width: none; }
+  #invite-email { max-width: 36rem; }
+  .reviewer-assignments { border: 0; padding: 0; margin: 1rem 0 0; min-width: 0; }
+  .reviewer-assignments legend { font-weight: 600; padding: 0; }
+  .reviewer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 1rem; }
+  .reviewer-option { min-width: 0; padding: 1rem; border: 2px solid var(--line); border-radius: 3px; }
+  .reviewer-option:has(input:checked) { border-color: var(--gold); background: #fbf8f0; }
+  .reviewer-option.assigned { background: #f0eee9; }
+  .reviewer-option-heading { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 0.65rem; align-items: center; }
+  .reviewer-option input { width: 1.15rem; height: 1.15rem; min-height: 0; margin: 0; accent-color: #654e20; }
+  .reviewer-option label { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-size: 1rem; }
+  .assigned label { cursor: default; }
+  .reviewer-availability { grid-column: 2; color: var(--muted); font-size: 0.875rem; }
+  .reviewer-option .field-help { margin: 0.75rem 0 0.5rem; }
+  .reviewer-courses { display: grid; grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr)); gap: 0.4rem 0.65rem; padding: 0; margin: 0; list-style: none; }
+  .reviewer-courses li { font-size: 0.9rem; }
+</style>
