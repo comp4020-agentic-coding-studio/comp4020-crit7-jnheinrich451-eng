@@ -2307,6 +2307,44 @@ and its new scrollable region. Gave the table region its own distinct name;
 the complete check then passed. A bare code link would still require opening
 each page to identify a course, so the title remains visible in the table.
 
+## 2026-09-26 17:20 - A public manual for students and reviewers
+
+**Prompt:**
+
+> Good, and if you can draft the README.md as manual? Introduce the core of the site, the purpose, and how to use it properly, as students and reviewers!
+
+**Result:**
+Replaced the README starter with a user manual covering purpose, decision
+boundaries and the two roles. Student instructions follow verification, course
+selection, permission assessment, explicit enrolment, suggestions, overload and
+drop/swap. A results table explains what each assessment outcome requires next.
+Reviewer instructions cover emailed invitations, separate account roles, assigned
+course queues, approval/rejection and the separate overload-review role. Clearly
+distinguished saved candidates, approved requests, confirmed enrolments and
+isolated COMP8620 scenario completions. Kept the fictional-record scope, optional
+unstaffed human queue, rule-based decisions and bounded Llama adviser explicit.
+The closing section identifies pending deployed email and model checks.
+
+**Verified:**
+Read John's newly organised CLAUDE.md and checked the actual navigation, forms,
+status labels, verification page and account documentation. Docker Node 24 /
+pnpm 11.9.0 check passed on the rerun: zero diagnostics and 495 tests in 25 files,
+including the whole-README rendering contract and accessibility invariants.
+Refreshed the local app. Anonymous Chrome with JavaScript disabled returned 200
+for /readme/, opened all three internal section links, and reported no page
+overflow at 1920 x 1080 and 390 x 844. No application behaviour, accounts or
+deployment changed. Preserved John's pending harness, decision-log, process and
+reflection edits; only README.md and this record belong to this increment.
+
+**Commit:** [`834aa52`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/834aa52)
+
+**What happened:**
+The initial full check passed the README contract but two overload-flow tests
+received HTTP 500 where they expected redirects. The existing fixture suppresses
+server output, so that run does not identify a root cause. A fresh full run passed
+all 495 tests without any application or test-code change. Retained both local
+logs and reported the earlier failure; no overload fix is claimed.
+
 ## 2026-09-26 17:20 — Natural-voice process account and a rule-shaped CLAUDE.md
 
 **Prompt:**
