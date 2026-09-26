@@ -1879,3 +1879,110 @@ Vitest to four workers because its HTTP suites share one app server and run
 JSDOM/axe concurrently. The full check then passed all 471 tests; cumulative
 test execution time fell from 80.41 to 33.01 seconds, with wall time 14.12 seconds.
 Assertions and the ordinary five-second test timeout remain intact.
+
+## 2026-09-26 13:59 — A generated record that leaves room for the degree
+
+**Prompt:**
+
+> Wow good! Then next stage implementation please, and if you have some questions for me? If not then can directly act on it!
+
+This authorises the profile/template and semester-suggestion direction recorded
+in the preceding turn, including complete 2026 history, preset 2027 S1 study,
+an assigned specialisation and useful 2027 S2 suggestions without promising
+on-time graduation. No further preference was needed for the first example.
+
+**Result:**
+Implemented VCOMP with the supplied 2027 Artificial Intelligence specialisation.
+New registrations receive the reproducible `vcomp-ai-2027-s2-v1` template:
+completed 2026 S1/S2 and 2027 S1, 24/18/18 units respectively, 60 units in total.
+The scenario date is 1 July 2027. Marks derive consistently from the template,
+profile seed and course code; grades and VCOMP/ANU attribution are explicitly
+fictional. Generation checks the persistent source versions, prerequisite and
+incompatibility rules, semester loads, level mix and 2027 S1 offerings before
+writing an account, results, metadata snapshot and creation event atomically.
+
+2026 offerings remain labelled historical assumptions. COMP6250 gets a specific
+note because its 2027 page explicitly has no current offerings. It is not an
+invented 2027 offering, and COMP8280 is never substituted for COMP8260. Existing
+accounts and grade-only records are preserved, with no invented marks or new
+history. Existing VCOMP users can save an AI focus and semester against their
+own stored fictional record.
+
+My profile now offers source-linked suggestions, partial requirement progress,
+permission/evidence next steps and later offering gaps. The deterministic engine
+uses the existing eligibility gate; current enrolments, saved candidates and
+future results cannot become passed prerequisites. It composes compatible options
+within the confirmed/approved load, reserves suggestion space for saved courses,
+and leaves degree space for the compulsory research project. Saving an option
+still only creates a candidate. Explicit enrolment confirmation remains separate.
+
+The reviewed source-bound degree/AI definition uses exclusive credit buckets and
+the 8000-level threshold as an overlay. AI foundation credit is capped at 12;
+surplus is visible. Duplicate rows cannot manufacture credit; the repeatable
+project needs distinct consecutive 12-unit semester results. GPA, supervision,
+project approval, credit substitutions and graduation remain unverified. The
+ordinary course gate still does not authorise repeated project enrolment after
+a completion, so guidance identifies the continuation requirement without
+claiming that workflow is implemented.
+
+Generated migration 0009 adds planning metadata and preference events without
+altering existing tables. Preferences survive reload and reseed. 2028 planning
+uses indicative class rows in the 2027 sources and provides evidence links,
+without enrolment/save controls or invented 2028 rules. Find courses follows a
+saved preference within its supported catalogue year; All terms still overrides
+it. No LLM generates academic facts or decides suggestions.
+
+**Verified:**
+Read CLAUDE.md, AGENTS.md, the recorded plan, the published Crit 7 contract and
+the supplied offline degree, specialisation and course evidence. Claude returned
+a real bounded read-only source review through the installed CLI, confirming the
+draft prerequisite chains but identifying level-mix, AI-cap, project, historical
+offering and ambiguous-rule issues. The draft was corrected in response; Claude
+did not edit files or independently test the final implementation.
+
+Docker Node 24 / pnpm 11.9.0 `pnpm check` passed with zero diagnostics across 106
+files and 484 tests across 23 files. New checks cover reproducible marks, source
+changes/conflicts, chronological prerequisites, unavailable offerings, AI caps,
+duplicate and consecutive-project credit, a missing COMP6670 bottleneck,
+permission/unknown cases, load and saved candidates, project-space reservation,
+later indicative options, preference ownership/CSRF, and preservation of generated
+snapshots and results through repeated migrations/reseeds. Registration tests
+verify the stored 60-unit/10-result template and 2027 S2 preference.
+
+Chrome with JavaScript disabled on a disposable database and captured SMTP mail:
+registered, verified and signed in a new student; inspected the completed
+scenario and progress; saved suggested COMP8539 without enrolment; explicitly
+enrolled from its course page; reloaded; switched to 2028 S1 and confirmed the
+future options have no enrolment controls. All six native POSTs returned 303,
+carried the expected Origin and exposed no verification token in Referer. Ten
+academic-result rows remained ten after enrolment. Also inspected an existing
+fixture profile without rewriting its record. Screenshots at 1440x1000 and
+390x844 showed no horizontal page overflow; viewed the generated desktop profile
+and mobile future-planning page.
+
+Backed up the actual local preview database before migration. After restart and
+catalogue initialisation, hashes preserved all 10 accounts, 10 course requests,
+32 request events, seven enrolments, eight registered profiles, 48 registered
+transcript rows, nine selections, one overload request, three overload events
+and the empty enrolment-event table. Foreign-key check returned zero errors.
+Home and updated Help returned 200. Stopped the disposable browser server.
+Staged whitespace checks passed. Local commits only; no deployment or push.
+John's assets, AGENTS.md change and authored reflection files remain untouched.
+
+**Commit:** [`b4e9474`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/b4e9474)
+
+**What happened:**
+The first 72-unit draft passed individual course checks but had 66 lower-level
+units. Claude caught that reaching the required 48 advanced units would then
+take at least 114 units for a 96-unit degree. Replaced that draft with a complete
+60-unit record containing 42 lower-level and 18 advanced units, explicitly
+labelling its lighter semesters. This preserves room for the 24-unit research
+project, one advanced AI course and a further six-unit elective, subject to the
+remaining evidence and allocation checks. Suggestions also needed to reserve
+that project space, rather than fill every available semester unit with electives.
+
+The first typecheck caught nullable year/session fields in published offering
+rows; added explicit validation before using later dates. Browser automation
+initially matched both sign-in and resend email inputs; scoped the selector to
+the sign-in field and reran with a fresh disposable account. The real browser
+workflow and final checks then passed.
