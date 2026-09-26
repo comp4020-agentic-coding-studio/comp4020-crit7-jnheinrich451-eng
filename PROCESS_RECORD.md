@@ -2941,3 +2941,47 @@ popup extending beyond the screen. John's screenshot exposed that limitation.
 The replacement keeps all options in normal page layout so they wrap and remain
 visible. Two browser-helper edits initially failed PowerShell quote parsing;
 the corrected helper then completed the actual radio submission successfully.
+
+## 2026-09-27 — Adviser explains matches that do not fit the remaining degree
+
+**Prompt:**
+
+> In demo account, I tryed "I want courses with easy HDs" and "I want to get courses from specialization Data Science, recommand one course for me", but get same course with COMP8280
+
+**Result:**
+Reproduced locally on generated profiles. Matching worked: "Data Science" gave
+the machine-learning topic and matched COMP6670 and COMP6466. The planner then
+correctly left both out. With 60 units recorded, the remaining 36 must hold the
+24-unit research project and 8000-level study, so 6000-level courses add no
+useful degree credit. COMP8280 is often the only ready 8000-level S2 course.
+The fault was the reply. It still said "matched" and showed COMP8280 under
+"Your suggested courses", and the reason sat below the fold in planner wording.
+"Easy HDs" correctly matched nothing, but the page did not say that the
+standard suggestions were being shown.
+
+The reply now leads with "Courses match your interests, but none fits what your
+degree still needs this semester". It lists left-out matches with a plain
+reason and relabels the shortlist "Standard suggestions from your study plan".
+Matching courses that need permission, evidence or a later offering are named
+as next steps from the planner's full lists, never as options. Non-subject
+requests say standard suggestions are shown. A specialisation request gets a
+note that the adviser works within the assigned specialisation. "Data science"
+is now reviewed under both the data and machine-learning topics. The adviser
+does not model other specialisations; John's request for a Data Science course
+is answered through the topics, not the specialisation.
+
+**Verified:**
+A local reproduction of John's two inputs on generated seeds: Data Science
+listed COMP6670, COMP6240 and COMP6466 as left out with the new reason, and
+COMP8600, COMP8650 and COMP8410 as 2028 S1 next steps. "Easy HDs" gave no
+topics and the standard options. A new unit test covers the left-out reason,
+next-step matches that never become options, and specialisation detection.
+Docker `pnpm check` passed 597 tests in 29 files.
+
+**Commit:** [`cf21fed`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/cf21fed)
+
+**What happened:**
+John's screenshot showed a correct planner decision presented as a wrong
+answer. The 27-of-30 benchmark scored topic choice and grounding only, so it
+could not catch the planner removing every match afterwards. The page, seen by
+the user, caught it.
