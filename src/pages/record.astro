@@ -7,6 +7,8 @@ import EnrolmentOverview from "../components/EnrolmentOverview.astro";
 import EnrolmentHistory from "../components/EnrolmentHistory.astro";
 import StudySuggestions from "../components/StudySuggestions.astro";
 import { completedScenariosOf, enrolmentsOf, PASSING, transcriptOf } from "../lib/store";
+import { catalogueEntries, catalogueLink } from "../lib/catalogue";
+import { ACTIVE_YEAR } from "../lib/academic-year";
 
 // The record the gate reads. Nothing on it is typed by the student, which is
 // what keeps a request's checks honest: the convenor sees what the record
@@ -17,6 +19,17 @@ const student = actor.kind === "student" ? actor.student : null;
 const results = student ? transcriptOf(student.id) : [];
 const current = student ? enrolmentsOf(student.id) : [];
 const scenarios = student ? completedScenariosOf(student.id) : [];
+const catalogue = student ? catalogueEntries().filter(entry => entry.kind === "course" && entry.year === ACTIVE_YEAR) : [];
+const resultCourses = new Map(results.map(result => {
+  const entries = catalogue.filter(entry => entry.code === result.courseCode);
+  const titles = [...new Set(entries.map(entry => entry.evidence.title))];
+  return [result.courseCode, {
+    href: entries.length ? catalogueLink("course", result.courseCode, ACTIVE_YEAR) : null,
+    title: titles.length === 1 ? titles[0] : titles.length > 1
+      ? "Multiple saved titles; see course details"
+      : "Course details not in the saved catalogue",
+  }];
+}));
 ---
 
 <Layout title="My profile" actor={actor}>
@@ -54,8 +67,10 @@ const scenarios = student ? completedScenariosOf(student.id) : [];
         {results.length === 0 ? (
           <p class="muted">No results yet.</p>
         ) : (
-          <div class="table-wrap">
-            <table>
+          <>
+          <p class="muted">Course names and links use the saved {ACTIVE_YEAR} catalogue. Result terms remain as recorded.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Academic results table">
+            <table class="academic-results">
               <thead>
                 <tr>
                   <th scope="col">Course</th>
@@ -69,7 +84,12 @@ const scenarios = student ? completedScenariosOf(student.id) : [];
               <tbody>
                 {results.map((r) => (
                   <tr>
-                    <td>{r.courseCode}</td>
+                    <td>
+                      {resultCourses.get(r.courseCode)?.href
+                        ? <a href={resultCourses.get(r.courseCode)!.href!}>{r.courseCode}</a>
+                        : r.courseCode}
+                      <span class="result-course-title">{resultCourses.get(r.courseCode)?.title}</span>
+                    </td>
                     <td>{r.term}</td>
                     <td>{r.grade}</td>
                     <td>{r.mark ?? "Not recorded"}</td>
@@ -80,9 +100,18 @@ const scenarios = student ? completedScenariosOf(student.id) : [];
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
 
     </>
   )}
 </Layout>
+
+<style>
+  .academic-results { min-width: 42rem; }
+  .academic-results th, .academic-results td { vertical-align: top; }
+  .academic-results td:first-child { width: 36%; min-width: 14rem; }
+  .academic-results td:first-child a { font-weight: 600; }
+  .result-course-title { display: block; margin-top: 0.2rem; color: var(--muted); line-height: 1.4; }
+</style>
