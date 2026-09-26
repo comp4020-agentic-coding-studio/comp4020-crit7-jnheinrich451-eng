@@ -7,7 +7,8 @@ import type { CatalogueSnapshot } from "../src/lib/catalogue-types";
 import { generateAuthoredProfile } from "../src/lib/profile-template";
 import { rulesForSource } from "../src/lib/course-rules";
 import { fixedUnits } from "../src/lib/course-evidence";
-import { adviserContext, adviserPayload, askOllama, keywordTopics, matchCourses, notSubjectInterest, preferredPlan, topicsFromSubjects, validateSubjects } from "../src/lib/course-adviser";
+import { adviserContext, adviserPayload, askOllama, keywordTopics, matchCourses, mentionsSpecialisation, notSubjectInterest, preferredPlan, relatedNextSteps, topicsFromSubjects, validateSubjects } from "../src/lib/course-adviser";
+import { generateProfile } from "../src/lib/profile-template";
 import reference from "../src/data/adviser-reference.json";
 
 const sources = catalogue.snapshots as CatalogueSnapshot[];
@@ -38,7 +39,7 @@ it("reads the student's own words through the reviewed vocabulary and every keyw
   }
   // Longer aliases claim the text first; short forms survive punctuation.
   expect(keywordTopics("video games")).toEqual(["creative"]);
-  expect(keywordTopics("data science")).toEqual(["machine-learning"]);
+  expect(keywordTopics("data science")).toEqual(["machine-learning", "data"]);
   expect(keywordTopics("I like AI")).toEqual(["ai"]);
   expect(keywordTopics("I hate waiting")).toEqual([]);
   // Requests about marks, load or approvals never reach the model.
@@ -158,4 +159,22 @@ it("never follows proxy redirects and aborts a stalled response body within the 
     expect(result.response.failure).toBe("transport"); expect(result.elapsedMs).toBeLessThan(1500);
     await expect.poll(() => aborted).toBe(true);
   } finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
+});
+
+it("explains matches that do not fit the remaining degree and finds matching courses that need another step", async () => {
+  // A generated record whose remaining space is the project and 8000-level study.
+  const generated = { ...input(), results: generateProfile("demo-a").records.map(r => ({ ...r, code: r.courseCode })) };
+  const context = adviserContext(generated);
+  const response = (await askOllama("I want courses from the Data Science specialisation", context.pool, { baseUrl: "" })).response;
+  expect(response.topics).toEqual(["machine-learning", "data"]);
+  const plan = preferredPlan(generated, 24, response);
+  const leftOut = response.matches.filter(m => !plan.options.some(o => o.course.code === m.code));
+  expect(leftOut.length).toBeGreaterThan(0);
+  for (const m of leftOut) expect(plan.optionExclusions[m.code]).toContain("research project and 8000-level study");
+  // Permission or later-offered courses on the topic are named as next steps, never as options.
+  const related = relatedNextSteps(response.topics!, plan).map(r => r.match.code);
+  expect(related).toEqual(expect.arrayContaining(["COMP8600"]));
+  for (const code of related) expect(plan.options.some(o => o.course.code === code)).toBe(false);
+  expect(mentionsSpecialisation("courses from the Data Science specialization")).toBe(true);
+  expect(mentionsSpecialisation("I like robots")).toBe(false);
 });

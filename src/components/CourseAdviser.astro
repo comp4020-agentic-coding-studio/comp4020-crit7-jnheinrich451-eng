@@ -8,6 +8,8 @@ const run = a.run;
 const effectiveLimit = Math.min(a.input.limit ?? 24, run?.targetUnits ?? 24);
 const checkedOptions = a.active ? a.personalised?.options ?? [] : [];
 const omitted = a.active ? a.response?.matches.filter(m => !a.personalised?.options.some(c => c.course.code === m.code)) ?? [] : [];
+const matchedInPlan = checkedOptions.some(({ course }) => a.response?.matches.some(m => m.code === course.code));
+const periodName = (year: number, term: string) => `${year} ${term === "S1" ? "First" : "Second"} Semester`;
 ---
 <aside class="course-adviser" aria-labelledby="adviser-heading" data-course-adviser>
   <p class="eyebrow">A little help choosing</p>
@@ -30,13 +32,18 @@ const omitted = a.active ? a.response?.matches.filter(m => !a.personalised?.opti
     {a.stale ? <p>Your semester, selection or supporting record has changed. Update your suggestions to use these preferences with the current record. Standard suggestions are shown below.</p>
       : run.status === "pending" ? <p>{a.expired ? "The last request was interrupted. Update your suggestions to try again." : "The adviser is working. Reload this page in a moment to see the result."}</p>
       : <>
-        <p><strong>{a.response?.reason === "matched" && a.response.method === "keywords" ? "Your interests have been matched to course topics by keyword." : a.response?.reason === "matched" ? "Your interests have been matched to course evidence." : a.response?.reason === "no-match" ? "No clear interest match was found in the available options." : a.response?.reason === "no-options" ? "There are no ready courses to match in this semester." : a.response?.reason === "not-configured" ? "Your unit preference has been applied without AI matching." : "The AI adviser couldn’t complete this request."}</strong></p>
+        <p><strong>{a.response?.reason === "matched" && !matchedInPlan ? "Courses match your interests, but none fits what your degree still needs this semester." : a.response?.reason === "matched" && a.response.method === "keywords" ? "Your interests have been matched to course topics by keyword." : a.response?.reason === "matched" ? "Your interests have been matched to course evidence." : a.response?.reason === "no-match" && a.response.method === "keywords" && !a.response.topics?.length ? "No subject interest was found to match, so your standard study-plan suggestions are shown." : a.response?.reason === "no-match" ? "No clear interest match was found in the available options." : a.response?.reason === "no-options" ? "There are no ready courses to match in this semester." : a.response?.reason === "not-configured" ? "Your unit preference has been applied without AI matching." : "The AI adviser couldn’t complete this request."}</strong></p>
         {a.response?.method === "keywords" && (a.response.topics?.length ? <p>You named these topics directly, so they were matched against a reviewed topic list without AI.</p>
           : <p>Requests about marks, unit load, approvals or the rules are not subject interests, so no AI reading was attempted. Your unit limit still applies.</p>)}
         {a.response?.topics && a.response.topics.length > 0 && <p data-adviser-topics>Topics: {a.response.topics.map(topicLabel).join(", ")}.</p>}
+        {a.asksSpecialisation && <p data-adviser-specialisation>Your record follows the {a.personalised?.supported ? "Artificial Intelligence" : "assigned"} specialisation. The adviser matches subject interests within it; it cannot change or add a specialisation.</p>}
         {run.status === "fallback" && <p>Rule-based suggestions remain available below.</p>}
+        {omitted.length > 0 && <div data-adviser-left-out><p>Matching courses left out of this semester’s plan:</p><ul>{omitted.map(m => <li><a href={catalogueLink("course", m.code, 2027)}>{m.code}</a>: {a.personalised?.optionExclusions[m.code] ?? "Not part of the checked combination."}</li>)}</ul></div>}
+        {a.related.length > 0 && <div data-adviser-related><p>Matching courses that need another step first:</p><ul>{a.related.map(({ match, candidate }) => <li>
+          <a href={catalogueLink("course", match.code, 2027)}>{match.code} {candidate.course.title}</a> — {candidate.offered ? a.personalised!.attentionLabel(candidate.result) : candidate.later ? `next saved offering ${periodName(candidate.later.year, candidate.later.term)} (indicative)` : "no later offering recorded"}.
+        </li>)}</ul></div>}
         {checkedOptions.length > 0 ? <>
-          <h4>Your suggested courses</h4>
+          <h4>{matchedInPlan ? "Your suggested courses" : "Standard suggestions from your study plan"}</h4>
           <ul class="adviser-shortlist" data-adviser-shortlist>{checkedOptions.map(({ course }) => <li>
             <a href={`#suggested-${course.code}`}><span class="enrolled-code">{course.code}</span> {course.title}</a>
             <span class="field-help">{course.units} units · {a.response?.matches.some(m => m.code === course.code) ? "Matches your interests" : "Suggested from your study plan"}</span>
@@ -44,9 +51,8 @@ const omitted = a.active ? a.response?.matches.filter(m => !a.personalised?.opti
           <p><a class="button" href="#suggested-options-heading">View course details and save</a></p>
         </> : <p>No additional courses are suggested for this plan. <a href="#suggested-options-heading">Review your selection and next steps</a>.</p>}
         <p class="field-help">Suggestions use a {effectiveLimit}-unit ceiling{run.targetUnits > effectiveLimit ? ` within your approved limit, rather than the requested ${run.targetUnits} units` : ""}, including confirmed and saved courses. This is a maximum, not a promise to fill every unit.</p>
-        {omitted.length > 0 && <ul>{omitted.map(m => <li><a href={catalogueLink("course", m.code, 2027)}>{m.code}</a>: {a.personalised?.optionExclusions[m.code] ?? "Not part of the checked combination."}</li>)}</ul>}
         <details><summary>How these suggestions were checked</summary>
-          <p>Topics you name directly, such as “AI” or “robots”, are matched against a reviewed topic list without AI. When you describe an interest in other words and AI matching is available, Llama chooses up to three topics from the same list. The app then finds ready courses whose own saved descriptions mention those topics and quotes that text; a match in a course title counts most. The planner checks your record, study load and space for required study. An interest match does not approve enrolment or guarantee graduation.</p>
+          <p>Topics you name directly, such as “AI” or “robots”, are matched against a reviewed topic list without AI. When you describe an interest in other words and AI matching is available, Llama restates it as subject names, which are matched against the same list. The app then finds courses whose own saved descriptions mention those topics and quotes that text; a match in a course title counts most. The planner checks your record, study load and space for required study. An interest match does not approve enrolment or guarantee graduation.</p>
           <p>The adviser considers {a.context.pool.length} ready courses{a.context.omittedCount ? `; ${a.context.omittedCount} further ready courses are outside this shortlist` : ""}. Courses needing permission or more evidence remain in the next-step sections below.</p>
           <p class="meta">Saved {run.createdAt} UTC{run.modelDigest && <> · Model: {run.model}</>}. Future semesters remain indicative.</p>
         </details>

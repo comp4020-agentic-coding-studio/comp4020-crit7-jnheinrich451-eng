@@ -174,7 +174,7 @@ export function planStudy(input: PlanningInput) {
     const usefulLevel = beforeContribution.advancedUnits + projectRemaining < 48 && afterContribution.advancedUnits > beforeContribution.advancedUnits;
     const usefulAI = afterContribution.aiUnits > beforeContribution.aiUnits || afterContribution.aiAdvancedUnits > beforeContribution.aiAdvancedUnits && beforeContribution.aiAdvancedUnits < 12;
     if (!usefulCredit && !usefulLevel && !usefulAI && candidates.some(c => c.offered && c.score > 0)) {
-      optionExclusions[candidate.course.code] = "Left out to preserve useful degree credit and space for the compulsory project."; continue;
+      optionExclusions[candidate.course.code] = "Would not count toward what your degree still needs: the remaining space is kept for the research project and 8000-level study."; continue;
     }
     const issue = gate(candidate.course.code, candidate.course.rules, plannedRecord).outcome !== "eligible"
       || plannedRecord.enrolled.some(code => byCode.get(code)?.rules?.incompatibleEnrolled?.includes(candidate.course.code));
@@ -187,7 +187,9 @@ export function planStudy(input: PlanningInput) {
     if (options.length < 4) { options.push(candidate); proposed.push(load); anticipated.push(hypothetical); }
     else optionExclusions[candidate.course.code] = "Four options are already included in this suggestion.";
   }
-  return { supported, progress, options, optionExclusions, attention: attention.slice(0, 4), later: later.slice(0, 5), saved,
+  // The full next-step lists let the adviser find interest matches beyond the
+  // first few shown in each section.
+  return { supported, progress, options, optionExclusions, attention: attention.slice(0, 4), later: later.slice(0, 5), attentionAll: attention, laterAll: later, saved,
     // Individually eligible candidates, not a jointly approved semester plan.
     adviserPool: candidates.filter(c => c.offered && !c.saved && c.result.outcome === "eligible" && c.course.units !== null),
     reservedUnits: sum(saved.filter(c => positive(c.units)).map(c => ({ units: c.units! }))), constrained,

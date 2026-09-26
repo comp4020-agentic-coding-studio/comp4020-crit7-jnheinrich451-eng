@@ -41,7 +41,7 @@
     {
       "id": "data",
       "label": "Data, databases and analytics",
-      "aliases": ["data", "big data", "data analysis", "data analytics", "analytics", "data mining", "data engineering", "database", "databases", "sql", "data wrangling", "data cleaning"],
+      "aliases": ["data", "data science", "big data", "data analysis", "data analytics", "analytics", "data mining", "data engineering", "database", "databases", "sql", "data wrangling", "data cleaning"],
       "terms": ["data mining", "data analytics", "analytics", "databases", "database", "sql", "data cleaning", "data integration", "data quality", "relational data model"]
     },
     {

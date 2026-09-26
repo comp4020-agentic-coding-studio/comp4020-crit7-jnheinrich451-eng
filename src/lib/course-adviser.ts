@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import vocabulary from "../data/adviser-topics-2027.json";
-import { planStudy, type PlanningInput } from "./study-planning";
+import { planStudy, type PlanningCourse, type PlanningInput } from "./study-planning";
 import { fetchOllama } from "./ollama-transport";
 
 export const ADVISER_VERSION = "preference-adviser-v2";
@@ -21,11 +21,14 @@ export interface AdviserResponse {
 type Topic = (typeof vocabulary.topics)[number];
 const topicById = new Map(vocabulary.topics.map(t => [t.id, t]));
 export const topicLabel = (id: string) => topicById.get(id)?.label ?? id;
+/** A course and its own saved description, the only text a match can quote. */
+export function adviserCandidate(course: PlanningCourse): AdviserCandidate {
+  return { code: course.code, title: course.title, sourceHash: course.source!.hash,
+    evidence: `${course.title}. ${course.source!.evidence.description}`.replace(/\s+/g, " ").trim().slice(0, 900) };
+}
 export function adviserContext(input: PlanningInput) {
   const baseline = planStudy(input);
-  const available: AdviserCandidate[] = baseline.adviserPool.map(({ course }) => ({ code: course.code, title: course.title,
-    evidence: `${course.title}. ${course.source!.evidence.description}`.replace(/\s+/g, " ").trim().slice(0, 900),
-    sourceHash: course.source!.hash }));
+  const available: AdviserCandidate[] = baseline.adviserPool.map(({ course }) => adviserCandidate(course));
   // Include facts, rules and source identities, not just the courses previously picked.
   const contextHash = createHash("sha256").update(JSON.stringify({ version: ADVISER_VERSION, ...input,
     courses: input.courses.map(c => ({ code: c.code, units: c.units, rules: c.rules, sourceHash: c.source?.hash })),
@@ -59,7 +62,8 @@ export function keywordTopics(preferences: string): string[] {
   const hits = vocabulary.topics.flatMap(topic => topic.aliases.flatMap(alias => occurrences(text, alias).map(span => ({ topic: topic.id, ...span }))))
     .sort((a, b) => (b.end - b.start) - (a.end - a.start) || a.start - b.start);
   const accepted: typeof hits = [];
-  for (const hit of hits) if (!accepted.some(a => hit.start < a.end && a.start < hit.end)) accepted.push(hit);
+  // A phrase reviewed under two topics (such as "data science") names both.
+  for (const hit of hits) if (!accepted.some(a => hit.start < a.end && a.start < hit.end && !(a.start === hit.start && a.end === hit.end))) accepted.push(hit);
   return [...new Set(accepted.sort((a, b) => a.start - b.start).map(a => a.topic))];
 }
 /** The model answers with short subject names only. They are never shown or
@@ -191,6 +195,14 @@ export async function askOllama(preferences: string, pool: AdviserCandidate[], o
   } catch { return answer({ matches: [], reason: "unavailable", failure: "transport" }, digest); }
 }
 
+/** Interest matches among relevant courses that need another step first
+ * (permission, evidence or a later offering). Informational only. */
+export function relatedNextSteps(topics: string[], plan: ReturnType<typeof planStudy>) {
+  const candidates = [...plan.attentionAll, ...plan.laterAll].filter(c => c.course.source);
+  const matches = matchCourses(topics, candidates.map(c => adviserCandidate(c.course)));
+  return matches.map(m => ({ match: m, candidate: candidates.find(c => c.course.code === m.code)! }));
+}
+export const mentionsSpecialisation = (preferences: string) => /speciali[sz](ation|e|ing)|\bmajor\b/i.test(preferences);
 export function preferredPlan(input: PlanningInput, targetUnits: number, response: AdviserResponse) {
   return planStudy({ ...input, targetUnits, preferredCodes: response.matches.map(m => m.code) });
 }

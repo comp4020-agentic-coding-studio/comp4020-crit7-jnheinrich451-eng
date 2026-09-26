@@ -294,6 +294,11 @@ See `docs/course-adviser.md` for validation, runtime limits and timings.
   weigh most); the app quotes the original text and rechecks the combination
   through the deterministic planner. Keyword results are labelled as such.
   Missing or failed inference falls back to labelled rule-based planning.
+- When matched courses don't fit what the degree still needs, the reply says
+  so and lists them with the planner's reason; matching courses that need
+  permission, evidence or a later offering are named as next steps, never as
+  options. The adviser matches interests within the assigned specialisation and
+  says it cannot change or add one.
 - Reference cases live in `src/data/adviser-reference.json`: named and
   non-subject cases are checked in `pnpm check`; paraphrases are scored by the
   opt-in live benchmark. Change the vocabulary or prompt only with a benchmark

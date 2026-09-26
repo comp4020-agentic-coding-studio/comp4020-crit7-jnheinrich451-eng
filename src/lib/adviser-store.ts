@@ -2,7 +2,7 @@ import { and, desc, eq, gt } from "drizzle-orm";
 import { db } from "./db";
 import { accounts, adviserRuns, studyPlanEvents, type Student } from "./schema";
 import { planningInputOf } from "./planning-store";
-import { ADVISER_VERSION, ADVISER_LEASE_MS, UNIT_TARGETS, adviserContext, askOllama, preferredPlan, type AdviserResponse } from "./course-adviser";
+import { ADVISER_VERSION, ADVISER_LEASE_MS, UNIT_TARGETS, adviserContext, askOllama, mentionsSpecialisation, preferredPlan, relatedNextSteps, type AdviserResponse } from "./course-adviser";
 import { UserError } from "./errors";
 import { throttle } from "./auth";
 
@@ -12,9 +12,11 @@ export function adviserView(student: Student, input = planningInputOf(student)) 
   const stale = !!run && run.contextHash !== context.contextHash;
   const response = run?.response ? JSON.parse(run.response) as AdviserResponse : null;
   const active = !!run && !stale && ["complete", "fallback"].includes(run.status) && !!response;
+  const personalised = active ? preferredPlan(input, run!.targetUnits, response!) : null;
   return { input, context, run, response, stale, active, configured: !!process.env.OLLAMA_BASE_URL,
-    expired: !!run && run.status === "pending" && run.startedAt + ADVISER_LEASE_MS < Date.now(),
-    personalised: active ? preferredPlan(input, run!.targetUnits, response!) : null };
+    expired: !!run && run.status === "pending" && run.startedAt + ADVISER_LEASE_MS < Date.now(), personalised,
+    related: personalised && response?.topics?.length ? relatedNextSteps(response.topics, personalised) : [],
+    asksSpecialisation: active && mentionsSpecialisation(run!.preferences) };
 }
 
 export function dismissAdvice(student: Student) {
