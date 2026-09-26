@@ -52,12 +52,12 @@ export async function sendVerificationTest(email: string, token: string): Promis
   if (!result.accepted?.length) throw new Error("MAIL_NOT_ACCEPTED");
 }
 
-export async function sendPasswordChange(email: string, token: string): Promise<void> {
+export async function sendPasswordChange(email: string, token: string, recovery = false): Promise<void> {
   const { from, origin, transport } = mailConfig();
   const result = await transport.sendMail({
     from, to: email,
-    subject: "Change your enrolment prototype password",
-    text: `You requested a password change from your signed-in prototype account. Open this link to choose a new password:\n\n${origin}/change-password/?token=${token}\n\nThis link expires in 30 minutes and works once. Opening it does not change your password. Completing the change signs out all sessions while preserving your profile, requests and enrolments. If you did not request this, ignore the message. This is an independent student prototype, not ANU's enrolment service.`,
+    subject: recovery ? "Reset your enrolment prototype password" : "Change your enrolment prototype password",
+    text: `${recovery ? "A password reset was requested for your prototype account. You do not need your old password." : "You requested a password change from your signed-in prototype account."} Open this link to choose a new password:\n\n${origin}/change-password/?token=${token}\n\nThis link expires in 30 minutes and works once. Opening it does not change your password. Completing the change signs out all sessions while preserving your profile, requests and enrolments. If you did not request this, ignore the message. This is an independent student prototype, not ANU's enrolment service.`,
   });
   if (!result.accepted?.length) throw new Error("MAIL_NOT_ACCEPTED");
 }

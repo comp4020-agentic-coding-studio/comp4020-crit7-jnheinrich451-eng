@@ -4,11 +4,11 @@ import { back } from "../../../lib/http";
 import { UserError } from "../../../lib/errors";
 import { accountFor, confirmEmailCheck, requestEmailCheck } from "../../../lib/email-checks";
 import { closeDemoInbox, INBOX_COOKIE, inboxFor, openDemoInbox, sendDemoVerification } from "../../../lib/demo-inbox";
-import { completePasswordChange, requestPasswordChange } from "../../../lib/password-changes";
+import { completePasswordChange, requestPasswordChange, requestPasswordReset } from "../../../lib/password-changes";
 
 export const POST: APIRoute = async ({ request, cookies, params, url, locals }) => {
   const action = params.action;
-  if (!["register", "login", "logout", "resend", "verify", "email-test", "email-test-confirm", "password-change", "password-change-confirm", "demo-resend", "demo-inbox-open"].includes(action ?? ""))
+  if (!["register", "login", "logout", "resend", "verify", "email-test", "email-test-confirm", "password-change", "password-change-confirm", "password-reset", "demo-resend", "demo-inbox-open"].includes(action ?? ""))
     return new Response("Not found", { status: 404 });
   const form = await request.formData();
   const field = (key: string) => String(form.get(key) ?? "");
@@ -16,6 +16,15 @@ export const POST: APIRoute = async ({ request, cookies, params, url, locals }) 
   if (mode !== "normal" && mode !== "demo") return new Response("Unknown account mode", { status: 400 });
   const modeQuery = mode === "demo" ? "?mode=demo" : "";
   try {
+    if (action === "password-reset") {
+      const account = locals.actor ? accountFor(locals.actor) : undefined;
+      const secret = mode === "demo" && account?.kind === "demo"
+        ? openDemoInbox(account.id, cookies, url) : cookies.get(INBOX_COOKIE)?.value;
+      requestPasswordReset(field("email"), mode, secret);
+      return back(`/forgot-password/${modeQuery}`, { ok: mode === "demo"
+        ? "If this demo account is confirmed and within the request limit, a password link is ready in its private inbox."
+        : "If a verified account exists for this address and is within the request limit, we will email a password reset link. Check your inbox and junk folder; delivery may take time. If nothing arrives, wait 15 minutes before trying again." });
+    }
     if (action === "password-change") {
       if (!locals.actor) return new Response("Sign in required", { status: 401 });
       const account = accountFor(locals.actor);
@@ -116,7 +125,8 @@ export const POST: APIRoute = async ({ request, cookies, params, url, locals }) 
   } catch (err) {
     if (!(err instanceof UserError)) throw err;
     const page =
-      action === "password-change" || action === "email-test" ? "/account/"
+      action === "password-reset" ? `/forgot-password/${modeQuery}`
+        : action === "password-change" || action === "email-test" ? "/account/"
         : action === "password-change-confirm" ? `/change-password/?token=${encodeURIComponent(field("token"))}`
         : action === "demo-resend" || action === "demo-inbox-open" ? "/demo-inbox/"
         : action === "email-test-confirm" ? "/email-test/" : action === "register"

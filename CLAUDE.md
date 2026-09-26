@@ -170,6 +170,14 @@ See `docs/accounts-and-data.md`.
   30 minutes and requests are limited to three per account per 15 minutes.
   Previous verification-test links and receipts remain compatible, separately
   scoped; they can never change a password. No account deletion is included.
+- Forgot password is a separate public route: verified normal accounts receive
+  a single-use reset link without requiring the old password or a session.
+  Unknown, unverified, throttled and failed-mail cases share the same response;
+  mail delivery runs outside it and records its status. Reset requests permit
+  three per address and twenty across the app every 15 minutes. Completion uses
+  the existing password-link checks, revokes sessions and preserves records.
+  Demo recovery requires the matching private inbox capability or an existing
+  demo session; never reopen an inbox from an address alone.
 - Normal / Demo tabs explicitly choose delivery. Normal mode accepts UID-style
   and name-based ANU addresses and requires SMTP ownership verification. Demo
   users choose their own `@enrolment.test` address and password. Their private

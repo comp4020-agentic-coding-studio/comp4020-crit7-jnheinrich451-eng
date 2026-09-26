@@ -32,6 +32,8 @@ export const ROUTES = [
   "/account/",
   "/email-test/",
   "/change-password/",
+  "/forgot-password/",
+  "/forgot-password/?mode=demo",
   "/demo-inbox/",
   "/login/?mode=demo",
   "/register/?mode=demo",

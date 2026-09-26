@@ -29,7 +29,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const response = await next();
   // Keep verification tokens out of Referer without turning a native form's
   // Origin into "null" (no-referrer does that and fails the CSRF checks).
-  const sensitiveLink = path.startsWith("/verify") || path.startsWith("/email-test") || path.startsWith("/change-password") || path.startsWith("/demo-inbox");
+  const sensitiveLink = path.startsWith("/verify") || path.startsWith("/email-test") || path.startsWith("/change-password") || path.startsWith("/forgot-password") || path.startsWith("/demo-inbox");
   response.headers.set("Referrer-Policy", sensitiveLink ? "strict-origin" : "same-origin");
   response.headers.set("X-Content-Type-Options", "nosniff");
   if (context.locals.actor || sensitiveLink || path.startsWith("/api/auth"))

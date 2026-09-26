@@ -24,8 +24,30 @@ account every 15 minutes; current-password failures count toward that limit.
 The separate `password_changes` table stores token hashes, a fingerprint of the
 credential at issuance (not another stored password hash), status and timestamps.
 Activation and old receipt tokens cannot be used as password-change links.
-This is signed-in password management; forgotten-password recovery remains outside
-this increment. Real Inbox delivery is still a provider/university mail concern.
+Real Inbox delivery is still a provider/university mail concern.
+
+## Recover a forgotten password
+
+Choose **Forgot password?** on Sign in, or **Reset it through your inbox instead**
+on My account. Enter the verified ANU address, open the emailed reset link and
+enter the new password twice. No old password or signed-in session is required.
+The link itself proves mailbox access; no separate code is needed. Reviewer
+accounts use the same flow and keep their assigned role.
+
+Public responses are identical for verified, unknown, unverified, throttled and
+mail-failure cases. SMTP delivery runs outside the public response so provider
+latency does not disclose account existence. Each attempt persists its
+pending/sent/failed status in `password_changes`; an interrupted process can
+leave a pending attempt until it expires, so the user can request a fresh link.
+There is no durable mail retry queue. Requests permit three per address and
+twenty across the app per 15 minutes. Requesting or opening a link never changes
+credentials; successful confirmation uses the same expiry, single-use and
+session-revocation rules as signed-in changes.
+
+Demo recovery can use an already-open matching private inbox, or the inbox opened
+from a signed-in demo session. An address alone cannot recover an inbox. If both
+password and inbox access are lost, create a different demo account; old data
+remains private. Normal account mail is never captured in the demo inbox.
 
 ## Previous verification email tests
 
@@ -276,7 +298,7 @@ restricted source site. See `docs/catalogue-data.md` for the import workflow.
 
 ## Current limits and checks
 
-Password recovery, account deletion, ANU SSO and synchronisation with real
+Account deletion, ANU SSO and synchronisation with real
 academic records are outside this increment. There are no real ANU enrolments.
 Email suffix validation should not be treated as an institutional access policy.
 

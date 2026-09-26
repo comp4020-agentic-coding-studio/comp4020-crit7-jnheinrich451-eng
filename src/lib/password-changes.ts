@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { and, desc, eq, gt } from "drizzle-orm";
 import { db } from "./db";
 import { accounts, demoInboxes, emailTokens, passwordChanges, sessions } from "./schema";
-import { digest, throttle } from "./auth";
+import { digest, normaliseDemoEmail, normaliseEmail, throttle } from "./auth";
 import { accountFor } from "./email-checks";
 import { captureDemoMessage, inboxFor } from "./demo-inbox";
 import { sendPasswordChange } from "./mail";
@@ -24,6 +24,32 @@ export async function requestPasswordChange(actor: Actor, currentPassword: strin
     throw new UserError("Your current prototype password is incorrect.");
   if (account.kind === "demo" && inboxFor(inboxSecret)?.accountId !== account.id)
     throw new UserError("Reopen your private demo inbox before requesting a password change.");
+  await issuePasswordLink(account, inboxSecret);
+}
+
+export function requestPasswordReset(rawEmail: string, kind: "normal" | "demo", inboxSecret?: string) {
+  const email = kind === "demo" ? normaliseDemoEmail(rawEmail) : normaliseEmail(rawEmail);
+  // Public recovery must not reveal whether an address exists, is verified,
+  // was throttled, or encountered a mail-provider error.
+  try {
+    throttle(`password-reset:${digest(email)}`, 3);
+    throttle("password-reset:global", 20);
+  } catch (error) {
+    if (error instanceof UserError) return;
+    throw error;
+  }
+  if (kind === "demo" && inboxFor(inboxSecret)?.email !== email)
+    throw new UserError("No matching private demo inbox is open. Use the browser where you still have access, or create a new demo account with a different address.");
+  const account = db.select().from(accounts).where(and(eq(accounts.email, email), eq(accounts.kind, kind))).get();
+  if (!account?.verifiedAt || !account.passwordHash) return;
+  // Delivery runs outside the public response so SMTP latency cannot reveal
+  // account existence. Its pending/sent/failed outcome is persisted below.
+  void issuePasswordLink(account, inboxSecret, true).catch(() => {
+    console.warn("Password recovery delivery failed; request status retained.");
+  });
+}
+
+async function issuePasswordLink(account: typeof accounts.$inferSelect, inboxSecret?: string, recovery = false) {
   const now = Date.now();
   const token = db.transaction((tx) => {
     const value = account.kind === "demo" ? captureDemoMessage(inboxSecret!, "password-change").token : randomBytes(32).toString("hex");
@@ -34,7 +60,7 @@ export async function requestPasswordChange(actor: Actor, currentPassword: strin
   });
   if (account.kind === "normal") {
     try {
-      await sendPasswordChange(account.email, token);
+      await sendPasswordChange(account.email, token, recovery);
       db.update(passwordChanges).set({ status: "sent" }).where(eq(passwordChanges.tokenHash, digest(token))).run();
     } catch {
       db.update(passwordChanges).set({ status: "failed" }).where(eq(passwordChanges.tokenHash, digest(token))).run();

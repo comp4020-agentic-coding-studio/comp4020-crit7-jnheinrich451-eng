@@ -169,3 +169,99 @@ describe("email-confirmed password changes", () => {
     expect((await get("/record/", cookie)).status).toBe(200);
   });
 });
+
+describe("forgotten-password recovery", () => {
+  it("recovers a reviewer without changing their role or granting student access", async () => {
+    const email = "fixture-staff-1@anu.edu.au", before = snapshot(email);
+    await post("password-reset", { email, role: "student" });
+    await expect.poll(() => snapshot(email).changes, { timeout: 5000 }).toMatchObject([{ status: "sent" }]);
+    const token = mailToken(email, "change-password");
+    expect(message(await post("password-change-confirm", { token, password: nextPassword, confirmation: nextPassword }))).toContain("Password+changed");
+    const login = await post("login", { email, password: nextPassword });
+    expect(login.headers.get("location")).toBe("/applications/");
+    expect((await get("/applications/", cookies(login))).status).toBe(200);
+    const after = snapshot(email);
+    expect(after.account.convenor_id).toBe(before.account.convenor_id);
+    expect(after.account.student_id).toBeNull();
+  });
+
+  it("resets through email without a session or old password, while preserving records and revoking existing access", async () => {
+    const email = "forgotten-password@anu.edu.au", { cookie, verification } = await realAccount(email);
+    const before = snapshot(email);
+    const login = await (await get("/login/")).text();
+    expect(login).toContain('href="/forgot-password/"');
+    const page = await get("/forgot-password/");
+    expect(page.status).toBe(200); expect(page.headers.get("cache-control")).toBe("no-store");
+    const html = await page.text();
+    expect(html).toContain("You do not need your old password"); expect(html).not.toContain('name="currentPassword"');
+    expect((await post("password-reset", { email }, "", "https://unrelated.test")).status).toBe(403);
+    const request = await post("password-reset", { email: ` ${email.toUpperCase()} `, accountId: "1", password: nextPassword });
+    expect(request.status).toBe(303); expect(request.headers.get("set-cookie")).toBeNull();
+    const unknown = await post("password-reset", { email: "missing-recovery@anu.edu.au" });
+    expect(unknown.headers.get("location")).toBe(request.headers.get("location"));
+    await expect.poll(() => snapshot(email).changes, { timeout: 5000 }).toMatchObject([{ status: "sent" }]);
+    const token = mailToken(email, "change-password");
+    const mail = readFileSync(mailFile(email), "utf8");
+    expect(mail).toContain("Reset your enrolment prototype password");
+    expect(mail).not.toContain("signed-in prototype account");
+    expect(existsSync(mailFile("missing-recovery@anu.edu.au"))).toBe(false);
+    expect((await get(`/change-password/?token=${token}`)).status).toBe(200);
+    expect(snapshot(email).account).toEqual(before.account);
+    expect((await get("/record/", cookie)).status).toBe(200);
+    expect(message(await post("verify", { token }))).toContain("invalid");
+    expect(message(await post("password-change-confirm", { token: verification, password: nextPassword, confirmation: nextPassword }))).toContain("invalid");
+    expect(message(await post("password-change-confirm", { token, password: nextPassword, confirmation: nextPassword }))).toContain("Password+changed");
+    expect(message(await post("password-change-confirm", { token, password, confirmation: password }))).toContain("invalid");
+    expect((await get("/record/", cookie)).status).toBe(303);
+    expect(message(await post("login", { email, password }))).toContain("incorrect");
+    const recovered = cookies(await post("login", { email, password: nextPassword }));
+    expect((await get("/record/", recovered)).status).toBe(200);
+    const after = snapshot(email);
+    expect(after.account.verified_at).toBe(before.account.verified_at);
+    expect(after.account.convenor_id).toBeNull();
+    for (const key of ["transcript", "plan", "enrolments", "applications"] as const) expect(after[key]).toEqual(before[key]);
+  });
+
+  it("keeps unverified and missing accounts private, limits repeated requests, and records provider failures without changing credentials", async () => {
+    const email = "recovery-rejection@anu.edu.au", { cookie } = await realAccount(email), before = snapshot(email);
+    const pending = "recovery-unverified@anu.edu.au";
+    await post("register", { email: pending, name: "Unverified", password });
+    const activationMail = readFileSync(mailFile(pending), "utf8");
+    const response = await post("password-reset", { email });
+    await expect.poll(() => snapshot(email).changes, { timeout: 5000 }).toMatchObject([{ status: "failed" }]);
+    for (let attempt = 0; attempt < 4; attempt++) {
+      expect((await post("password-reset", { email: pending })).headers.get("location")).toBe(response.headers.get("location"));
+    }
+    expect(snapshot(pending).changes).toHaveLength(0);
+    expect(readFileSync(mailFile(pending), "utf8")).toBe(activationMail);
+    expect(snapshot(email).account).toEqual(before.account);
+    expect((await get("/record/", cookie)).status).toBe(200);
+    // A real verified address also stops at three sends, without changing the public response.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      expect((await post("password-reset", { email })).headers.get("location")).toBe(response.headers.get("location"));
+    }
+    await expect.poll(() => snapshot(email).changes, { timeout: 5000 }).toMatchObject([{ status: "failed" }, { status: "failed" }, { status: "failed" }]);
+  });
+
+  it("allows demo recovery only with the matching private inbox and never emails a fictional address", async () => {
+    const email = "forgotten-demo@enrolment.test";
+    const inboxCookie = cookies(await post("register", { mode: "demo", email, name: "Demo recovery", password }));
+    const token = tokenIn(await (await get("/demo-inbox/", inboxCookie)).text(), "verify");
+    const session = cookies(await post("verify", { token }, inboxCookie));
+    const before = snapshot(email);
+    expect(await (await get("/forgot-password/?mode=demo")).text()).toContain("No private demo inbox is available");
+    expect(message(await post("password-reset", { mode: "demo", email }))).toContain("No+matching+private+demo+inbox");
+    const otherCookie = cookies(await post("register", { mode: "demo", email: "wrong-reset-inbox@enrolment.test", name: "Other", password }));
+    expect(message(await post("password-reset", { mode: "demo", email }, otherCookie))).toContain("No+matching+private+demo+inbox");
+    expect(snapshot(email).changes).toHaveLength(0);
+    await post("password-reset", { mode: "demo", email }, inboxCookie);
+    const reset = tokenIn(await (await get("/demo-inbox/", inboxCookie)).text(), "change-password");
+    expect(existsSync(mailFile(email))).toBe(false);
+    expect(message(await post("password-change-confirm", { token: reset, password: nextPassword, confirmation: nextPassword }))).toContain("Password+changed");
+    expect((await get("/record/", session)).status).toBe(303);
+    expect(await (await get("/demo-inbox/", inboxCookie)).text()).not.toContain(reset);
+    expect(snapshot(email).transcript).toEqual(before.transcript);
+    const recovered = cookies(await post("login", { mode: "demo", email, password: nextPassword }));
+    expect((await get("/record/", recovered)).status).toBe(200);
+  });
+});

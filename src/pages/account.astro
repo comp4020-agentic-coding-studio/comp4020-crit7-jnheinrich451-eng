@@ -19,6 +19,7 @@ const date = (value: number) => new Date(value).toLocaleString("en-AU", { timeZo
     {account.kind === "demo" && <p>This is a persistent demo account. Its private inbox simulates email delivery; it does not verify an ANU identity. <a href="/demo-inbox/">Open your demo inbox</a>.</p>}
     <section aria-labelledby="password-heading" class="auth-card">
       <h2 id="password-heading">Change password</h2>
+      <p>Use this when you know your current password and want to replace it. Forgotten it? <a href={`/forgot-password/${account.kind === "demo" ? "?mode=demo" : ""}`}>Reset it through your inbox instead</a>.</p>
       <p>{account.kind === "demo" ? "We will place a confirmation link in your private demo inbox." : "We will email a confirmation link to your saved address."} Open it to choose your new password.</p>
       <p>Your profile, requests and enrolments are preserved. Completing the change signs out all your sessions. Links expire after 30 minutes; up to three requests every 15 minutes.</p>
       <form method="post" action="/api/auth/password-change" class="stack">

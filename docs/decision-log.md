@@ -281,3 +281,20 @@ Brevo's Delivered status establishes recipient-server acceptance, not Inbox
 placement. Quarantine and recipient mail rules remain possible causes; no ANU
 mail trace has established why John's specific message was missing. Keep that
 uncertainty separate from local capture tests and successful SMTP submission.
+
+## 27 September 2026: separate password recovery from a known-password change
+
+John pointed out that asking for the current password cannot help someone who
+has forgotten it. Sign-in now links to Forgot password, and My account explains
+the two routes. Recovery sends a reset link to an already-verified normal account
+without requiring a session or old password. The link is the verification key;
+the existing confirmation form collects the new password twice.
+
+Unknown, unverified and throttled addresses receive the same public response.
+SMTP delivery runs outside that response and persists pending/sent/failed status,
+preventing provider latency from exposing account existence. There is no retry
+worker; an interrupted send needs a fresh request. Reset and signed-in change
+links share the same narrowly scoped password operation, expiry, single-use
+check, credential fingerprint and session revocation. Academic data and reviewer
+assignments stay intact. Demo recovery requires an existing private inbox or
+demo session; an arbitrary fictional address cannot recover another account.

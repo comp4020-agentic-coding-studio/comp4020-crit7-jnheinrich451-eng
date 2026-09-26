@@ -28,6 +28,7 @@ if (Astro.locals.actor)
       />
       <button class="primary">Sign in</button>
     </form>
+    <p><a href={`/forgot-password/${demo ? "?mode=demo" : ""}`}>Forgot password?</a></p>
     <p>
       New here? <a href={`/register/${demo ? "?mode=demo" : ""}`}>Create a student account</a>
     </p>
@@ -38,7 +39,7 @@ if (Astro.locals.actor)
         <input id="resend-email" name="email" type="email" autocomplete="email" required maxlength="254" />
         <button>Resend verification</button>
       </form>
-      <p class="muted">Already verified? Sign in. Resend sends only for accounts awaiting activation. You can request a password-change email from My account after signing in.</p>
+      <p class="muted">Resend is only for accounts awaiting activation. If you already verified your email but forgot your password, use <a href="/forgot-password/">Forgot password?</a>.</p>
     </details>}
     <p class="muted">Staff accounts are invitation-only. This prototype has separate credentials from ANU. <a href="/guide/#reviewers">Reviewer and teaching-team access</a>.</p>
   </div>

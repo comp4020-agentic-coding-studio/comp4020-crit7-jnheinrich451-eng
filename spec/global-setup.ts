@@ -59,6 +59,9 @@ export default async function setup(project: TestProject): Promise<() => void> {
         message += chunk.toString();
       });
       stream.on("end", () => {
+        if (session.envelope.rcptTo.some(r => r.address === "recovery-rejection@anu.edu.au") && message.includes("Reset your enrolment prototype password")) {
+          done(new Error("Simulated password-reset rejection")); return;
+        }
         if (session.envelope.rcptTo.some(r => r.address === "password-change-failure@anu.edu.au") && message.includes("Change your enrolment prototype password")) {
           done(new Error("Simulated password-change rejection")); return;
         }

@@ -39,6 +39,9 @@ password. An unconfirmed account gets a new private inbox and confirmation link;
 a confirmed account gets a session and new inbox. Old captured messages belong
 to their original browser grant, not the new inbox. Academic data is retained.
 Losing both the password and browser access is not recoverable in this increment.
+If the private inbox is still open, **Forgot password? → Demo** can send a reset
+link there without the old password. A signed-in demo session can also open its
+own inbox for recovery. A supplied address never grants a new inbox capability.
 
 Confirmation/password links last 30 minutes and are single-use. Duplicate
 registration never replaces an account or opens its inbox. Demo confirmation
