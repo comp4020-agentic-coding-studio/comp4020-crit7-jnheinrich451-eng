@@ -1,19 +1,20 @@
 ---
 import { REQUEST_REASONS, type AssessmentReport } from "../lib/demo-assessment";
-interface Props { report: AssessmentReport }
-const { report } = Astro.props;
+interface Props { report: AssessmentReport; historical?: boolean }
+const { report, historical = false } = Astro.props;
 ---
 <section aria-labelledby="assessment-heading" data-assessment-policy={report.policy}>
-  <h2 id="assessment-heading">Saved demo assessment</h2>
+  <h2 id="assessment-heading">{historical ? "Original automatic assessment" : "Saved demo assessment"}</h2>
+  {historical && <p>Retained as evidence for staff review. The current request status and any reviewer decision are shown above; the original checks below remain unchanged.</p>}
   <p>This result uses a prototype approval policy and fictional academic evidence. It is not an ANU decision.</p>
   {report.scenario && <div class="warning" data-scenario={report.scenario.key}>
     <h3>{report.scenario.label}</h3>
     <ul>{report.scenario.assumptions.map(item => <li>{item}</li>)}</ul>
   </div>}
   <ul data-decision-reasons>{report.reasons.map(reason => <li>{reason}</li>)}</ul>
-  <h3>Next steps</h3>
+  <h3>{historical ? "Next steps recorded at assessment" : "Next steps"}</h3>
   <ul data-next-actions>{report.nextActions.map(action => <li>{action}</li>)}</ul>
-  {report.outcome === "assessment-incomplete" && <p>This result is saved. Repeating the same request cannot supply the missing evidence. You can <a href="/demo/">try the complete fictional scenario</a> without waiting for a reviewer.</p>}
+  {!historical && report.outcome === "assessment-incomplete" && <p>This result is saved. Repeating the same request cannot supply the missing evidence. You can <a href="/demo/">try the complete fictional scenario</a> without waiting for a reviewer.</p>}
   <h3>How your explanation was used</h3>
   <p><strong>Selected reason:</strong> {REQUEST_REASONS[report.context.reason]}</p>
   <p>{report.context.treatment}</p>

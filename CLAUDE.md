@@ -134,6 +134,14 @@ See `docs/eligibility-implementation-plan.md`.
 - Existing pending staff requests stay pending unless their owner explicitly
   requests automatic assessment; converting one preserves its original checks
   and events.
+- The owner of an incomplete automatic assessment can explicitly send the same
+  request to its assigned reviewer. Retain the request ID, offering, statement,
+  original report and checks, append routing events, and include it in the staff
+  queue. A subsequent human decision is not an automatic approval. Keep the
+  original assessment visible as historical evidence; don't rerun it in place.
+- Show request numbers, student identity and offering beside reviewer decisions.
+  Label requests from unregistered seeded students as examples, and identify a
+  dual-role reviewer's own student profile. Approval never moves between these.
 - Show the resubmission reminder only while the matching student/course/year/term
   request is pending; approval or rejection removes it. Retries reuse the
   existing pending or approved request without adding events.

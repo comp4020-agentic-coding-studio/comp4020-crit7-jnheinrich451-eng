@@ -5,6 +5,7 @@ import { accountFor } from "../lib/email-checks";
 import { applicationsOfStudent, TERM_LABELS } from "../lib/store";
 import { overloadsFor, OVERLOAD_STATUS } from "../lib/overload-store";
 import type { Term } from "../data/courses";
+import { applicationStatus } from "../lib/application-status";
 const actor = Astro.locals.actor;
 if (!actor) return Astro.redirect("/login/?mode=demo", 303);
 if (actor.kind !== "student" || accountFor(actor)?.kind !== "demo") return Astro.redirect("/reviewer-access/", 303);
@@ -19,7 +20,7 @@ const loads = overloadsFor(actor).filter(item => item.events.some(event => event
   {requests.length === 0 && <p>No course requests yet. Open <a href="/courses/COMP8620/?year=2027&term=S2">COMP8620</a> in your student view, explain your request, then choose <strong>Optional staff review → Send to convenor</strong>.</p>}
   {requests.map(app => <section class="surface" aria-labelledby={`request-${app.id}`} data-demo-request={app.id}>
     <h3 id={`request-${app.id}`}>{app.course.code} · {app.course.title}</h3>
-    <p>{app.year} {TERM_LABELS[app.term as Term]} · {app.status === "with-convenor" ? "Waiting for a decision" : app.status}</p>
+    <p>Request #{app.id} · {app.year} {TERM_LABELS[app.term as Term]} · {applicationStatus(app).label}</p>
     <p>Assigned fictional convenor: {app.convenor.name}</p>
     <blockquote>{app.statement}</blockquote>
     <RequirementChecks checks={app.checkList} />
@@ -29,7 +30,7 @@ const loads = overloadsFor(actor).filter(item => item.events.some(event => event
       <label for={`note-${app.id}`}>Note to the student (required to reject)</label>
       <textarea id={`note-${app.id}`} name="note" rows="3" maxlength="2000" />
       <div class="actions"><button class="primary" name="decision" value="approve">Approve demo request</button><button name="decision" value="reject">Reject demo request</button></div>
-    </form> : <p>{app.status === "approved" ? "Return to the student request to confirm enrolment." : "Automatic assessments do not wait for a reviewer. Use Send to convenor when requesting human review."}</p>}
+    </form> : <p>{app.status === "approved" ? "Return to the student request to confirm enrolment." : app.status === "assessment-incomplete" ? "Open the full request and choose Send this request to reviewer to continue here." : "Open the full request for the result and next steps."}</p>}
   </section>)}
   <h2>Overload requests</h2>
   {loads.length === 0 && <p>No overload requests have been sent for review. <a href="/overload/">Open Study load</a> in your student view to see your current limit and requests.</p>}

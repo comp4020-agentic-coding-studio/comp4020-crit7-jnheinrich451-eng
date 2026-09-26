@@ -26,6 +26,9 @@ for (const [uid, name] of [
   ["fixture-staff-exception", "Staff exception student"],
   ["fixture-staff-equivalence", "Staff equivalence student"],
   ["fixture-staff-correction", "Staff correction student"],
+  ["fixture-handoff-approve", "Assessment handoff approval student"],
+  ["fixture-handoff-reject", "Assessment handoff rejection student"],
+  ["fixture-handoff-duplicate", "Assessment handoff duplicate student"],
   ["fixture-overload-page", "Overload page student"],
   ["fixture-overload-review", "Overload review student"],
   ["fixture-overload-auto", "Overload auto student"],
@@ -45,6 +48,10 @@ const adviserStudent = db.select().from(students).where(eq(students.uid, "fixtur
 for (const { courseCode, grade, units, term, mark, program, institution } of generateAuthoredProfile("adviser-http").records)
   db.insert(transcript).values({ studentId: adviserStudent.id, courseCode, grade, units, term, mark, program, institution }).run();
 const programmingConflict = db.select().from(students).where(eq(students.uid, "fixture-programming-conflict")).get()!;
+for (const uid of ["fixture-handoff-approve", "fixture-handoff-reject", "fixture-handoff-duplicate"]) {
+  const student = db.select().from(students).where(eq(students.uid, uid)).get()!;
+  db.insert(transcript).values({ studentId: student.id, courseCode: "COMP6320", units: 6, grade: "HD", term: "2026 S1" }).run();
+}
 for (const uid of ["fixture-staff-exception", "fixture-staff-equivalence", "fixture-staff-correction"]) {
   const student = db.select().from(students).where(eq(students.uid, uid)).get()!;
   db.insert(transcript).values({ studentId: student.id, courseCode: "COMP6710", units: 6, grade: "HD", term: "2026 S1" }).run();

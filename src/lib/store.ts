@@ -156,12 +156,19 @@ export type ApplicationView = Application & {
   convenor: Convenor;
   checkList: Check[];
   report: AssessmentReport | null;
+  staffReview: boolean;
   enrolmentConfirmed: boolean;
 };
 
 function views(where: SQL) {
   return db
     .select({ applications, courses, students, convenors,
+      routedAfterAssessment: sql<number>`exists (
+        select 1 from ${applicationEvents} as routing
+        where routing.application_id = ${applications.id} and routing.kind = 'routed'
+        and routing.id > coalesce((select max(assessment.id) from ${applicationEvents} as assessment
+          where assessment.application_id = ${applications.id} and assessment.kind = 'assessed'), 0)
+      )`,
       confirmed: sql<number>`case when ${applications.scenarioKey} is not null then exists (
         select 1 from ${applicationEvents} where ${applicationEvents.applicationId} = ${applications.id}
         and ${applicationEvents.kind} = 'scenario-enrolled'
@@ -185,6 +192,7 @@ function views(where: SQL) {
         ...r.applications,
         course: getCourse(r.courses.code, r.applications.year) ?? r.courses,
         student: r.students, convenor: r.convenors, report,
+        staffReview: !report || !!r.routedAfterAssessment,
         enrolmentConfirmed: r.applications.status === "approved" && !!r.confirmed,
         checkList: report ? ("checks" in report.gate ? report.gate.checks : []) : JSON.parse(r.applications.checks),
       };
@@ -202,7 +210,7 @@ export function completedScenariosOf(studentId: number): ApplicationView[] {
 }
 
 export function queueOf(convenorId: number): ApplicationView[] {
-  return views(and(eq(applications.convenorId, convenorId), isNull(applications.assessment))!);
+  return views(eq(applications.convenorId, convenorId)).filter(app => app.staffReview);
 }
 
 export function getApplication(id: number): (ApplicationView & { events: ApplicationEvent[] }) | undefined {
@@ -328,6 +336,34 @@ export function submitApplication(input: {
       );
     }
     return app;
+  });
+  bus.emit("change", { applicationId: app.id, convenorId: app.convenorId, studentId: app.studentId });
+  return app;
+}
+
+/** Explicit handoff of an unresolved report; retain its identity and evidence. */
+export function requestStaffReview(student: Student, applicationId: number): Application {
+  const app = db.transaction((tx) => {
+    const saved = tx.select().from(applications).where(eq(applications.id, applicationId)).get();
+    if (!saved || saved.studentId !== student.id) throw new UserError("This request isn't yours.");
+    if (saved.scenarioKey) throw new UserError("Topic scenarios cannot be sent for staff review.");
+    if (saved.status === "with-convenor") return saved;
+    if (saved.status !== "assessment-incomplete" || !saved.assessment)
+      throw new UserError("Only an incomplete automatic assessment can be sent from here.");
+    const existing = liveApplication(student.id, saved.courseId, saved.term, saved.year);
+    if (existing) throw new UserError(`You already have request #${existing.id} for this offering. Open it in My requests.`);
+    const course = tx.select().from(courses).where(eq(courses.id, saved.courseId)).get();
+    if (!course || !offeringFor(saved.courseId, saved.term, saved.year))
+      throw new UserError("This offering is no longer available for review.");
+    const updated = tx.update(applications).set({ status: "with-convenor" })
+      .where(eq(applications.id, saved.id)).returning().get();
+    tx.insert(applicationEvents).values([
+      { applicationId: saved.id, actor: "student", actorName: student.name, kind: "review-requested",
+        detail: `Requested staff review of the saved assessment for ${course.code}, ${saved.year} ${TERM_LABELS[saved.term as Term]}. The original statement, checks and report are unchanged.` },
+      { applicationId: saved.id, actor: "system", actorName: "Request routing", kind: "routed",
+        detail: `Sent request #${saved.id} to its assigned reviewer. This is a request for a decision, not an approval.` },
+    ]).run();
+    return updated;
   });
   bus.emit("change", { applicationId: app.id, convenorId: app.convenorId, studentId: app.studentId });
   return app;

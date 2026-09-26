@@ -360,3 +360,19 @@ Each assignment shows its availability and every course code in wrapping rows;
 assigned slots remain disabled and pending invitations retain their existing
 resend rule. This is a presentation change using the existing server-side
 invitation checks and the same submitted assignment ID.
+
+## 2026-09-27 — Request identity and incomplete-assessment handoff
+
+John reported approving COMP8620 as a reviewer while his student view still
+showed "Evidence or decision needed". Read-only deployed records showed two
+requests: an approved 2026 S2 seeded example and his own unresolved 2027 S2
+automatic assessment, which had never entered the staff queue. No approval was
+missing or transferred, and neither saved decision was changed during diagnosis.
+
+Incomplete automatic assessments now offer an explicit handoff on their request
+page. It retains the same ID, evidence and statement, appends routing events,
+and makes the request visible to the assigned reviewer. The original report
+remains historical evidence after a human decision. Seed examples, request IDs,
+student identities and offering years are explicit in the queue and decision
+page. Approval still requires the student to confirm enrolment before it appears
+in My courses or My profile.

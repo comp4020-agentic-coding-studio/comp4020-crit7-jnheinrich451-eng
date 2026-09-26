@@ -215,7 +215,8 @@ describe("reviewer invitations", () => {
     const emptyLogin = await post("/api/auth/login", { email: "invited-reviewer@anu.edu.au", password });
     const emptyCookie = emptyLogin.headers.get("set-cookie")!.split(";")[0];
     const emptyQueue = await (await get("/applications/", emptyCookie)).text();
-    expect(emptyQueue).toContain("Automatic demo assessments do not enter this queue");
+    expect(emptyQueue).toContain("An automatic assessment alone does not enter this queue");
+    expect(emptyQueue).toContain("Send this request to reviewer");
     expect(emptyQueue).toContain("Nothing is waiting for you");
   });
 });

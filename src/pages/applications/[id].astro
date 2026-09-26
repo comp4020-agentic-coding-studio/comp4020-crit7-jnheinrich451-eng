@@ -25,6 +25,8 @@ if (!canSee) return new Response("Request not found", { status: 404 });
 
 const isEnrolled = app.enrolmentConfirmed;
 const status = applicationStatus(app);
+const studentAccount = accountFor({ kind: "student", student: app.student });
+const ownStudentProfile = actor.kind === "convenor" && accountFor(actor)?.studentId === app.studentId;
 const staffReason = app.events.some(e => e.kind === "exception-requested") ? "exception"
   : app.events.some(e => e.kind === "equivalence-requested") ? "equivalent-study"
   : app.events.some(e => e.kind === "record-disputed") ? "record-correction" : "recorded-checks";
@@ -46,8 +48,10 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
   ) : (
     <>
       <h1 class="request-course">{app.course.code}</h1>
-      <p class="request-label">Enrolment request</p>
-      {routedToMe && accountFor({ kind: "student", student: app.student })?.kind === "demo" && <p class="note">Demo account: this request belongs to a visitor's fictional profile. Your decision is a prototype decision.</p>}
+      <p class="request-label">Request #{app.id} · {app.year} {TERM_LABELS[app.term as Term]}</p>
+      {routedToMe && !studentAccount && <p class="warning" data-seeded-request>Seeded example: {app.student.name} has no registered account. Approving this example does not approve a request from your own student profile.</p>}
+      {routedToMe && studentAccount?.kind === "demo" && <p class="note">Demo account: this request belongs to a visitor's fictional profile. Your decision is a prototype decision.</p>}
+      {ownStudentProfile && <p class="note">This request belongs to your own student profile.</p>}
       <p class="lede">{app.course.title}</p>
 
       <section class={`status status-${app.status}`} aria-labelledby="status-heading">
@@ -71,6 +75,13 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
           </p>
         )}
       </section>
+
+      {mine && app.status === "assessment-incomplete" && !app.scenarioKey && <form action={`/api/applications/${app.id}/review`} method="post" class="stack surface">
+        <h2>Ask your reviewer for a decision</h2>
+        <p>Send request #{app.id} for {app.course.code}, {app.year} {TERM_LABELS[app.term as Term]}, to {app.convenor.name}. Your explanation and saved assessment stay attached to this request.</p>
+        <p class="field-help">This needs someone using the assigned reviewer account. Sending it does not grant permission or confirm enrolment.</p>
+        <button class="primary">Send this request to reviewer</button>
+      </form>}
 
       {mine && app.scenarioKey && app.status === "approved" && !isEnrolled && <form action="/api/scenario-enrol" method="post" class="stack surface">
         <input type="hidden" name="applicationId" value={app.id} />
@@ -98,9 +109,9 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
           <dd>{`${app.year} ${TERM_LABELS[app.term as Term]}`}</dd>
         </div>
         <div>
-          <dt>{app.report ? "Assessment by" : "Assigned reviewer"}</dt>
+          <dt>{app.staffReview ? "Assigned reviewer" : "Assessment by"}</dt>
           <dd>
-            {app.report ? "Automated demo review" : `${app.convenor.name}, convenor of ${app.course.code}`}
+            {app.staffReview ? `${app.convenor.name}, convenor of ${app.course.code}` : "Automated demo review"}
           </dd>
         </div>
       </dl>
@@ -110,8 +121,8 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
         <blockquote class="statement">{app.statement}</blockquote>
       </section>
 
-      {app.report && <AssessmentReport report={app.report} />}
-      {mine && app.status === "with-convenor" && <form action={`/api/applications/${app.id}/assessment`} method="post" class="stack surface">
+      {app.report && <AssessmentReport report={app.report} historical={app.staffReview} />}
+      {mine && app.status === "with-convenor" && !app.report && <form action={`/api/applications/${app.id}/assessment`} method="post" class="stack surface">
         <h2>Get an automatic result instead</h2>
         <p>This replaces the pending staff review with a demo assessment. Missing evidence remains unresolved, with next steps. Your original statement and history are kept.</p>
         <label for="assessment-reason">What should be assessed?</label>
@@ -135,6 +146,8 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
       {routedToMe && app.status === "with-convenor" && (
         <section aria-labelledby="decide-heading" class="decide">
           <h2 id="decide-heading">Your decision</h2>
+          <p><strong>Request #{app.id}: {app.student.name} ({app.student.uid})</strong><br />{app.course.code} · {app.year} {TERM_LABELS[app.term as Term]}</p>
+          <p>Approval issues permission for this student's offering. The student must then confirm enrolment.</p>
           <form method="post" action={`/api/applications/${app.id}/decision`} class="stack">
             <label for="note">Note to the student (required to reject)</label>
             <textarea id="note" name="note" rows="3" maxlength="2000" />

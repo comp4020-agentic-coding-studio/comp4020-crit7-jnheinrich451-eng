@@ -42,6 +42,7 @@ if (actor.kind === "student") {
 const title = actor.kind === "student" ? "My requests" : "Request queue";
 const watch = actor.kind === "student" ? { studentId: actor.student.id } : { convenorId: actor.convenor.id };
 const assignedCourses = actor.kind === "convenor" ? listCourses().filter(c => c.convenor.id === actor.convenor.id) : [];
+const ownStudentId = actor.kind === "convenor" ? accountFor(actor)?.studentId : undefined;
 ---
 
 <Layout title={title} actor={actor} watch={watch}>
@@ -76,7 +77,7 @@ const assignedCourses = actor.kind === "convenor" ? listCourses().filter(c => c.
       {s.rows.length === 0 ? (
         <>
           <p class="muted">{s.empty}</p>
-          {actor.kind === "convenor" && i === 0 && <p class="muted">Students send requests from an assigned course using <strong>Optional staff review → Send to convenor</strong>. Automatic demo assessments do not enter this queue.</p>}
+          {actor.kind === "convenor" && i === 0 && <p class="muted">Students can send an incomplete assessment using <strong>Send this request to reviewer</strong>, or choose <strong>Optional staff review → Send to convenor</strong> on the course page. An automatic assessment alone does not enter this queue.</p>}
         </>
       ) : (
         <ul class="request-list">
@@ -88,6 +89,8 @@ const assignedCourses = actor.kind === "convenor" ? listCourses().filter(c => c.
                   {actor.kind === "convenor" ? `${a.student.name} (${a.student.uid})` : a.course.title}
                 </span>
                 <span class="meta">
+                  Request #{a.id} · {actor.kind === "convenor" && !accountFor({ kind: "student", student: a.student }) && "Seeded example · "}
+                  {ownStudentId === a.studentId && "Your student profile · "}
                   {actor.kind === "convenor" && accountFor({ kind: "student", student: a.student })?.kind === "demo" && "Demo account · "}
                   {a.scenarioKey && "Fictional topic scenario · "}
                   {`${a.year} ${TERM_LABELS[a.term as Term]}`} · sent{" "}

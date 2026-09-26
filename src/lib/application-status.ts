@@ -12,9 +12,9 @@ export function applicationStatus(app: ApplicationView): { label: string; say: s
     ? { label: "Not approved under the demo policy", say: "Recorded requirements are unmet. Read the assessment for the reasons and available next steps." }
     : { label: "Rejected automatically", say: "The automatic first round turned this down from your record, so it never went to the convenor." };
   if (app.status === "with-convenor") return { label: `With ${app.convenor.name}`, say: `Waiting for ${app.convenor.name}, convenor of ${app.course.code}. Refresh this page to check for a decision.` };
-  if (app.status === "approved") return app.report
+  if (app.status === "approved") return app.report && !app.staffReview
     ? { label: "Demo permission approved", say: "The automated demo policy issued permission. Confirm enrolment to complete the selected workflow." }
-    : { label: "Approved", say: "Approved. Use the permission code to enrol." };
+    : { label: "Approved", say: "Your reviewer issued permission for this offering. Confirm enrolment to add it to My courses and My profile." };
   if (app.status === "rejected") return { label: "Rejected by the convenor", say: "The convenor turned this down. Their reason is in the timeline." };
   return { label: "Status unavailable", say: "This saved request has an unrecognised status. Its recorded history is below." };
 }

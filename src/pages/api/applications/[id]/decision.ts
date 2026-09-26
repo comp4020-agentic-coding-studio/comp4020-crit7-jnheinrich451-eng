@@ -15,7 +15,7 @@ export const POST: APIRoute = async ({ request, locals, params }) => {
   try {
     decide({ convenor: actor.convenor, applicationId: id, approve, note: String(form.get("note") ?? "") });
     return back(page, {
-      ok: approve ? "Approved: the student has their code." : "Rejected: the student can see why.",
+      ok: approve ? `Request #${id} approved. Its student can open this request for the code, then confirm enrolment.` : `Request #${id} rejected. Its student can see your reason.`,
     });
   } catch (err) {
     return back(page, { error: userMessage(err) });
