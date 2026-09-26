@@ -51,6 +51,7 @@ navLinks.push({ href: "/catalogue/", label: "Course library" });
           {actor ? (
             <>
               <span>{actor.kind === "student" ? actor.student.name : actor.convenor.name}</span>
+              <a href="/account/">My account</a>
               <form method="post" action="/api/auth/logout">
                 <button>Sign out</button>
               </form>

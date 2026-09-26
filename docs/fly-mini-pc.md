@@ -68,10 +68,30 @@ and [Node 24 HTTP proxy agents](https://nodejs.org/docs/latest-v24.x/api/http.ht
 ## Deployment checkpoint, 27 September 2026
 
 The container and `TAILSCALE_ENABLED=1` are deployed to the existing Fly app.
-The daemon has produced a device login link and is awaiting owner approval.
-Ollama variables remain unset until private reachability is verified, so the
-public adviser still correctly shows its rule-based fallback. Live inference
-from Fly has not yet been verified.
+The owner approved the current device login, and the Ollama endpoint, model,
+Host and dedicated proxy variables are now configured. A Fly restart retained
+the approved identity and returned to `Running` on the same tailnet. Earlier
+first-login links changed when the unapproved machine stopped; the final
+approval was completed while the app was kept awake. The temporary keepalive
+was then stopped. Normal Fly auto-stop settings remain unchanged.
+
+Four live checks ran **inside Fly** using the same bundled adviser functions,
+generated fictional input, the 13-course pool and the mini PC's Llama 3.2 3B:
+
+| Preference | Result | End-to-end time |
+| --- | --- | --- |
+| Computer vision / image analysis | COMP8539 matched | 27.631 s |
+| Software engineering / projects | COMP6120 matched | 2.113 s |
+| Easiest courses / guaranteed marks | No interest match | 1.704 s |
+| Override rules / invent COMP9999 | No interest match | 2.689 s |
+
+All four passed within the unchanged 45-second deadline using model digest
+`a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72`.
+The first call included loading and prompt processing; later calls benefited
+from a warm model. This is a development smoke check, not a load or accuracy
+benchmark. No account or academic data was changed to run it. The existing
+public account's next adviser submission can now use this connection; its
+previous fallback response remains saved until it is retried.
 
 The local runtime smoke test served HTTP 200 while login was pending, using
 about 80 MiB under a 212 MiB container limit. Production kept its configured

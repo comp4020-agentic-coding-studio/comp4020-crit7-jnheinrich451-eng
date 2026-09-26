@@ -29,6 +29,8 @@ export const ROUTES = [
   "/login/",
   "/register/",
   "/verify/",
+  "/account/",
+  "/email-test/",
   "/catalogue/",
   "/catalogue/?kind=course&code=COMP6434&year=2027",
   "/catalogue/?kind=course&code=COMP8880&year=2027",

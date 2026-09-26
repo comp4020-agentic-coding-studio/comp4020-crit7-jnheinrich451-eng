@@ -4,7 +4,7 @@ import { writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db } from "../src/lib/db";
-import { accounts, emailTokens, enrolments, sessions, students, transcript } from "../src/lib/schema";
+import { accounts, emailChecks, emailTokens, enrolments, sessions, students, transcript } from "../src/lib/schema";
 import { createSession, digest, inviteStaff } from "../src/lib/auth";
 import { hashPassword } from "../src/lib/passwords";
 import { decide, getCourse, people, submitApplication } from "../src/lib/store";
@@ -105,6 +105,9 @@ for (const person of [
   cookies[person.name] = `enrol_session=${createSession(account.id)}`;
 }
 const first = db.select().from(accounts).get()!;
+const expiredEmailCheck = randomBytes(32).toString("hex");
+db.insert(emailChecks).values({ accountId: first.id, tokenHash: digest(expiredEmailCheck), status: "sent",
+  requestedAt: Date.now() - 120_000, sentAt: Date.now() - 120_000, expiresAt: Date.now() - 60_000 }).run();
 const expiredToken = randomBytes(32).toString("hex");
 db.insert(emailTokens)
   .values({
@@ -127,4 +130,4 @@ const reviewer = db
   .returning()
   .get();
 await inviteStaff("invited-reviewer@anu.edu.au", reviewer.id);
-writeFileSync(process.env.SPEC_FIXTURE_FILE, JSON.stringify({ cookies, expiredToken, expiredSession }));
+writeFileSync(process.env.SPEC_FIXTURE_FILE, JSON.stringify({ cookies, expiredToken, expiredSession, expiredEmailCheck }));

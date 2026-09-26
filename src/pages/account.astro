@@ -1,0 +1,32 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { accountFor, lastEmailCheck } from "../lib/email-checks";
+const actor = Astro.locals.actor;
+if (!actor) return Astro.redirect("/login/", 303);
+const account = accountFor(actor);
+const check = account ? lastEmailCheck(account.id) : undefined;
+const expired = check && check.expiresAt <= Date.now();
+const date = (value: number) => new Date(value).toLocaleString("en-AU", { timeZone: "Australia/Sydney", timeZoneName: "short" });
+---
+<Layout title="My account" actor={actor}>
+  <h1>My account</h1>
+  <p>Your prototype login is separate from ANU's systems.</p>
+  {account && <>
+    <dl class="facts"><div><dt>Verified email</dt><dd>{account.email}</dd></div></dl>
+    <section aria-labelledby="email-test-heading">
+      <h2 id="email-test-heading">Test verification email</h2>
+      <p>Send a fresh test link to your saved email address, then open it and confirm receipt. You can repeat this without deleting your account.</p>
+      <p class="muted">Your password, sign-in sessions, profile, requests and enrolments stay unchanged. Up to three tests every 15 minutes.</p>
+      <form method="post" action="/api/auth/email-test"><button class="primary">Send a fresh verification test</button></form>
+      {check && <div data-email-check>
+        <h3>Latest test</h3>
+        <p>Requested <time datetime={new Date(check.requestedAt).toISOString()}>{date(check.requestedAt)}</time>.</p>
+        {check.status === "confirmed" && check.confirmedAt ? <p>Receipt confirmed <time datetime={new Date(check.confirmedAt).toISOString()}>{date(check.confirmedAt)}</time>.</p>
+          : check.status === "failed" ? <p>The email service could not send this test. Your account remains verified.</p>
+          : expired ? <p>This test expired. Send a fresh test when you are ready.</p>
+          : check.status === "sent" ? <p>The email service accepted this test. Check your inbox and spam folder, then confirm receipt using its link. Provider acceptance does not guarantee delivery.</p>
+          : <p>The send attempt has not finished. Reload to check its status; an interrupted attempt will expire.</p>}
+      </div>}
+    </section>
+  </>}
+</Layout>

@@ -1,0 +1,20 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { emailCheckInfo } from "../lib/email-checks";
+const token = Astro.url.searchParams.get("token") ?? "";
+const info = emailCheckInfo(token);
+const actor = Astro.locals.actor;
+---
+<Layout title="Confirm test email" actor={actor}>
+  <div class="auth-card">
+    <h1>Confirm test email</h1>
+    {info ? <>
+      <p>This records that the requested test message reached an inbox. It does not activate an account, change a password or sign you in.</p>
+      <form method="post" action="/api/auth/email-test-confirm" class="stack">
+        <input type="hidden" name="token" value={token} />
+        <button class="primary">Confirm test email receipt</button>
+      </form>
+    </> : !Astro.url.searchParams.has("ok") && <p>This test link is invalid, expired, or already used.</p>}
+    <p>{actor ? <a href="/account/">Return to my account</a> : <a href="/login/">Sign in to your existing account</a>}</p>
+  </div>
+</Layout>

@@ -16,6 +16,7 @@ declare module "vitest" {
     testDatabase: string;
     expiredToken: string;
     expiredSession: string;
+    expiredEmailCheck: string;
   }
 }
 
@@ -57,6 +58,9 @@ export default async function setup(project: TestProject): Promise<() => void> {
         message += chunk.toString();
       });
       stream.on("end", () => {
+        if (session.envelope.rcptTo.some(r => r.address === "email-check-failure@anu.edu.au") && message.includes("Test your enrolment prototype")) {
+          done(new Error("Simulated test-message rejection")); return;
+        }
         for (const recipient of session.envelope.rcptTo) {
           writeFileSync(
             join(
@@ -122,6 +126,7 @@ export default async function setup(project: TestProject): Promise<() => void> {
   project.provide("fixtureCookies", data.cookies);
   project.provide("expiredToken", data.expiredToken);
   project.provide("expiredSession", data.expiredSession);
+  project.provide("expiredEmailCheck", data.expiredEmailCheck);
   project.provide("mailDir", mailDir);
   project.provide("testDatabase", database);
   return () => {

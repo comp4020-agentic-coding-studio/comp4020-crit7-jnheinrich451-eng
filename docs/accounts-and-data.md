@@ -5,6 +5,28 @@ signing in. This confirms email ownership only, not student status. The app is
 an independent prototype; it does not use ANU SSO or access university records.
 Students should use a separate prototype password.
 
+## Repeat a verification email test
+
+After signing in, open **My account** in the header and choose **Send a fresh
+verification test**. The server sends only to that account's saved address;
+there is no recipient field. Open the message and press **Confirm test email
+receipt**. My account keeps the latest send/receipt status across reloads.
+The service accepts up to three tests per account every 15 minutes; links last
+30 minutes and work once. Opening a link alone does not consume it, so email
+scanners cannot confirm receipt by prefetching the page.
+
+These tests use a separate `email_checks` table with hashed tokens and status
+timestamps. They cannot activate accounts, change passwords, alter academic
+data or terminate sessions. They work while signed in or when the confirmation
+link is opened in another browser. A failed send leaves the account verified.
+Provider acceptance and confirmed receipt are displayed separately. This
+tests sending and receiving the confirmation flow; it does not recreate first
+registration or regenerate the academic profile. No account deletion is needed.
+
+The deployed action is intended for the account holder to trigger themselves.
+Automated tests use captured mail; they do not prove real inbox delivery.
+See `demo-inbox-design.md` for the separately proposed guest mode.
+
 ## Try the workflow without an external email service
 
 Use the separate local capture preview while Brevo/Fly setup is pending. It

@@ -164,6 +164,15 @@ See `docs/accounts-and-data.md`.
   through that POST without accepting arbitrary return URLs.
 - Deployment docs must say it needs working SMTP and unused reviewer addresses;
   local captured mail doesn't prove remote delivery.
+- Verified, signed-in users can send a repeatable verification test from My
+  account to their saved email only. Test tokens and durable receipts are
+  separate from activation tokens. Confirmation cannot activate an account,
+  change credentials or revoke sessions. Preserve profiles and enrolment history;
+  no account deletion is part of this increment. Limit tests to three per
+  account per 15 minutes. See `docs/accounts-and-data.md`.
+- Explain UID-style and name-based ANU addresses without treating syntax as
+  proof of ownership. The proposed public demo inbox is still a separate future
+  access mode, described in `docs/demo-inbox-design.md`; it is not implemented.
 
 ### Study load, overload, drop and swap
 

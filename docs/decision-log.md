@@ -233,3 +233,24 @@ it now. Proposed direction: isolated guest identities and a captured demo inbox,
 clearly separated from real ANU ownership verification. An arbitrary fictional
 address cannot receive real SMTP mail. Keep the current verified registration
 unchanged until that guest workflow and its data boundaries are agreed.
+
+## 27 September 2026: Fly inference and repeatable email checks
+
+The owner approved Fly's current Tailscale device while the machine was kept
+awake. The saved identity then survived the configuration restart. Fly now has
+the private Ollama endpoint configured; four existing fictional-input adviser
+smoke cases passed from inside Fly, including unsupported-claim rejection.
+See `fly-mini-pc.md` for timings and the initial login/restart problem.
+
+John asked to repeat SMTP verification using his existing address and selected
+the non-destructive verification-test action instead of deleting his account.
+My account sends a fresh receipt link to the signed-in account's stored email,
+at most three times in 15 minutes. Separate hashed test tokens and durable status
+timestamps cannot activate accounts, change credentials, revoke sessions or
+alter enrolment records. SMTP acceptance is distinct from confirmed receipt.
+
+The demo-inbox discussion remains a proposal. Recommend explicit real/demo
+choices rather than automatic routing by address shape, because ANU supports
+name-based aliases too. Proposed guests receive generated `.test` identities
+and a private captured inbox with clear simulation labels. This is recorded in
+`demo-inbox-design.md`, not implemented or advertised as available.

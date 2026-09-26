@@ -275,6 +275,18 @@ export const emailTokens = sqliteTable("email_tokens", {
   expiresAt: int("expires_at").notNull(),
 });
 
+/** Receipt tests never activate accounts, change passwords or replace sessions. */
+export const emailChecks = sqliteTable("email_checks", {
+  id: int().primaryKey({ autoIncrement: true }),
+  accountId: int("account_id").notNull().references(() => accounts.id),
+  tokenHash: text("token_hash").notNull().unique(),
+  status: text().notNull().default("pending"),
+  requestedAt: int("requested_at").notNull(),
+  expiresAt: int("expires_at").notNull(),
+  sentAt: int("sent_at"),
+  confirmedAt: int("confirmed_at"),
+});
+
 export const authLimits = sqliteTable("auth_limits", {
   key: text().primaryKey(),
   count: int().notNull(),
