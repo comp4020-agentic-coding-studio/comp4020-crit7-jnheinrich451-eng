@@ -2,6 +2,7 @@ import { Agent as HttpAgent, request as httpRequest } from "node:http";
 import { Agent as HttpsAgent, request as httpsRequest } from "node:https";
 import { Readable } from "node:stream";
 import { isIP } from "node:net";
+import { addAbortListener } from "node:events";
 
 /** Node fetch can discard Host. Native HTTP also supports the private tailnet proxy.
  * TLS still verifies the URL hostname; redirects are never followed. */
@@ -16,6 +17,20 @@ export async function fetchOllama(url: string, init: RequestInit = {}, proxyUrl 
   const agent = proxyUrl ? new (target.protocol === "https:" ? HttpsAgent : HttpAgent)({
     keepAlive: false, proxyEnv: { HTTP_PROXY: proxyUrl, HTTPS_PROXY: proxyUrl },
   }) : undefined;
+  if (agent && init.signal) {
+    // Node does not attach a proxied request's AbortSignal to the socket until
+    // CONNECT/TLS completes. Track that initial socket so the SAME deadline
+    // cancels a stalled proxy handshake as well as the eventual response body.
+    const createConnection = agent.createConnection;
+    agent.createConnection = function (options, callback) {
+      const socket = createConnection.call(this, options, callback);
+      if (socket) {
+        const listener = addAbortListener(init.signal!, () => socket.destroy(new Error("Ollama request aborted")));
+        socket.once("close", () => listener[Symbol.dispose]());
+      }
+      return socket;
+    };
+  }
   return new Promise((resolve, reject) => {
     const request = (target.protocol === "https:" ? httpsRequest : httpRequest)(target, {
       method: init.method ?? "GET", headers: Object.fromEntries(headers), signal: init.signal ?? undefined, agent,

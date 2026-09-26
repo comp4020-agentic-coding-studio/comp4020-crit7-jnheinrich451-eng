@@ -64,3 +64,27 @@ the volume for a later retry. No database migration is part of this setup.
 
 Implementation references: [Tailscale userspace networking](https://tailscale.com/docs/concepts/userspace-networking)
 and [Node 24 HTTP proxy agents](https://nodejs.org/docs/latest-v24.x/api/http.html#built-in-proxy-support).
+
+## Deployment checkpoint, 27 September 2026
+
+The container and `TAILSCALE_ENABLED=1` are deployed to the existing Fly app.
+The daemon has produced a device login link and is awaiting owner approval.
+Ollama variables remain unset until private reachability is verified, so the
+public adviser still correctly shows its rule-based fallback. Live inference
+from Fly has not yet been verified.
+
+The local runtime smoke test served HTTP 200 while login was pending, using
+about 80 MiB under a 212 MiB container limit. Production kept its configured
+256 MB Fly machine and existing volume. The deployed home page, stylesheet,
+authentication boundary and same/foreign-origin POST checks passed, and
+linkinator checked 279 internal links successfully. A SQLite backup was taken
+before deployment. Registered academic results and the other 24 tables were
+unchanged; startup regenerated IDs for built-in seed transcript rows while
+preserving their contents.
+
+Transport checks cover certificate trust, hostname mismatch, Host override,
+redirect refusal, response-body cancellation and a stalled CONNECT handshake.
+The last case exposed that Node's proxied request does not attach its abort
+signal to the initial socket until tunnelling finishes. The transport now
+attaches that same signal when the agent creates the socket, and the test
+confirms both timely rejection and closure at the proxy.

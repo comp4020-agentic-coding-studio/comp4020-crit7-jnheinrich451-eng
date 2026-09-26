@@ -163,4 +163,7 @@ The ignored evidence file is `.data/adviser-minipc-benchmark.jsonl`.
 An isolated built app also passed the real Chrome flow with JavaScript disabled:
 submit advice, reload, apply a six-unit ceiling, change interests, save a course,
 invalidate old advice and dismiss it. The existing local preview now selects
-the mini PC through its ignored env file. Fly connectivity is still unconfigured.
+the mini PC through its ignored env file. Fly connectivity was unconfigured at
+that check. On 27 September, the private-network container was deployed and
+reached its first device login; owner approval and a live Fly inference check
+are still pending. See `fly-mini-pc.md` for the current setup checkpoint.

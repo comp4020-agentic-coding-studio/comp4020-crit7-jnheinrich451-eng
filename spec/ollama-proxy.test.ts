@@ -36,7 +36,7 @@ it("tunnels HTTPS to the URL hostname, verifies its certificate, and aborts stal
     "-out", cert, "-days", "1", "-subj", "/CN=ollama.test", "-addext", "subjectAltName=DNS:ollama.test"], { stdio: "ignore" });
   const roots = getCACertificates();
   const seen: string[] = [], sockets = new Set<Socket>();
-  let receivedHost: string | undefined, stalledClosed = false;
+  let receivedHost: string | undefined, stalledClosed = false, stalledTunnelClosed = false;
   const upstream = httpsServer({ key: readFileSync(key), cert: readFileSync(cert) }, (request, response) => {
     receivedHost = request.headers.host;
     if (request.url === "/stall") {
@@ -47,6 +47,12 @@ it("tunnels HTTPS to the URL hostname, verifies its certificate, and aborts stal
   const proxy = createServer();
   proxy.on("connect", (request, client, head) => {
     seen.push(request.url!);
+    if (request.url === "stalled-proxy.test:443") {
+      sockets.add(client as Socket);
+      client.on("error", () => {}); client.on("close", () => sockets.delete(client as Socket));
+      client.on("end", () => { stalledTunnelClosed = true; client.destroy(); }); client.resume();
+      return;
+    }
     const remote = connect((upstream.address() as AddressInfo).port, "127.0.0.1", () => {
       client.write("HTTP/1.1 200 Connection Established\r\n\r\n");
       remote.write(head); remote.pipe(client); client.pipe(remote);
@@ -69,6 +75,10 @@ it("tunnels HTTPS to the URL hostname, verifies its certificate, and aborts stal
     const count = seen.length;
     expect((await fetchOllama("https://ollama.test/redirect", options, proxyUrl)).status).toBe(302);
     expect(seen).toHaveLength(count + 1);
+    const started = Date.now();
+    await expect(fetchOllama("https://stalled-proxy.test/tags", { ...options, signal: AbortSignal.timeout(200) }, proxyUrl)).rejects.toThrow();
+    expect(Date.now() - started).toBeLessThan(1500);
+    await expect.poll(() => stalledTunnelClosed).toBe(true);
     const stalled = await fetchOllama("https://ollama.test/stall", { ...options, signal: AbortSignal.timeout(200) }, proxyUrl);
     await expect(stalled.text()).rejects.toThrow();
     await expect.poll(() => stalledClosed).toBe(true);
