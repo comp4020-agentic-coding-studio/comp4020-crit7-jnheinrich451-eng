@@ -2611,3 +2611,86 @@ secret update restarted the machine, SMTP `verify()` inside Fly succeeded from
 arrival under the new name is for John to confirm with spaced email tests.
 
 **Commit:** none — Fly secret change and diagnosis only; no repo change besides this entry.
+
+## 2026-09-27 02:36 — Chosen demo identities and email-confirmed password changes
+
+**Prompt:**
+
+> The change the password! If you want to change the password, then the verfication email is needed to change!
+>
+> the left is normal, right is demo [...] don't choose the generated email, let them choose [...] open a private inbox containing its confirmation link
+>
+> how to achieve the reviewer invitation, what should be the pipeline?
+
+**Result:**
+Replaced the standalone test-email interface with signed-in password management:
+current password, a fresh link in the saved inbox, then explicit confirmation of
+a different password. Only the final POST changes credentials and revokes
+sessions. Separate token purposes, expiry, stored credential fingerprints and
+atomic consumption prevent activation or receipt links from changing passwords.
+Existing receipt links and academic history remain intact; no account was deleted.
+
+Added Normal / Demo tabs. Normal still verifies real ANU addresses and aliases
+through SMTP. Demo visitors choose their own `@enrolment.test` address and password,
+open a private captured inbox and confirm into a persistent fictional profile.
+An HttpOnly browser capability is stored only as a hash; captured links are
+reconstructed with HMAC and cannot be obtained by guessing an address. Password
+authentication reopens a new inbox after sign-out or expiry. Demo mail never
+enters SMTP, and simulated confirmation never claims a verified ANU identity.
+
+Refined the earlier separate-guest-queue proposal: demo students may explicitly
+send labelled requests to their assigned invited reviewer. A marker can use one
+real mailbox for reviewing and a chosen demo account for student testing. Public
+signup stays student-only. Packaged the existing invitation function into the
+production image as an owner-only CLI with a read-only assignment listing; no
+web invitation endpoint or automatic role conversion was added. Updated the
+harness, decision log, Help and operator documentation. Preserved the concurrent
+sender-name/delivery record in 061fa6c and its Fly configuration.
+
+**Verified:**
+Docker Node 24 / pnpm 11.9.0 passed zero Astro diagnostics, 552 tests in 28 files
+and process-evidence checks. Built-server cases cover chosen identities,
+duplicate registration, cross-inbox access, password-gated inbox recovery,
+no demo SMTP, role injection, expired/replayed/cross-purpose tokens, CSRF,
+failed email, session revocation and unchanged transcripts, plans, enrolments
+and requests. Existing normal accounts migrate with kind `normal`.
+
+Chrome with JavaScript disabled completed normal registration, SMTP-captured
+confirmation, password change and repeat sign-in; the equivalent demo sequence
+entered its profile directly and retained all ten transcript rows after reload.
+All 14 form POSTs returned 303 with the correct Origin. Inspected registration,
+inbox, password and account screenshots at 1440 and 390 pixels with no horizontal
+page overflow. The bundled invitation CLI sent only to an isolated local capture;
+a separate no-JavaScript browser activated it and reached Dr Rowan Ellis's queue.
+
+Backed up Fly's SQLite database before deployment. After deployment and again
+after restart, the registered account, transcript, enrolments, requests, planning
+and adviser history matched that backup; foreign-key checks were clean. The
+new tables were present and empty. The deployed CLI listed available assignments
+without sending mail. Seven public routes returned 200, anonymous events 401,
+same-origin POST 303, cross-origin POST 403; the stylesheet and 281 internal
+links passed. Private Ollama discovery returned 200 with the expected Llama 3.2
+3B digest, and SMTP connection verification passed without sending an email.
+Actual receipt of the new password message remains for its owner to confirm.
+
+Course preflight checked the published contract, public repository and existing
+green CI. The deadline helper lacked jq, so the published group JSON confirmed
+Bada's Monday 28 September 13:30 cutoff directly. This turn does not push commits.
+
+**Commit:** [`dfe164a`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/dfe164a)
+
+**What happened:**
+The historical migration fixture used today's account schema before applying
+today's migrations; corrected its historical-column insert and comparison.
+Kept the session cookie first for existing HTTP clients and avoided clearing a
+nonexistent demo cookie. The expanded authentication suite now has an independent
+app/database/mail fixture so it does not compete with the original suite's
+production authentication limits. An inline expiry comparison confused Astro's
+parser; frontmatter resolved it. Browser inspection caught white tab text inherited
+from global navigation CSS; explicit tab colours fixed it.
+
+A combined post-deploy diagnostic timed out. Another image became active during
+the checks, then HTTP and even a no-op SSH command stalled despite a started
+machine. A restart restored access; bounded, separate diagnostics and preservation
+checks then passed. The cause of that transient stall was not established. No
+machine-size, volume, networking or mail-secret changes were made by this turn.
