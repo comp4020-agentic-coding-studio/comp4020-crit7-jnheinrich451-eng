@@ -3061,3 +3061,44 @@ prose, slightly above the 150-300 crit guidance; trimming elsewhere was offered
 and not applied.
 
 **Commit:** [`9016b9e`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/9016b9e)
+
+## 2026-09-27 05:16 — Gold request panels and clearer assessment buttons
+
+**Prompt:**
+
+> first could you make the new added boxes in golden top margin style as screenshot 2 did? It will look better. And the Get demo assessment, if we need to quit "demo" wording in normal account?
+
+**Result:**
+Request status and action panels now share Confirmed enrolments' gold top
+border, white surface, serif heading and spacing. The handoff form uses the
+same outer width as the status panel, with readable paragraph widths inside.
+Normal accounts see "Get assessment" and "Run automatic assessment"; Demo
+accounts retain their explicit demo labels. Nearby wording still explains the
+prototype and fictional academic record. Saved reports, policy versions and
+event wording were not rewritten. Added the presentation rules to the shared
+harness and decision log.
+
+**Verified:**
+Docker Node 24 / pnpm 11.9.0: typecheck clean and all 600 tests in 30 files pass.
+A JavaScript-disabled Chrome check registered both account modes locally,
+confirmed their different action labels, submitted an exception assessment,
+and converted a staff request through each account's automatic-assessment
+button. At 1440, 768, 390 and 320 pixels, both panels had matching outer edges,
+a 4-pixel gold top border, Georgia headings and a gap of at least 24 pixels,
+with no page overflow. Inspected the desktop and mobile screenshots.
+
+Deployed to Fly and confirmed the new stylesheet, pages and access checks.
+Linkinator passed all 284 links on the second run.
+The course plugin is current and GitHub is public. Rechecked evidence after
+the separately committed PROCESS.md update: all ten citations resolve. Work
+and this record are local commits; no push was performed.
+
+**Commit:** [`1661b17`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/1661b17)
+
+**What happened:**
+The inherited 36rem form width left the new handoff box narrower than its
+status panel, with their borders touching. Scoped the width and spacing change
+to request panels so other forms retain their established layout.
+The first live link crawl received a 502 at the root. A separate root request
+then returned 200 in 0.2 seconds, and the full retry passed. No cause for that
+transient response was established and no server configuration was changed.
