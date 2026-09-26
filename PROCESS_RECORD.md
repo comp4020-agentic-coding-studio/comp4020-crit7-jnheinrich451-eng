@@ -2427,3 +2427,33 @@ authorised-IP protection blocks both the local IP and Fly's egress IP
 delivery needs John to authorise the IP or turn off IP blocking in Brevo. Fly's
 shared egress IP isn't guaranteed static, so authorising a single IP may break
 again after a machine move.
+
+## 2026-09-26 18:15 — Crit 7 shipped public; SMTP authorised from Fly
+
+**Prompt:**
+
+> Done, and if you can check? And if we can ship it haha
+
+> Plugin updated, how about now? Yes I need to ship, which is fine to be public, I need to test from public site from now on
+
+**Result:**
+After John approved Fly's egress IP (75.102.33.82) in Brevo, a nodemailer
+`verify()` inside the Fly machine succeeded. The secret scan (plugin 0.14.22,
+repeated on 0.14.23) listed three credential-assignment surfaces. Each was read
+before the flip. `verify.astro` and `docs/shipping-preflight.md` hold the
+`searchParams.get("token")` line. History holds test-only passphrases in
+`spec/accounts.test.ts` (20fb86f) and a fixture password hash. No real key
+shape was found; the SMTP and Fly credentials exist only in gitignored files.
+John confirmed the permanent public flip, the repo went public, and the
+`checks` workflow was dispatched.
+
+**Verified:**
+CI run 36229122230 passed check and deploy. Its deploy verification covers the
+site being online, private events needing auth, https awareness, CSRF and
+internal links. The plugin's verify-deploy script confirmed the page and its
+stylesheet at the fly.dev URL. All six Fly secrets survived the CI deploy, and
+SMTP verify from the redeployed machine still succeeded from 75.102.33.82.
+Actual inbox delivery through registration is left for John to confirm on the
+public site.
+
+**Commit:** none — visibility flip and CI deploy only; no repo change besides this entry.
