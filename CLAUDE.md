@@ -71,6 +71,11 @@ See `docs/catalogue-data.md`, `docs/course-source-audit.md`,
   discontinuation.
 - John's reported ML-to-AI change is versioned evidence, not an automatic
   conversion of existing students' rules.
+- Degree pages use bold advice headings and linked specialisation lists. Browse
+  the same catalogue year when a saved page exists; retain original undated
+  references and label external or missing pages. Preserve differing published
+  lists, with no Machine Learning-to-AI alias. Course and specialisation layouts
+  keep their existing presentation.
 - Each interpretation in `src/data/enrolment-rules-2027.json` is pinned to its
   source hash with a note; a changed or conflicting source needs a fresh
   interpretation. MGMT7020 and REGN8014 are missing-requisite source gaps.

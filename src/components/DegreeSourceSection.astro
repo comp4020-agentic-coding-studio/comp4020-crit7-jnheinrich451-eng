@@ -1,0 +1,84 @@
+---
+import { catalogueLink, referenceLink } from "../lib/catalogue";
+import type { catalogueEntries } from "../lib/catalogue";
+import type { SourceBlock, SourceSection } from "../lib/catalogue-types";
+
+interface Props {
+  section: SourceSection;
+  year: number;
+  entries: ReturnType<typeof catalogueEntries>;
+}
+const { section, year, entries } = Astro.props;
+// Presentation only: keep the imported evidence and its source-year references intact.
+const adviceHeadings = new Set([
+  "Important things to keep in mind when planning your enrolment",
+  "Electives", "Specialisations", "Advanced Computing Research Project",
+  "Credit/Exemption Options", "Credit/Exemptions", "Approved Credits/Exemptions",
+]);
+const titleKey = (title: string) => title.toLowerCase().replace(/[-–—]/g, " ").replace(/\s+/g, " ").trim();
+const specialisations = entries.filter(e => e.kind === "specialisation" && e.year === year);
+const names = new Set(specialisations.map(e => titleKey(e.evidence.title)));
+// This legacy name appears in the saved requirements, but has no saved 2027 page.
+names.add("machine learning");
+function isSpecialisation(block: SourceBlock) {
+  return section.key === "specialisations" || (section.key === "program-requirements" &&
+    (names.has(titleKey(block.text)) || block.references.some(r => r.kind === "specialisation")));
+}
+function specialisationLink(block: SourceBlock) {
+  const ref = block.references.find(r => r.kind === "specialisation");
+  // An undated source link can navigate to this degree's catalogue year; it is
+  // not rewritten as a dated academic reference. Never substitute another year.
+  const matches = ref
+    ? entries.filter(e => e.kind === "specialisation" && e.code === ref.code && e.year === (ref.year ?? year))
+    : specialisations.filter(e => titleKey(e.evidence.title) === titleKey(block.text));
+  const codes = new Set(matches.map(e => e.code));
+  if (codes.size === 1) return { href: catalogueLink("specialisation", matches[0].code, matches[0].year), external: false };
+  if (ref?.url?.startsWith("https://programsandcourses.anu.edu.au/")) return { href: ref.url, external: true };
+  return null;
+}
+type Group = { type: "specialisations"; blocks: SourceBlock[] } | { type: "text"; block: SourceBlock };
+const groups: Group[] = [];
+for (const block of section.blocks.filter(b => b.text !== "Back to the top")) {
+  const last = groups.at(-1);
+  if (isSpecialisation(block)) {
+    if (last?.type === "specialisations") last.blocks.push(block);
+    else groups.push({ type: "specialisations", blocks: [block] });
+  } else groups.push({ type: "text", block });
+}
+---
+
+{groups.map(group => group.type === "specialisations" ? <>
+  <ul class="specialisation-options">
+    {group.blocks.map(block => {
+      const link = specialisationLink(block);
+      return <li>
+        {link ? <a href={link.href}>{block.text}</a> : <span>{block.text}</span>}
+        {link?.external && <small>ANU page · not saved here</small>}
+        {!link && <small>No saved {year} page</small>}
+      </li>;
+    })}
+  </ul>
+  <p class="specialisation-note">Links open saved {year} pages where available; ANU links open the published site. The lists are preserved as published and may differ.</p>
+</> : section.key === "academic-advice" && adviceHeadings.has(group.block.text) ?
+  <h3>{group.block.text}</h3> :
+  <p class:list={["degree-source-block", { "requirement-lead": group.block.text.endsWith(":") && !group.block.references.length }]}>
+    {group.block.text.split(/(\b[A-Z]{4}\d{4}\b)/g).map(part => {
+      const ref = group.block.references.find(r => r.code === part && r.year !== null);
+      const link = ref ? referenceLink(ref, entries) : null;
+      return link ? <a href={link}>{part}</a> : part;
+    })}
+  </p>
+)}
+
+<style>
+  h3 { font-size: 1.15rem; font-weight: 700; margin: 2rem 0 .8rem; padding-top: 1.25rem; border-top: 1px solid var(--line, #d9d5cb); }
+  h3:first-child { margin-top: 0; padding-top: 0; border: 0; }
+  .degree-source-block { max-width: 80ch; margin: .85rem 0; }
+  .requirement-lead { font-weight: 700; margin-top: 1.75rem; }
+  .specialisation-options { list-style: none; padding: 0; margin: 1rem 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem 1.5rem; max-width: 80ch; }
+  .specialisation-options li { padding: .65rem 0 .65rem .9rem; border-left: 2px solid var(--gold, #b39b60); min-width: 0; overflow-wrap: anywhere; }
+  .specialisation-options a { font-weight: 600; text-underline-offset: .2em; }
+  .specialisation-options small { display: block; color: var(--muted, #555); font-size: .8rem; margin-top: .2rem; }
+  .specialisation-note { max-width: 80ch; font-size: .85rem; color: var(--muted, #555); }
+  @media (max-width: 600px) { .specialisation-options { grid-template-columns: 1fr; gap: .35rem; } }
+</style>

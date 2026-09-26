@@ -74,6 +74,35 @@ describe("published course library over HTTP", () => {
     expect(systems.text).toContain("COMP8405 · 2027 · saved source not linked");
     expect((await page("?kind=course&code=COMP8045&year=2026")).status).toBe(404);
   });
+  it("makes degree specialisations navigable while preserving published differences and missing pages", async () => {
+    for (const code of ["7706XMCOMP", "7722XVCOMP", "MMLCV"]) {
+      const degree = await page(`?kind=program&code=${code}&year=2027`);
+      expect(degree.status).toBe(200);
+      const source = catalogue.snapshots.find(s => s.evidence.code === code)!.evidence;
+      const text = degree.text.replace(/\s+/g, " ");
+      for (const block of source.sections.flatMap(section => section.blocks)) {
+        expect(text).toContain(block.text.replace(/\s+/g, " "));
+      }
+      for (const anchor of degree.doc.querySelectorAll('.degree-contents a')) {
+        expect(degree.doc.querySelector(anchor.getAttribute("href")!)).toBeTruthy();
+      }
+      if (code === "MMLCV") continue;
+      const ai = degree.doc.querySelector('.specialisation-options a[href*="code=ARTIF-SPEC"]');
+      expect(ai?.textContent).toBe("Artificial Intelligence");
+      expect(ai?.getAttribute("href")).toContain("year=2027");
+      const ml = [...degree.doc.querySelectorAll(".specialisation-options li")].find(li => li.textContent?.includes("Machine Learning"));
+      expect(ml?.textContent).toContain("No saved 2027 page");
+      expect(ml?.querySelector("a")).toBeNull();
+      expect(degree.doc.querySelector("#academic-advice-0")?.querySelectorAll("h3").length).toBeGreaterThan(2);
+    }
+    const mcomp = await page("?kind=program&code=7706XMCOMP&year=2027");
+    const headings = [...mcomp.doc.querySelectorAll("h3")].map(h => h.textContent);
+    expect(headings).toEqual(expect.arrayContaining(["Specialisations", "Credit/Exemption Options", "Approved Credits/Exemptions"]));
+    expect(mcomp.doc.querySelector('a[href="https://programsandcourses.anu.edu.au/specialisation/PCOM-SPEC"]')?.textContent).toBe("Professional Computing");
+    for (const query of ["?kind=course&code=COMP6670&year=2027", "?kind=specialisation&code=ARTIF-SPEC&year=2027"]) {
+      expect((await page(query)).doc.querySelector(".degree-section")).toBeNull();
+    }
+  });
 });
 
 it("persists evidence and reviews across reopen/reseed, preserves conflicts, and leaves student enrolments untouched", () => {

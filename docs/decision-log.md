@@ -386,3 +386,17 @@ spacing, with full-width outer edges. Normal-account actions use "Get assessment
 and "Run automatic assessment"; Demo accounts keep their explicit labels.
 Nearby text still identifies the prototype and fictional record. Saved policy
 versions, reports and event wording are retained; this changes presentation only.
+
+## 2026-09-27 — Readable degree requirements and linked specialisations
+
+John requested layout changes only for the three degree pages. Their sections
+now have gold dividers and jump links; the saved advice labels are bold headings,
+and specialisations appear as compact, responsive link lists. Course and
+specialisation pages retain their existing renderer.
+
+Navigation opens a matching saved specialisation in the degree's catalogue year,
+without rewriting undated source references or changing evidence hashes. The
+published lists disagree: Machine Learning has no saved 2027 page and remains
+explicitly unlinked; Professional Computing opens its original ANU link with an
+external-page label. Neither name is substituted with Artificial Intelligence.
+The downloaded text, its order, and the interpreted academic rules are retained.

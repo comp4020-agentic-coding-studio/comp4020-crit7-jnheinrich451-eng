@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import DegreeSourceSection from "../components/DegreeSourceSection.astro";
 import { catalogueEntries, catalogueLink, catalogueMentions, catalogueSourcesFor, referenceLink } from "../lib/catalogue";
 import type { CatalogueKind } from "../lib/catalogue-types";
 import { ACTIVE_YEAR } from "../lib/academic-year";
@@ -59,13 +60,18 @@ const mentioningVersions = mentions.filter((r, i) => mentions.findIndex(other =>
         {entry.review.notes && <p>{entry.review.notes}</p>}
         {e.issues.length > 0 && <aside class="library-notice" aria-label="Source gaps"><ul>{e.issues.map(issue => <li>{issue}</li>)}</ul></aside>}
 
+        {e.kind === "program" && <nav class="degree-contents" aria-label="On this degree page">
+          {e.sections.filter(section => section.present && section.blocks.length).map(section =>
+            <a href={`#${section.key}-${variant}`}>{section.title}</a>)}
+        </nav>}
+
         {e.sections.map(section => {
           const references = section.blocks.flatMap(b => b.references).filter((r, i, all) =>
             all.findIndex(other => other.kind === r.kind && other.code === r.code && other.year === r.year) === i);
-          return <section id={`${section.key}-${variant}`}>
+          return <section id={`${section.key}-${variant}`} class:list={{ "degree-section": e.kind === "program" }}>
             <h2>{section.title}</h2>
             {!section.present ? <p class="muted">This section was not present in the saved page. Its requirements are unknown.</p> :
-              section.blocks.length ? section.blocks.filter(block => block.text !== "Back to the top").map(block =>
+              section.blocks.length ? e.kind === "program" ? <DegreeSourceSection section={section} year={e.year} entries={entries} /> : section.blocks.filter(block => block.text !== "Back to the top").map(block =>
                 <p class="source-block" style={`--depth: ${Math.min(block.depth, 3)}`}>{block.text.split(/(\b[A-Z]{4}\d{4}\b)/g).map(part => {
                   const ref = block.references.find(r => r.code === part && r.year !== null);
                   const link = ref ? referenceLink(ref, entries) : null;
@@ -154,6 +160,9 @@ const mentioningVersions = mentions.filter((r, i) => mentions.findIndex(other =>
   .availability { font-size: .85rem; color: #555; }
   .library-entry { padding-bottom: 2rem; }
   .library-entry section { margin-top: 2rem; }
+  .degree-contents { display: flex; flex-wrap: wrap; gap: .65rem 1.5rem; margin: 1.5rem 0; }
+  .library-entry .degree-section { border-top: 3px solid var(--gold, #b39b60); padding-top: 1.3rem; margin-top: 2.5rem; scroll-margin-top: 1rem; }
+  .degree-section > h2 { font-weight: 700; margin-top: 0; }
   .entry-meta { font-size: 1.1rem; }
   .source-block { margin-left: calc(var(--depth) * 1.1rem); max-width: 80ch; white-space: normal; }
   .source-details { margin-top: 2rem; }
