@@ -2306,3 +2306,52 @@ The first check found a duplicate accessible name between the results section
 and its new scrollable region. Gave the table region its own distinct name;
 the complete check then passed. A bare code link would still require opening
 each page to identify a course, so the title remains visible in the table.
+
+## 2026-09-26 17:20 — Natural-voice process account and a rule-shaped CLAUDE.md
+
+**Prompt:**
+
+> could you check the PROCESS.md along with the repo, and see if PROCESS.md and ./reflections/crit-7.md can be modified into natural tone?
+
+> in CLAUDE.md, it records my big orders, and if it is most effective way for you or for agent to execute?
+
+> keep the rules checks those instructive signals for agent, and move contents instructions to else where, yes please reconstruct it
+
+**Result:**
+Rewrote PROCESS.md and the reflection in a conversational first-person voice
+without changing any claim or citation. The first draft ran to about 390 words;
+the course's assessment page gives 150-300 words for a crit-week PROCESS.md and
+per reflection entry, so it was trimmed to about 295 words of prose (reflection
+273). The trim dropped "the spec's requirement that requests persist" and
+"persistence tests".
+
+For CLAUDE.md, the 2,100-word Design direction section was a chronological log
+mixing active rules with status ("is now implemented") and superseded choices
+(VCOMP 2026, Qwen). Rather than delete history, it moved verbatim to
+docs/decision-log.md, and CLAUDE.md now carries grouped Product rules (design,
+catalogue, eligibility, permission requests, COMP8620 scenario, accounts, load,
+profiles, adviser), each pointing to its doc. Rules, Checks and Working stayed
+unchanged apart from a note on adding future increments in this shape. The file
+shrank only from 3,043 to about 2,790 words, well short of the 1,000-1,200
+estimated beforehand: keeping every active rule costs most of the space. The
+gain is findability and no stale status, not size.
+
+**Verified:**
+Checked each PROCESS.md citation against its commit subject and the record's
+COMP9095, quotation and suggestion-visibility facts before rewording. A separate
+read-only audit compared every old Design direction sentence with the new rules.
+Docker Node 24 / pnpm 11.9.0 check passed 495 tests in 25 files, and
+check:evidence resolved all eight citations. Rules, Checks, Working and the
+header were diffed against HEAD: only the new Working bullet differs.
+
+**Commit:** [`4949d2e`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/4949d2e), [`f72e915`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/f72e915)
+
+**What happened:**
+The first rules draft drifted in meaning. It said overload decisions "stay with
+the deterministic engine", which contradicts the optional human review by
+Dr Avery Hart. It moved the Llama/Qwen model-trial sentence from permission
+handling to the adviser. It merged two lists so that known exact marks read as
+barred from automatic permission, and it dropped qualifiers such as
+"explicitly", "alone", "existing" and "optional". The audit caught these, and
+each was restored to the original wording before commit. Another session
+committed record.astro work mid-turn; it was left untouched.
