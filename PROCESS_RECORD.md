@@ -2985,3 +2985,57 @@ John's screenshot showed a correct planner decision presented as a wrong
 answer. The 27-of-30 benchmark scored topic choice and grounding only, so it
 could not catch the planner removing every match afterwards. The page, seen by
 the user, caught it.
+
+## 2026-09-27 04:57 — Same request from incomplete assessment to reviewer decision
+
+**Prompt:**
+
+> the reviewer of my real account approves the comp8620 permission code, yet the student account cannot receive it, it says still pending, an issue about synchronization
+
+John clarified: "The My requests says Evidence or decision needed, and in My
+profile and My courses, there is only COMP6120 enroled, it is enrolled before."
+
+**Result:**
+Read-only inspection found different requests: the reviewer had approved a
+2026 S2 seeded example, while John's 2027 S2 automatic assessment had never
+entered the staff queue. The saved approval was not lost. Kept both records
+unchanged and made the missing handoff explicit: an incomplete assessment can
+be sent to its assigned reviewer under the same request ID, retaining its
+statement, checks and report. Routing adds events; the original automatic
+assessment remains historical evidence after the human decision. The queue
+now includes these explicitly routed reports, while untouched automatic
+assessments stay outside it.
+
+Request numbers and offering years are prominent, seeded examples are labelled,
+and a dual-role reviewer can identify their own student profile. Decision
+buttons name the student and offering. Approval explains that the student
+still needs to confirm enrolment before My courses and My profile include it.
+Updated the shared harness and decision log with these distinctions.
+
+**Verified:**
+Docker Node 24 / pnpm 11.9.0: typecheck clean, all 600 tests in 30 files pass,
+and evidence citations resolve. New HTTP cases cover approval and rejection
+after handoff, unchanged saved evidence and earlier events, duplicate retries,
+ownership and reviewer scope, conflicting requests, scenario isolation and
+explicit enrolment. A JavaScript-disabled Chrome run registered and invited a
+local test account through captured SMTP, approved a separate seeded example,
+confirmed the student's own assessment was unchanged, then handed off and
+approved that same student request. Explicit confirmation added COMP8620 to
+both student pages. Screens at 1440, 390 and 320 pixels had no page overflow.
+
+Deployed to Fly; page/assets and access checks passed, including 401 for an
+anonymous handoff and 403 for a foreign-origin POST. Linkinator passed all 284
+links. Before/after hashes matched for accounts, students, plans, applications,
+application events, enrolments, selections and registered transcripts. The
+owner's request and decision history are unchanged; no real request was sent
+or approved by these checks. GitHub is public, the course plugin is current,
+and prior remote CI is green. These work and record commits remain local.
+
+**Commit:** [`7999bd7`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/7999bd7)
+
+**What happened:**
+The two COMP8620 requests looked similar enough to suggest a synchronization
+failure. Checking their student IDs and offering years exposed the actual
+workflow gap. The first full suite passed the new lifecycle tests but failed
+one existing assertion for the old empty-queue wording; updated it to cover
+the new explicit handoff guidance, then reran the full checks successfully.
