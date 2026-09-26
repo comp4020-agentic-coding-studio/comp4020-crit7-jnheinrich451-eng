@@ -1,0 +1,48 @@
+---
+import Layout from "../layouts/Layout.astro";
+import RequirementChecks from "../components/RequirementChecks.astro";
+import { accountFor } from "../lib/email-checks";
+import { applicationsOfStudent, TERM_LABELS } from "../lib/store";
+import { overloadsFor, OVERLOAD_STATUS } from "../lib/overload-store";
+import type { Term } from "../data/courses";
+const actor = Astro.locals.actor;
+if (!actor) return Astro.redirect("/login/?mode=demo", 303);
+if (actor.kind !== "student" || accountFor(actor)?.kind !== "demo") return Astro.redirect("/reviewer-access/", 303);
+const requests = applicationsOfStudent(actor.student.id).filter(app => !app.scenarioKey);
+const loads = overloadsFor(actor).filter(item => item.events.some(event => event.kind === "review-requested"));
+---
+<Layout title="Demo reviewer" actor={actor}>
+  <h1>Demo reviewer</h1>
+  <p class="lede">Review requests from your own fictional student profile.</p>
+  <p class="note">This is a simulation, not an invited reviewer role. You cannot see or decide another student's requests. Decisions are labelled Demo reviewer in the saved timeline.</p>
+  <h2>Course permission requests</h2>
+  {requests.length === 0 && <p>No course requests yet. Open <a href="/courses/COMP8620/?year=2027&term=S2">COMP8620</a> in your student view, explain your request, then choose <strong>Optional staff review → Send to convenor</strong>.</p>}
+  {requests.map(app => <section class="surface" aria-labelledby={`request-${app.id}`} data-demo-request={app.id}>
+    <h3 id={`request-${app.id}`}>{app.course.code} · {app.course.title}</h3>
+    <p>{app.year} {TERM_LABELS[app.term as Term]} · {app.status === "with-convenor" ? "Waiting for a decision" : app.status}</p>
+    <p>Assigned fictional convenor: {app.convenor.name}</p>
+    <blockquote>{app.statement}</blockquote>
+    <RequirementChecks checks={app.checkList} />
+    <p><a href={`/applications/${app.id}/`}>View the full request, evidence and timeline</a></p>
+    {app.status === "with-convenor" ? <form class="stack" method="post" action="/api/reviewer-demo">
+      <input type="hidden" name="kind" value="course" /><input type="hidden" name="requestId" value={app.id} />
+      <label for={`note-${app.id}`}>Note to the student (required to reject)</label>
+      <textarea id={`note-${app.id}`} name="note" rows="3" maxlength="2000" />
+      <div class="actions"><button class="primary" name="decision" value="approve">Approve demo request</button><button name="decision" value="reject">Reject demo request</button></div>
+    </form> : <p>{app.status === "approved" ? "Return to the student request to confirm enrolment." : "Automatic assessments do not wait for a reviewer. Use Send to convenor when requesting human review."}</p>}
+  </section>)}
+  <h2>Overload requests</h2>
+  {loads.length === 0 && <p>No overload requests have been sent for review. <a href="/overload/">Open Study load</a> in your student view to see your current limit and requests.</p>}
+  {loads.map(item => <section class="surface" aria-labelledby={`load-${item.request.id}`}>
+    <h3 id={`load-${item.request.id}`}>{item.request.requestedLimit ?? "Unknown"}-unit overload · {item.request.year} {item.request.period}</h3>
+    <p>{OVERLOAD_STATUS[item.request.status]}</p><blockquote>{item.request.statement}</blockquote>
+    <RequirementChecks checks={item.report.checks} />
+    <p><a href={`/overload/${item.request.id}/`}>View the load assessment and timeline</a></p>
+    {item.request.status === "with-reviewer" && <form class="stack" method="post" action="/api/reviewer-demo">
+      <input type="hidden" name="kind" value="overload" /><input type="hidden" name="requestId" value={item.request.id} />
+      <label for={`load-note-${item.request.id}`}>Decision and evidence</label>
+      <textarea id={`load-note-${item.request.id}`} name="note" rows="3" required maxlength="2000" />
+      <div class="actions"><button class="primary" name="decision" value="approve">Approve demo overload</button><button name="decision" value="reject">Reject demo overload</button></div>
+    </form>}
+  </section>)}
+</Layout>

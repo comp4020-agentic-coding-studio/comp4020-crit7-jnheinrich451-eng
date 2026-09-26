@@ -97,6 +97,7 @@ export default async function setup(project: TestProject): Promise<() => void> {
     SMTP_PASSWORD: "",
     MAIL_FROM: "prototype@example.test",
     APP_ORIGIN: baseUrl,
+    REVIEWER_ADMIN_EMAIL: "fixture-student-1@anu.edu.au",
     OLLAMA_BASE_URL: `http://127.0.0.1:${modelPort}`,
     OLLAMA_MODEL: "llama3.2:3b",
     OLLAMA_HOST_HEADER: "localhost:11434",
@@ -111,6 +112,15 @@ export default async function setup(project: TestProject): Promise<() => void> {
     fixture.on("error", reject);
   });
   const data = JSON.parse(readFileSync(fixtureFile, "utf8"));
+  if (project.config.name === "reviewer-access") {
+    const extra = spawn("node", ["--import", "tsx", "spec/reviewer-fixtures.ts"], {
+      env: { ...env, SPEC_FIXTURE: "1" }, stdio: "inherit",
+    });
+    await new Promise<void>((resolve, reject) => {
+      extra.on("exit", code => code === 0 ? resolve() : reject(new Error("Reviewer fixture failed")));
+      extra.on("error", reject);
+    });
+  }
   const server = spawn("node", [entry], {
     env,
     stdio: "ignore",

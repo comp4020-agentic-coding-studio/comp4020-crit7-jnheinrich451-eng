@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { db } from "./db";
-import { courses, convenors, enrolments, offerings, overloadEvents, overloadRequests, students, transcript, type Student, type Convenor } from "./schema";
+import { accounts, courses, convenors, enrolments, offerings, overloadEvents, overloadRequests, students, transcript, type Student, type Convenor } from "./schema";
 import { catalogueEntries } from "./catalogue";
 import { ACTIVE_YEAR, LEGACY_YEAR } from "./academic-year";
 import { COURSES, type Term } from "../data/courses";
@@ -125,10 +125,13 @@ export function requestOverloadReview(student: Student, id: number) {
       detail: "Requested human review of the saved explanation and assessment. Academic checks and enrolments are unchanged." }).run();
   });
 }
-export function decideOverload(reviewer: Convenor, id: number, approve: boolean, note: string) {
+export function decideOverload(reviewer: Convenor, id: number, approve: boolean, note: string, demoStudentId?: number) {
   return db.transaction(tx => {
     const row = tx.select().from(overloadRequests).where(eq(overloadRequests.id, id)).get();
     if (!row || reviewer.purpose !== "overload" || row.reviewerId !== reviewer.id) throw new UserError("Only the assigned program-load reviewer can decide this request.");
+    if (demoStudentId !== undefined && (row.studentId !== demoStudentId ||
+      !tx.select().from(accounts).where(and(eq(accounts.studentId, demoStudentId), eq(accounts.kind, "demo"))).get()))
+      throw new UserError("Demo reviewers can decide only their own demo requests.");
     if (row.status !== "with-reviewer") throw new UserError("This overload request is no longer waiting for review.");
     if (!note.trim() || note.trim().length > 2000) throw new UserError("Explain the decision and evidence in 1–2000 characters.");
     const report = JSON.parse(row.assessment) as OverloadReport;
@@ -136,7 +139,8 @@ export function decideOverload(reviewer: Convenor, id: number, approve: boolean,
       || (row.reason === "final-30" && row.requestedLimit > 30))) throw new UserError("Resolve credit values and the applicable maximum before approval.");
     const status = approve ? "approved" : "rejected";
     tx.update(overloadRequests).set({ status, approvedLimit: approve ? row.requestedLimit : null }).where(eq(overloadRequests.id, id)).run();
-    tx.insert(overloadEvents).values({ requestId: id, actor: "reviewer", actorName: reviewer.name, kind: status,
+    tx.insert(overloadEvents).values({ requestId: id, actor: demoStudentId !== undefined ? "demo-reviewer" : "reviewer",
+      actorName: demoStudentId !== undefined ? "Demo reviewer — own profile" : reviewer.name, kind: status,
       detail: `${approve ? `Approved a demo load limit of ${row.requestedLimit} units for ${row.year} ${row.period}.` : "Overload request rejected."} ${note.trim()}` }).run();
   });
 }

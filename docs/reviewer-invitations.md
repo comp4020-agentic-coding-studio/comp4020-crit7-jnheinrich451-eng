@@ -1,52 +1,66 @@
-# Invite a marker on the deployed app
+﻿# Reviewer access
 
-Reviewer registration is owner initiated. A marker receives a real SMTP
-invitation, chooses a prototype password, confirms the link and signs in.
-Their role is a fictional course convenor (assigned courses only) or the
-separate program-load reviewer. There is no public reviewer signup.
+Open /reviewer-access/ from sign-in, My account or the footer. Demo students can
+use /reviewer-demo/ to decide only their own fictional course and overload
+requests. Real reviewers accept an owner-issued email invitation and see requests
+for their assigned fictional convenor or program-load reviewer.
 
-The owner-only command is bundled at build time into
-`dist/admin/invite-staff.mjs`, included in the production image and uses Fly's
-database and SMTP environment when run there. It is not a web endpoint.
-With authenticated Fly CLI access to this app:
+## Invite from the website
+
+Set server-only REVIEWER_ADMIN_EMAIL to the owner's verified normal account email.
+Without it, web invitation management is disabled. Sign in as that account and
+open /reviewer-access/ to see Manage reviewer invitations. Its form, recipient
+history and cancellation actions are owner-only.
+
+1. Enter the recipient's real @anu.edu.au address and select an available reviewer
+   assignment. You may invite your own existing student address.
+2. Send the invitation. A pending invitation reserves the assignment; sending
+   again for that recipient and slot gives a fresh link. Cancel an unused invite
+   to release its reservation and invalidate its links.
+3. The recipient opens the email and confirms. Opening a link alone cannot grant
+   access. An existing session offers Sign out and continue.
+4. Existing verified accounts keep their password, profile and saved work. New or
+   unverified recipients choose a password. Acceptance revokes old sessions;
+   sign in again afterwards.
+5. Use Switch to reviewer view / Switch to student view in the header. A reviewer
+   without a student profile can choose Create my student view to generate one
+   fictional record. Later switches reuse that saved profile.
+
+One account can hold a student profile and one reviewer assignment; each fictional
+reviewer belongs to one account. Public registration cannot grant reviewer access.
+Links last 30 minutes. Resend verification or invitation on sign-in works for an
+existing verified recipient with a pending invitation too. Signed-in recipients
+also have Resend my invitation. SMTP failure leaves the reservation pending and
+grants no access; the recipient can resend, or the owner can cancel it.
+
+## Test the queue
+
+In the student view, open an assigned course, explain the request, and select
+**Optional staff review → Send to convenor**. Automatic reports do not enter the
+reviewer queue. Switch views, approve or reject with a reason, then return to the
+student view to explicitly confirm an approved enrolment. A private browser
+window can keep both views open.
+
+For demo reviewing, use a chosen @enrolment.test student and its own demo reviewer
+page. The server verifies ownership on every decision; it never exposes another
+visitor's requests. Rejection needs a reason. The timeline records Demo reviewer,
+and course approvals carry a DEMO-REVIEW prefix. Overload reports must first be
+sent for review; decisions need notes, retain the 30/36-unit safeguards, and do
+not enrol courses. Invited course reviewers cannot grant overloads; the separate
+program-load role handles those. A demo student can test both for its own profile.
+
+## Owner CLI fallback
+
+The production build includes dist/admin/invite-staff.mjs. Use the intended
+production database and SMTP environment:
 
 ```sh
 fly ssh console -a comp4020-crit7-jnheinrich451-eng -C 'node dist/admin/invite-staff.mjs --list'
-```
-
-This read-only listing shows fictional reviewer IDs, assigned course codes and
-whether a slot is available. It prints no account email or secret and sends no
-message. Agree on the marker's real address and an available slot, then replace
-the example recipient and ID below:
-
-```sh
 fly ssh console -a comp4020-crit7-jnheinrich451-eng -C 'node dist/admin/invite-staff.mjs marker@anu.edu.au 1'
 ```
 
-On John's Windows workstation, use the authenticated Docker `flyio/flyctl`
-wrapper documented in CLAUDE.md if `fly` is not installed. Do not run the source
-script against a local database and assume it created the production account.
-The TypeScript source remains available for the local capture preview.
-
-An email can hold one role, and a fictional reviewer slot can have one invited
-account. The command rejects an existing email or occupied slot without changing
-their role or data. If the marker has already registered as a student, agree on
-another real ANU alias they can receive mail at; do not delete or promote the
-existing student account. For a new marker, reserve their real email for reviewing
-and let them choose a separate `@enrolment.test` student account on the Demo tab.
-
-The activation link lasts 30 minutes. If it expires or delivery fails, the
-invited recipient uses Normal sign-in → Resend verification email; the owner
-does not need to provision a second account. Opening the invite during a student
-session offers Sign out and continue. A separate browser/private window allows
-both roles to remain open.
-
-To populate the queue, use the demo student to open a course assigned to that
-reviewer, choose a reason and submit **Optional staff review → Send to convenor**.
-Automatic reports do not enter the human queue. The invited reviewer decides;
-approval still requires the student to confirm enrolment. Overload requests
-require the separate program-load reviewer and explicit submission for review.
-
-Share `/guide/#reviewers` and the assigned course with the marker. SMTP acceptance
-does not prove delivery to their Inbox; verify an intended invitation arrives.
-No production invitation is sent merely by building or deploying the command.
+List mode sends no mail and prints no account email or secret. An invitation sends
+only to the supplied recipient. Use the authenticated Docker flyctl wrapper on
+Windows if fly is unavailable. Local invitations do not create Fly accounts.
+Share /guide/#reviewers and the assigned course with markers. Provider acceptance
+is distinct from Inbox delivery; confirm receipt with the recipient.

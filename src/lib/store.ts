@@ -26,6 +26,7 @@ import {
   offerings,
   selections,
   overloadEvents,
+  accounts,
 } from "./schema";
 import { UserError } from "./errors";
 import { studyLoadFor } from "./overload-store";
@@ -337,9 +338,13 @@ export function decide(input: {
   applicationId: number;
   approve: boolean;
   note: string;
+  demoStudentId?: number;
 }): Application {
   const app = db.select().from(applications).where(eq(applications.id, input.applicationId)).get();
   if (!app) throw new UserError("No such application.");
+  if (input.demoStudentId !== undefined && (app.studentId !== input.demoStudentId ||
+    !db.select().from(accounts).where(and(eq(accounts.studentId, input.demoStudentId), eq(accounts.kind, "demo"))).get()))
+    throw new UserError("Demo reviewers can decide only their own demo requests.");
   if (app.convenorId !== input.convenor.id) {
     throw new UserError("Only the convenor this request was routed to can decide it.");
   }
@@ -348,7 +353,7 @@ export function decide(input: {
   if (!input.approve && !note) throw new UserError("Say why, so the student isn't left guessing.");
 
   const course = db.select().from(courses).where(eq(courses.id, app.courseId)).get() as Course;
-  const code = input.approve ? permissionCode(course.code) : null;
+  const code = input.approve ? `${input.demoStudentId !== undefined ? "DEMO-REVIEW-" : ""}${permissionCode(course.code)}` : null;
   const updated = db.transaction((tx) => {
     const updated = tx
       .update(applications)
@@ -359,8 +364,8 @@ export function decide(input: {
     tx.insert(applicationEvents)
       .values({
         applicationId: app.id,
-        actor: "convenor",
-        actorName: input.convenor.name,
+        actor: input.demoStudentId !== undefined ? "demo-reviewer" : "convenor",
+        actorName: input.demoStudentId !== undefined ? "Demo reviewer — own profile" : input.convenor.name,
         kind: input.approve ? "approved" : "rejected",
         detail: [input.approve ? `Permission code issued: ${code}` : "", note].filter(Boolean).join("\n"),
       })

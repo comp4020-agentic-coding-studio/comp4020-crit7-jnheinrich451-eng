@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import { accounts, convenors, courses } from "../src/lib/schema";
-import { eq } from "drizzle-orm";
+import { accounts, convenors, courses, reviewerInvitations } from "../src/lib/schema";
+import { and, eq } from "drizzle-orm";
 
 const [email, id] = process.argv.slice(2);
 if (email === "--list" || !email || !id) {
@@ -9,7 +9,8 @@ if (email === "--list" || !email || !id) {
   const db = drizzle(client);
   console.log("Usage: node dist/admin/invite-staff.mjs person@anu.edu.au <convenor-id>\nList assignments: node dist/admin/invite-staff.mjs --list");
   const slots = db.select().from(convenors).all().map(c => ({ id: c.id, name: c.name, purpose: c.purpose,
-    available: !db.select({ id: accounts.id }).from(accounts).where(eq(accounts.convenorId, c.id)).get(),
+    available: !db.select({ id: accounts.id }).from(accounts).where(eq(accounts.convenorId, c.id)).get()
+      && !db.select({ id: reviewerInvitations.id }).from(reviewerInvitations).where(and(eq(reviewerInvitations.convenorId, c.id), eq(reviewerInvitations.status, "pending"))).get(),
     courses: db.select({ code: courses.code }).from(courses).where(eq(courses.convenorId, c.id)).all().map(c => c.code).join(", "),
   }));
   console.table(slots);

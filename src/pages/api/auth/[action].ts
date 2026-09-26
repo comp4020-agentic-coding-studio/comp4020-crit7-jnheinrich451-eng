@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { actorFrom, authenticateAccount, createSession, login, logout, register, resend, setSession, verificationInfo, verifyEmail } from "../../../lib/auth";
+import { actorFrom, addStudentView, authenticateAccount, createSession, login, logout, register, resend, setSession, verificationInfo, verifyEmail } from "../../../lib/auth";
 import { back } from "../../../lib/http";
 import { UserError } from "../../../lib/errors";
 import { accountFor, confirmEmailCheck, requestEmailCheck } from "../../../lib/email-checks";
@@ -8,7 +8,7 @@ import { completePasswordChange, requestPasswordChange, requestPasswordReset } f
 
 export const POST: APIRoute = async ({ request, cookies, params, url, locals }) => {
   const action = params.action;
-  if (!["register", "login", "logout", "resend", "verify", "email-test", "email-test-confirm", "password-change", "password-change-confirm", "password-reset", "demo-resend", "demo-inbox-open"].includes(action ?? ""))
+  if (!["register", "login", "logout", "resend", "verify", "email-test", "email-test-confirm", "password-change", "password-change-confirm", "password-reset", "demo-resend", "demo-inbox-open", "switch-role"].includes(action ?? ""))
     return new Response("Not found", { status: 404 });
   const form = await request.formData();
   const field = (key: string) => String(form.get(key) ?? "");
@@ -16,6 +16,17 @@ export const POST: APIRoute = async ({ request, cookies, params, url, locals }) 
   if (mode !== "normal" && mode !== "demo") return new Response("Unknown account mode", { status: 400 });
   const modeQuery = mode === "demo" ? "?mode=demo" : "";
   try {
+    if (action === "switch-role") {
+      if (!locals.actor) return new Response("Sign in required", { status: 401 });
+      const account = accountFor(locals.actor), role = field("role");
+      if (!account || account.kind !== "normal" || !account.convenorId || !["student", "reviewer"].includes(role))
+        return new Response("Invited reviewer access required", { status: 403 });
+      if (role === "student" && !account.studentId) addStudentView(account.id);
+      const token = createSession(account.id, role as "student" | "reviewer");
+      setSession(cookies, token, url);
+      const actor = actorFrom(token)!;
+      return back(actor.kind === "student" ? "/record/" : actor.convenor.purpose === "overload" ? "/overload/" : "/applications/");
+    }
     if (action === "password-reset") {
       const account = locals.actor ? accountFor(locals.actor) : undefined;
       const secret = mode === "demo" && account?.kind === "demo"
@@ -78,7 +89,7 @@ export const POST: APIRoute = async ({ request, cookies, params, url, locals }) 
       if (mode === "demo") return back("/login/?mode=demo", { error: "Sign in with your demo password to reopen your private inbox and request a fresh link." });
       await resend(field("email"));
       return back("/login/", {
-        ok: "If an unverified account exists for that address, a verification email has been sent.",
+        ok: "If an account needs activation or has a pending reviewer invitation, a verification email has been sent.",
       });
     }
     if (action === "verify") {
@@ -95,7 +106,9 @@ export const POST: APIRoute = async ({ request, cookies, params, url, locals }) 
         }
         return back("/login/?mode=demo", { ok: "Demo account confirmed. Sign in with your chosen demo address and password." });
       }
-      return back("/login/", { ok: "Email verified. You can now sign in." });
+      return back("/login/", { ok: info?.purpose === "reviewer-invite"
+        ? "Email verified. Reviewer access is active. Sign in with your existing password, or the one you just created. Use Switch to reviewer view if your student view opens."
+        : "Email verified. You can now sign in." });
     }
     if (action === "logout") {
       const wasDemo = locals.actor && accountFor(locals.actor)?.kind === "demo";
@@ -125,7 +138,8 @@ export const POST: APIRoute = async ({ request, cookies, params, url, locals }) 
   } catch (err) {
     if (!(err instanceof UserError)) throw err;
     const page =
-      action === "password-reset" ? `/forgot-password/${modeQuery}`
+      action === "switch-role" ? "/reviewer-access/"
+        : action === "password-reset" ? `/forgot-password/${modeQuery}`
         : action === "password-change" || action === "email-test" ? "/account/"
         : action === "password-change-confirm" ? `/change-password/?token=${encodeURIComponent(field("token"))}`
         : action === "demo-resend" || action === "demo-inbox-open" ? "/demo-inbox/"

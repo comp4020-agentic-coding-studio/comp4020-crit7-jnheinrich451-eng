@@ -30,6 +30,8 @@ export const ROUTES = [
   "/register/",
   "/verify/",
   "/account/",
+  "/reviewer-access/",
+  "/reviewer-demo/",
   "/email-test/",
   "/change-password/",
   "/forgot-password/",

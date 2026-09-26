@@ -63,4 +63,12 @@ cannot read other students' records or requests. Use fictional request details.
 
 Invitations always use real SMTP and cannot enter a captured inbox. See
 [reviewer-invitations.md](reviewer-invitations.md). No public reviewer signup,
-real-account role switch, ANU SSO or account deletion is included.
+ANU SSO or account deletion is included. Invited normal accounts can now switch
+between their student and assigned reviewer views using one email.
+
+The separate /reviewer-demo/ page lets a signed-in demo student decide only their
+own course and overload requests that were explicitly sent for review. Ownership
+and demo account kind are checked again on the server; it does not create a
+convenor account or grant access to anyone else's queue. The timeline records
+Demo reviewer, and course approvals carry a DEMO-REVIEW prefix. Academic evidence,
+overload limits and the student's explicit enrolment confirmation remain intact.

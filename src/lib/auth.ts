@@ -9,6 +9,7 @@ import { UserError } from "./errors";
 import { hashPassword, validPassword, verifyPassword } from "./passwords";
 import { mailConfig, sendVerification } from "./mail";
 import type { Actor } from "./store";
+import { acceptReviewerInvitation, deliverInvitation, inviteReviewer, pendingInvitation, reviewerTokenInfo } from "./reviewer-invitations";
 
 export const SESSION_COOKIE = "enrol_session";
 const LIFETIME = 8 * 60 * 60 * 1000;
@@ -123,22 +124,27 @@ export async function resend(rawEmail: string): Promise<void> {
   throttle(`resend:${digest(email)}`, 3);
   ensureMail();
   const account = db.select().from(accounts).where(eq(accounts.email, email)).get();
-  if (account && !account.verifiedAt)
+  const invitation = account && pendingInvitation(account.id);
+  if (invitation) await deliverInvitation(invitation);
+  else if (account && !account.verifiedAt)
     await deliverToken(account.id, email, account.convenorId ? "invite" : "verify");
 }
 
 export function verificationInfo(token: string) {
   if (!/^[a-f0-9]{64}$/.test(token)) return undefined;
-  return db
+  const info = db
     .select()
     .from(emailTokens)
-    .where(and(eq(emailTokens.tokenHash, digest(token)), gt(emailTokens.expiresAt, Date.now()), inArray(emailTokens.purpose, ["verify", "invite", "demo-verify"])))
+    .where(and(eq(emailTokens.tokenHash, digest(token)), gt(emailTokens.expiresAt, Date.now()), inArray(emailTokens.purpose, ["verify", "invite", "demo-verify", "reviewer-invite"])))
     .get();
+  if (!info) return undefined;
+  return info.purpose === "reviewer-invite" ? reviewerTokenInfo(info) : { ...info, needsPassword: info.purpose === "invite" };
 }
 
 export async function verifyEmail(token: string, password: string): Promise<void> {
   const info = verificationInfo(token);
   if (!info) throw new UserError("This verification link is invalid or expired. Request another email.");
+  if (info.purpose === "reviewer-invite") return acceptReviewerInvitation(token, password);
   if (info.purpose === "invite" && !validPassword(password))
     throw new UserError("Use a password of 15–128 characters.");
   const passwordHash = info.purpose === "invite" ? await hashPassword(password) : undefined;
@@ -158,11 +164,15 @@ export async function verifyEmail(token: string, password: string): Promise<void
   });
 }
 
-export function createSession(accountId: number): string {
+export function createSession(accountId: number, activeRole?: "student" | "reviewer"): string {
+  const account = db.select().from(accounts).where(eq(accounts.id, accountId)).get();
+  const role = activeRole ?? (account?.studentId ? "student" : "reviewer");
+  if (!account?.verifiedAt || (role === "student" ? !account.studentId : !account.convenorId))
+    throw new UserError("This account does not have that role.");
   const token = randomBytes(32).toString("hex");
   db.delete(sessions).where(lt(sessions.expiresAt, Date.now())).run();
   db.insert(sessions)
-    .values({ tokenHash: digest(token), accountId, expiresAt: Date.now() + LIFETIME })
+    .values({ tokenHash: digest(token), accountId, activeRole: role, expiresAt: Date.now() + LIFETIME })
     .run();
   return token;
 }
@@ -189,18 +199,19 @@ export async function login(rawEmail: string, password: string): Promise<string>
 export function actorFrom(token?: string): Actor | null {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
   const row = db
-    .select({ account: accounts })
+    .select({ account: accounts, activeRole: sessions.activeRole })
     .from(sessions)
     .innerJoin(accounts, eq(accounts.id, sessions.accountId))
     .where(and(eq(sessions.tokenHash, digest(token)), gt(sessions.expiresAt, Date.now())))
     .get();
   if (!row?.account.verifiedAt) return null;
   const { account } = row;
-  if (account.studentId && !account.convenorId) {
+  const role = row.activeRole ?? (account.studentId ? "student" : "reviewer");
+  if (role === "student" && account.studentId) {
     const student = db.select().from(students).where(eq(students.id, account.studentId)).get();
     if (student) return { kind: "student", student };
   }
-  if (account.convenorId && !account.studentId) {
+  if (role === "reviewer" && account.convenorId) {
     const convenor = db.select().from(convenors).where(eq(convenors.id, account.convenorId)).get();
     if (convenor) return { kind: "convenor", convenor };
   }
@@ -232,15 +243,23 @@ export function logout(cookies: AstroCookies): void {
   cookies.delete("as", { path: "/" });
 }
 
-export async function inviteStaff(rawEmail: string, convenorId: number): Promise<void> {
-  const email = normaliseEmail(rawEmail);
-  ensureMail();
-  if (!db.select().from(convenors).where(eq(convenors.id, convenorId)).get())
-    throw new UserError("Unknown convenor id.");
-  if (db.select().from(accounts).where(eq(accounts.email, email)).get())
-    throw new UserError("That email already has an account; no role was changed.");
-  if (db.select().from(accounts).where(eq(accounts.convenorId, convenorId)).get())
-    throw new UserError("That convenor already has an account.");
-  const account = db.insert(accounts).values({ email, convenorId }).returning().get();
-  await deliverToken(account.id, email, "invite");
+export const inviteStaff = inviteReviewer;
+
+/** Reviewer-only accounts opt into one persistent fictional student profile. */
+export function addStudentView(accountId: number) {
+  return db.transaction(tx => {
+    const account = tx.select().from(accounts).where(eq(accounts.id, accountId)).get();
+    if (!account?.verifiedAt || !account.convenorId || account.kind !== "normal")
+      throw new UserError("An activated reviewer account is required.");
+    if (account.studentId) return;
+    const uid = `demo-${randomUUID()}`, scenario = generateProfile(uid, catalogueEntries());
+    const reviewer = tx.select().from(convenors).where(eq(convenors.id, account.convenorId)).get()!;
+    const student = tx.insert(students).values({ uid, name: `${reviewer.name} — student profile`, program: scenario.program,
+      recordSource: "Fictional Computing (Advanced) scenario — not an ANU academic record" }).returning().get();
+    for (const row of scenario.records) tx.insert(transcript).values({ ...row, studentId: student.id }).run();
+    tx.insert(studyPlans).values({ studentId: student.id, ruleYear: scenario.ruleYear, specialisation: scenario.specialisation,
+      planningYear: scenario.planningYear, planningTerm: scenario.planningTerm, templateId: scenario.id, templateSnapshot: JSON.stringify(scenario) }).run();
+    tx.insert(studyPlanEvents).values({ studentId: student.id, detail: `Created fictional student view from template ${scenario.id}.` }).run();
+    tx.update(accounts).set({ studentId: student.id }).where(eq(accounts.id, account.id)).run();
+  });
 }

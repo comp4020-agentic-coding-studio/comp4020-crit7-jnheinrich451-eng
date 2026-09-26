@@ -70,7 +70,7 @@ Human review is explicit. Dr Avery Hart is a separate fictional program-load
 reviewer with no assigned courses. Only that assigned role can see requests sent
 to it or decide them. It uses the existing emailed invitation and password flow,
 then lands on `/overload/`. Invite the role using `scripts/invite-staff.ts` and an
-unused real ANU inbox, as documented in `accounts-and-data.md`. Run the script's
+real ANU inbox, including an existing student account, as documented in `accounts-and-data.md`. Run the script's
 list mode to obtain the actual reviewer ID; do not assume an ID across databases.
 
 Every submission, assessment, review request, decision and use of overload

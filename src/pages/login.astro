@@ -33,14 +33,14 @@ if (Astro.locals.actor)
       New here? <a href={`/register/${demo ? "?mode=demo" : ""}`}>Create a student account</a>
     </p>
     {!demo && <details>
-      <summary>Resend verification email</summary>
+      <summary>Resend verification or invitation</summary>
       <form method="post" action="/api/auth/resend" class="stack">
         <label for="resend-email">ANU email</label>
         <input id="resend-email" name="email" type="email" autocomplete="email" required maxlength="254" />
         <button>Resend verification</button>
       </form>
-      <p class="muted">Resend is only for accounts awaiting activation. If you already verified your email but forgot your password, use <a href="/forgot-password/">Forgot password?</a>.</p>
+      <p class="muted">Resend is for accounts awaiting activation or an invited reviewer role. If you forgot your password, use <a href="/forgot-password/">Forgot password?</a>.</p>
     </details>}
-    <p class="muted">Staff accounts are invitation-only. This prototype has separate credentials from ANU. <a href="/guide/#reviewers">Reviewer and teaching-team access</a>.</p>
+    <p class="muted">Real reviewer access is invitation-only. One account can hold both views. <a href="/reviewer-access/">Reviewer access and demo</a>.</p>
   </div>
 </Layout>

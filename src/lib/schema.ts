@@ -265,6 +265,7 @@ export const sessions = sqliteTable("sessions", {
     .notNull()
     .references(() => accounts.id),
   expiresAt: int("expires_at").notNull(),
+  activeRole: text("active_role"),
 });
 
 export const emailTokens = sqliteTable("email_tokens", {
@@ -273,8 +274,23 @@ export const emailTokens = sqliteTable("email_tokens", {
     .notNull()
     .references(() => accounts.id),
   purpose: text().notNull(),
+  invitationId: int("invitation_id").references(() => reviewerInvitations.id),
   expiresAt: int("expires_at").notNull(),
 });
+
+export const reviewerInvitations = sqliteTable("reviewer_invitations", {
+  id: int().primaryKey({ autoIncrement: true }),
+  accountId: int("account_id").notNull().references(() => accounts.id),
+  convenorId: int("convenor_id").notNull().references(() => convenors.id),
+  invitedBy: int("invited_by").references(() => accounts.id),
+  status: text().notNull().default("pending"),
+  createdAt: createdAt(),
+  acceptedAt: int("accepted_at"),
+  cancelledAt: int("cancelled_at"),
+}, t => [
+  uniqueIndex("pending_reviewer_account").on(t.accountId).where(sql`${t.status} = 'pending'`),
+  uniqueIndex("pending_reviewer_slot").on(t.convenorId).where(sql`${t.status} = 'pending'`),
+]);
 
 /** Receipt tests never activate accounts, change passwords or replace sessions. */
 export const emailChecks = sqliteTable("email_checks", {

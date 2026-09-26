@@ -14,6 +14,7 @@ const date = (value: number) => new Date(value).toLocaleString("en-AU", { timeZo
 <Layout title="My account" actor={actor}>
   <h1>My account</h1>
   <p>Your prototype login is separate from ANU's systems.</p>
+  <p><a href="/reviewer-access/">Reviewer invitations and demo access</a></p>
   {account && <>
     <dl class="facts"><div><dt>{account.kind === "demo" ? "Demo address" : "Verified email"}</dt><dd>{account.email}</dd></div></dl>
     {account.kind === "demo" && <p>This is a persistent demo account. Its private inbox simulates email delivery; it does not verify an ANU identity. <a href="/demo-inbox/">Open your demo inbox</a>.</p>}

@@ -1,0 +1,55 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { accountFor } from "../lib/email-checks";
+import { invitationList, managesReviewers, pendingInvitation, reviewerSlots } from "../lib/reviewer-invitations";
+const actor = Astro.locals.actor;
+const account = actor ? accountFor(actor) : undefined;
+const manager = managesReviewers(account);
+const slots = manager ? reviewerSlots() : [];
+const invitations = manager ? invitationList() : [];
+const pending = account ? pendingInvitation(account.id) : undefined;
+---
+<Layout title="Reviewer access" actor={actor}>
+  <h1>Reviewer access</h1>
+  <p class="lede">Try both sides of enrolment, or accept an invitation to review assigned courses.</p>
+  <section class="surface" aria-labelledby="demo-review-heading">
+    <h2 id="demo-review-heading">Try demo reviewing</h2>
+    <p>A demo student can review their own fictional permission and overload requests. Decisions are labelled as a simulation and affect only that demo profile.</p>
+    {account?.kind === "demo" ? <a class="button primary" href="/reviewer-demo/">Open my demo reviewer view</a>
+      : <p><a href="/register/?mode=demo">Create a demo student account</a>, then open its reviewer view. {actor && "Sign out first, or use a private browser window to keep this account open."}</p>}
+  </section>
+  <section class="surface" aria-labelledby="invited-review-heading">
+    <h2 id="invited-review-heading">Invited reviewer access</h2>
+    <p>Use one verified ANU email and password for both student and reviewer views. The project owner assigns a fictional reviewer and emails a personal invitation; public registration does not grant this role.</p>
+    <p>Open the emailed link to accept. An existing verified account keeps its password and student record. New reviewers choose a password and can create a fictional student view after signing in.</p>
+    {account?.convenorId ? <form method="post" action="/api/auth/switch-role">
+      <input type="hidden" name="role" value={actor?.kind === "convenor" ? "student" : "reviewer"} />
+      <button class="primary">{actor?.kind === "convenor" ? account.studentId ? "Switch to student view" : "Create my student view" : "Switch to reviewer view"}</button>
+    </form> : <p>{pending ? "Your reviewer invitation is pending. Check your email; accepting it adds the role to this account." : "Ask the project owner to invite your ANU email. It can be the address you already use as a student."}</p>}
+    {pending && <form method="post" action="/api/reviewer-access"><input type="hidden" name="action" value="resend" /><button>Resend my invitation</button></form>}
+    <p>Links last 30 minutes. When signed out, <a href="/login/">resend verification or invitation from sign-in</a>. Automatic assessments do not enter a reviewer queue; students select Optional staff review → Send to convenor.</p>
+  </section>
+  {manager && <section class="surface" aria-labelledby="invite-heading" data-invitation-manager>
+    <h2 id="invite-heading">Manage reviewer invitations</h2>
+    <p>Your verified account manages invitations. You can invite your own address to test both views. Each fictional reviewer assignment belongs to one account.</p>
+    <form method="post" action="/api/reviewer-access" class="stack">
+      <input type="hidden" name="action" value="invite" />
+      <label for="invite-email">Recipient ANU email</label>
+      <input id="invite-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+      <label for="reviewer-slot">Reviewer assignment</label>
+      <select id="reviewer-slot" name="convenorId" required>
+        {slots.map(slot => <option value={slot.id} disabled={slot.assigned}>{slot.name} · {slot.purpose === "overload" ? "Overload review" : slot.courses.join(", ")}{slot.assigned ? " · Assigned" : slot.pending ? " · Invitation pending" : ""}</option>)}
+      </select>
+      <p class="field-help">Submitting again for the same pending recipient and assignment sends a fresh link. Another recipient cannot take that reserved assignment.</p>
+      <button class="primary">Send reviewer invitation</button>
+    </form>
+    <h3>Invitation history</h3>
+    {invitations.length ? <ul>{invitations.map(({ invitation, email, reviewer }) => <li>
+      <p>{email} · {reviewer} · {invitation.status}</p>
+      {invitation.status === "pending" && <form method="post" action="/api/reviewer-access">
+        <input type="hidden" name="action" value="cancel" /><input type="hidden" name="invitationId" value={invitation.id} />
+        <button>Cancel invitation for {reviewer}</button>
+      </form>}
+    </li>)}</ul> : <p>No invitations have been created yet.</p>}
+  </section>}
+</Layout>

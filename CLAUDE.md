@@ -156,13 +156,17 @@ See `docs/eligibility-implementation-plan.md`.
 
 See `docs/accounts-and-data.md`.
 
-- Public registration stays student-only; local reviewers activate emailed
-  invitations, using real @anu.edu.au addresses for markers. Reviewer sign-in
-  lands on the queue, and the catalogue stays browseable.
+- Public registration stays student-only. An owner-issued SMTP invitation adds
+  one assigned reviewer role to a new or existing normal ANU account. Existing
+  verified accounts keep their password and student data. New reviewer accounts
+  can explicitly create one persistent fictional student profile.
+- Each session has an active student or reviewer view. Switching rotates that
+  session; all routes enforce its active role and assigned-course scope.
+  Reviewer-only sign-in opens its queue; dual-role sign-in opens the student view.
 - A verification link opened during an existing session shows the current
   identity and requires explicit sign-out before activation. Carry the token
   through that POST without accepting arbitrary return URLs.
-- Deployment docs must say it needs working SMTP and unused reviewer addresses;
+- Deployment docs must say it needs working SMTP and available reviewer slots;
   local captured mail doesn't prove remote delivery.
 - My account offers a real password change: current password, then a single-use
   confirmation link to the saved inbox, then a new password. Only the final POST
@@ -183,13 +187,19 @@ See `docs/accounts-and-data.md`.
   users choose their own `@enrolment.test` address and password. Their private
   captured inbox uses an HttpOnly browser capability; opening a new inbox requires
   password authentication or an existing demo session. Never capture real mail.
-  Demo accounts are labelled, persistent, student-only and cannot grant reviewer
-  access. They may send labelled fictional requests to assigned invited reviewers.
+  Demo accounts remain labelled, persistent student identities. The separate
+  demo reviewer view can approve/reject only that visitor's own requests already
+  sent for course or overload review. Label its decisions as simulated; preserve
+  assessments, load limits and explicit enrolment confirmation. It grants no
+  invited role and cannot expose or decide another account's requests.
   See `docs/demo-inbox-design.md` for expiry, access and shared resource limits.
 - Package the owner-only invitation CLI in the deployed image. Listing available
   fictional reviewer slots sends no mail; an explicit recipient and slot send
-  an SMTP invitation. Existing accounts never silently change roles. Markers can
-  use their real address for reviewing and a chosen demo account for student testing.
+  an SMTP invitation. The web invitation manager requires the verified normal
+  account named by server-only REVIEWER_ADMIN_EMAIL. Missing configuration denies
+  web management. Recipients accept a single-use link before the role is granted;
+  pending invitations reserve a slot, can be cancelled, and can be resent.
+  The public access page exposes no invitation history or recipient addresses.
 
 ### Study load, overload, drop and swap
 

@@ -8,9 +8,11 @@ export default defineConfig({
     // Keep production password concurrency and global auth limits unchanged.
     projects: [
       { test: { name: "core", include: ["spec/**/*.test.ts", "scripts/**/*.test.ts"],
-        exclude: ["spec/account-modes.test.ts"], globalSetup: ["./spec/global-setup.ts"] } },
+        exclude: ["spec/account-modes.test.ts", "spec/reviewer-access.test.ts"], globalSetup: ["./spec/global-setup.ts"] } },
       { test: { name: "account-modes", include: ["spec/account-modes.test.ts"],
         globalSetup: ["./spec/global-setup.ts"] } },
+      { test: { name: "reviewer-access", include: ["spec/reviewer-access.test.ts"],
+        globalSetup: ["./spec/global-setup.ts"], testTimeout: 15000 } },
     ],
   },
 });

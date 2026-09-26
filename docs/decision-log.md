@@ -298,3 +298,21 @@ links share the same narrowly scoped password operation, expiry, single-use
 check, credential fingerprint and session revocation. Academic data and reviewer
 assignments stay intact. Demo recovery requires an existing private inbox or
 demo session; an arbitrary fictional address cannot recover another account.
+
+## 2026-09-28 — One email, two invited views and scoped demo reviewing
+
+John has one real inbox and asked for a deployed invitation page plus a demo
+reviewer. He explicitly selected reviewing only the visitor's own demo requests.
+The prior one-role-per-email limitation is superseded: invitation acceptance
+adds a reviewer assignment to an existing normal account without replacing its
+verified password or student record. Session view switches retain both profiles;
+reviewer-first accounts can opt into one persistent fictional student record.
+
+Real invitations remain owner-controlled through a verified account named by
+server-only REVIEWER_ADMIN_EMAIL, or the existing owner CLI. Pending grants reserve
+an assignment and activate only through an emailed single-use confirmation.
+The web page supports resend and cancellation. Demo decisions use a dedicated
+ownership-checked route for course and overload requests, label the saved actor
+as Demo reviewer, and retain explicit enrolment confirmation and load limits.
+Public signup cannot grant real reviewer authority. No real invitation is sent
+as a side effect of deployment or testing.

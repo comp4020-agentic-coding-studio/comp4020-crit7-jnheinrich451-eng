@@ -8,7 +8,8 @@ import { UserError } from "./errors";
 import type { Actor } from "./store";
 
 export function accountFor(actor: Actor) {
-  return db.select({ id: accounts.id, email: accounts.email, kind: accounts.kind, verifiedAt: accounts.verifiedAt }).from(accounts)
+  return db.select({ id: accounts.id, email: accounts.email, kind: accounts.kind, verifiedAt: accounts.verifiedAt,
+    studentId: accounts.studentId, convenorId: accounts.convenorId }).from(accounts)
     .where(actor.kind === "student" ? eq(accounts.studentId, actor.student.id) : eq(accounts.convenorId, actor.convenor.id)).get();
 }
 

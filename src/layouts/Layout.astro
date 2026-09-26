@@ -8,7 +8,8 @@ interface Props {
   watch?: { applicationId?: number; convenorId?: number; studentId?: number };
 }
 const { title, actor } = Astro.props;
-const demoAccount = actor && accountFor(actor)?.kind === "demo";
+const account = actor ? accountFor(actor) : undefined;
+const demoAccount = account?.kind === "demo";
 const here = Astro.url.pathname;
 const navLinks =
   actor?.kind === "convenor"
@@ -54,6 +55,10 @@ navLinks.push({ href: "/catalogue/", label: "Course library" });
             <>
               <span>{actor.kind === "student" ? actor.student.name : actor.convenor.name}</span>
               <a href="/account/">My account</a>
+              {account?.convenorId && <form method="post" action="/api/auth/switch-role">
+                <input type="hidden" name="role" value={actor.kind === "student" ? "reviewer" : "student"} />
+                <button>{actor.kind === "student" ? "Switch to reviewer view" : account.studentId ? "Switch to student view" : "Create my student view"}</button>
+              </form>}
               <form method="post" action="/api/auth/logout">
                 <button>Sign out</button>
               </form>
@@ -78,6 +83,7 @@ navLinks.push({ href: "/catalogue/", label: "Course library" });
     </header>
     <main id="main">
       {demoAccount && <p class="note" data-demo-account><strong>Demo account</strong> · Your fictional profile and actions are saved. <a href="/demo-inbox/">Private demo inbox</a>. Human-review requests are visible to assigned prototype reviewers; use fictional details.</p>}
+      {demoAccount && <p><a href={here === "/reviewer-demo/" ? "/plan/" : "/reviewer-demo/"}>{here === "/reviewer-demo/" ? "Back to my student view" : "Try reviewing my demo requests"}</a></p>}
       {Astro.url.searchParams.get("error") && (
         <p class="flash flash-error" role="alert">
           {Astro.url.searchParams.get("error")}
@@ -93,7 +99,7 @@ navLinks.push({ href: "/catalogue/", label: "Course library" });
     <footer class="site-footer">
       <p>
         Independent enrolment prototype. Academic profiles and reviewers are fictional.{" "}
-        <a href="/guide/">Help</a> · <a href="/readme/">About this project</a>
+        <a href="/guide/">Help</a> · <a href="/reviewer-access/">Reviewer access</a> · <a href="/readme/">About this project</a>
       </p>
     </footer>
   </body>

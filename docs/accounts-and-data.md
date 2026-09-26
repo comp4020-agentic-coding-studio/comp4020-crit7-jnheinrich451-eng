@@ -151,10 +151,13 @@ check spam and provider delivery records if a message is missing.
 
 ## Invite reviewers
 
-There is no public faculty registration or role selector. An administrator with
-database/server access assigns an existing fictional convenor to an email
-account. The emailed invitation lets the recipient set a password and verify
-their address. Use the same `DATABASE_PATH` and SMTP environment as the server.
+Public registration grants only a student identity. The owner configures
+`REVIEWER_ADMIN_EMAIL` to their verified normal account, then uses
+/reviewer-access/ to assign a fictional reviewer and email an invitation.
+The recipient can use their existing student account and password. New reviewers
+choose a password on acceptance. Both roles can use one email; the header switches
+the active session view. See [reviewer-invitations.md](reviewer-invitations.md).
+The CLI remains a fallback using the same database and SMTP environment.
 
 Inside the project container:
 
@@ -166,7 +169,8 @@ node --import tsx scripts/invite-staff.ts reviewer@anu.edu.au 1
 The first command lists available convenor IDs and usage. The second actually
 sends an invitation. Only run it for an intended recipient. For a local `.env`,
 use `node --env-file=.env --import tsx ...`; otherwise inherit the runtime env.
-The command never promotes an existing student account or overwrites a password.
+Sending an invitation does not grant access. Accepting its single-use link adds
+the reviewer role while preserving an existing verified password and student data.
 If mail fails after provisioning, resend from the sign-in page. A reviewer sees
 only requests assigned to their courses, the student's explanation, the frozen
 eligibility checks and the decision history. They cannot browse other profiles.
@@ -187,8 +191,8 @@ docker compose -f config/local-preview.compose.yml exec app node --import tsx sc
 This sends only to the local captured inbox at <http://127.0.0.1:8025>. Activate
 the invitation in a separate/private browser window, choose a prototype password,
 then sign in at <http://127.0.0.1:4323/login/>. The reviewer lands on their request
-queue. Student and reviewer accounts must use different addresses; this version
-allows one account per fictional convenor. Using an `@anu.edu.au` address alone
+queue. One account can hold a student profile and a reviewer assignment; this
+version allows one account per fictional convenor. Using an `@anu.edu.au` address alone
 does not assign staff access.
 
 For an unmet requirement, choose the actual reason: record correction, equivalent
@@ -229,16 +233,13 @@ Before the marking session, the project owner should:
 1. Configure the deployed HTTPS origin and SMTP service, then confirm an actual
    invitation arrives in an intended test inbox. Local SMTP tests do not establish
    production delivery.
-2. Arrange each marker's reviewer address before they register it as a student.
-   The current model allows one role per email and one account per fictional
-   convenor. Assign an unused convenor and tell the marker which courses it owns.
-   The same email cannot also be a student account. A marker can use a chosen
-   `@enrolment.test` demo account to test the student side in a separate session.
-3. Run the bundled `dist/admin/invite-staff.mjs` through Fly SSH against the
-   **deployed** database and mail environment. No development dependencies are
-   required in the runtime image. See [reviewer-invitations.md](reviewer-invitations.md)
-   for listing assignments and issuing an invitation. A local invitation does
-   not provision the Fly account.
+2. Use the marker's real address, including an already registered student email.
+   Assign an available fictional reviewer and tell the marker which courses it owns.
+   After acceptance, the header switches between student and reviewer views.
+3. Open the deployed /reviewer-access/ as the configured owner and send the
+   invitation, or run bundled `dist/admin/invite-staff.mjs` through Fly SSH.
+   See [reviewer-invitations.md](reviewer-invitations.md) for both routes.
+   A local invitation does not provision the Fly account.
 4. Share the deployed `/guide/#reviewers` link through the submission/teaching-team
    channel, together with the assigned fictional reviewer and a matching course.
    An invitation expires after 30 minutes; the invited recipient can request a

@@ -9,11 +9,11 @@ const currentName = actor?.kind === "student" ? actor.student.name : actor?.conv
 
 <Layout title="Verify your email" actor={actor}>
   <div class="auth-card">
-    <h1>{info?.purpose === "demo-verify" ? "Confirm your demo account" : "Verify your email"}</h1>
+    <h1>{info?.purpose === "demo-verify" ? "Confirm your demo account" : info?.purpose === "reviewer-invite" ? "Accept reviewer invitation" : "Verify your email"}</h1>
     {info && actor ? (
       <section aria-labelledby="switch-account-heading" data-account-switch>
         <h2 id="switch-account-heading">Sign out to continue</h2>
-        <p>You are signed in as <strong>{currentName}</strong> ({actor.kind === "student" ? "student" : "reviewer"}). This link sets up another account; it does not switch your current session.</p>
+        <p>You are signed in as <strong>{currentName}</strong> ({actor.kind === "student" ? "student" : "reviewer"}). This link verifies an account or adds invited reviewer access; it does not switch your current session.</p>
         <p>Sign out here to continue with this invitation or verification link. To keep both accounts open, use the link in a private browser window instead.</p>
         <form method="post" action="/api/auth/logout" class="stack">
           <input type="hidden" name="verificationToken" value={token} />
@@ -24,13 +24,13 @@ const currentName = actor?.kind === "student" ? actor.student.name : actor?.conv
     ) : info ? (
       <>
         <p>
-          {info.purpose === "invite"
-            ? "Choose a password to activate your invited reviewer account."
+          {info.purpose === "invite" || info.purpose === "reviewer-invite"
+            ? info.needsPassword ? "Choose a password to activate your invited reviewer account." : "Accept the invited reviewer role on your existing account. Keep using your current password. Your student profile, requests and enrolments stay saved."
             : info.purpose === "demo-verify" ? "This is a simulated inbox confirmation. Continue to explore enrolment with your persistent fictional profile." : "Confirm to activate your student account."}
         </p>
         <form method="post" action="/api/auth/verify" class="stack">
           <input type="hidden" name="token" value={token} />
-          {info.purpose === "invite" && (
+          {info.needsPassword && (
             <>
               <label for="password">Create a prototype password</label>
               <input
