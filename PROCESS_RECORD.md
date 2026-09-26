@@ -2508,3 +2508,74 @@ createConnection fixed both rejection and socket closure; the full suite passed
 again before the correction was deployed. An initial plain-HTTP fixture also
 showed Node rejects conflicting Host authorities there; HTTPS tunnelling supports
 the required upstream Host while retaining certificate verification.
+
+## 2026-09-27 01:50 — Live Fly inference and repeatable verification without deletion
+
+**Prompt:**
+
+> Approved! And the demo inbox idea, I am thinking a rule, here the uniformed anu account is u+7digits@anu.edu.au
+
+> And if we can delete existing account? I just want to use my anu account to test the SMTP verification again and again.
+
+John subsequently approved the current Fly login and chose:
+
+> Add the verification test; keep my data
+
+**Result:**
+Finished the private Fly-to-mini-PC connection. The earlier first-login link
+changed after Fly stopped/restarted; a bounded temporary keepalive allowed the
+owner to approve the current device. The saved identity then survived both the
+configuration restart and the next deployment. Set the private Ollama endpoint,
+model, Host and loopback proxy variables on Fly. Removed the temporary keepalive;
+the existing machine size, volume and auto-stop policy remain unchanged.
+
+Added My account with a signed-in verification-test action sending only to the
+stored account email. Separate hashed tokens and persisted send/receipt statuses
+cannot activate accounts, alter passwords, revoke sessions or change enrolment
+data. Links last 30 minutes, confirmation is a single-use POST, and tests are
+limited to three per account per 15 minutes. The additive schema migration was
+generated and deployed after a database backup. No account was deleted and no
+real verification-test message was sent by the agent.
+
+Added wording for UID-style ANU addresses and aliases. ANU's published email
+guidance supports both, so address shape cannot safely select simulated versus
+real delivery. Recorded the proposed explicit real/demo choices, generated
+`.test` identity and private captured inbox in `docs/demo-inbox-design.md`.
+The public demo inbox remains a design, not an implemented feature.
+
+**Verified:**
+Four actual adviser smoke cases ran inside Fly through the mini PC, using
+generated fictional input and the same bundled adviser functions: computer
+vision matched COMP8539 in 27.631 seconds, software engineering matched COMP6120
+in 2.113 seconds, and the guaranteed-marks and permission-override cases returned
+no interest match in 1.704 and 2.689 seconds. All used the expected model digest
+and passed within 45 seconds. This was not a load test or held-out evaluation.
+
+Docker Node 24 / pnpm 11.9.0 passed zero Astro diagnostics, all 516 tests in
+27 files and process-evidence checks. Tests cover recipient isolation, token
+expiry/replay, activation-token separation, delivery failure and preservation
+of the password/session, transcript, an existing enrolment and a request.
+Chrome with JavaScript disabled completed registration, verification, sign-in
+and two receipt tests; every POST returned 303 with the correct Origin.
+Inspected screenshots at 1440 and 390 pixels with no horizontal page overflow.
+
+Fly's SMTP connection check passed without sending mail. After deployment,
+the new table existed with zero test messages, core account/workflow tables and
+the registered transcript matched the pre-deploy backup, and Tailscale was
+Running with Ollama discovery returning 200. Home/stylesheet returned 200,
+anonymous events 401, same-origin POST 200, cross-site POST 403, and all 279
+public internal links passed. My account redirects anonymous users to sign-in;
+the receipt page is not cached. Actual delivery of the new test email is left
+for John to trigger and confirm through My account. Work remains committed
+locally rather than pushed.
+
+**Commit:** [`8d84950`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/8d84950)
+
+**What happened:**
+The first owner approval appeared in the tailnet while the restarted app still
+needed login. Holding the current process awake, approving its current link,
+and testing a restart resolved that boundary. Astro initially parsed an inline
+less-than comparison as fragment syntax; moving the expiry calculation into
+frontmatter fixed it. The preservation fixture initially requested COMP7710,
+which the generated record could enrol in directly; it was corrected to the
+permission-required COMP8830 rather than weakening the course gate.
