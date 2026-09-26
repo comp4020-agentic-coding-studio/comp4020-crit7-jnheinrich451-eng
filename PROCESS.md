@@ -1,43 +1,46 @@
 # Process overview
 
-My COMP8620 permission request appearing under COMP9095, with no useful feedback,
-motivated this rebuild. It brings academic eligibility checks, course recommendations,
-permission applications and overload requests into one enrolment workflow.
-Automatic assessments assist students; uncertain cases and exceptions have an
-optional human-review route. The prototype uses published ANU course information
-and clearly fictional academic records.
+This rebuild started when my COMP8620 permission request showed up under
+COMP9095, with no useful feedback. The prototype brings eligibility checks,
+course suggestions, permission applications and overload requests into one
+enrolment workflow. Students get an automatic assessment straight away;
+uncertain cases can optionally go to a human reviewer. Course information comes
+from ANU's published pages; every academic record is clearly fictional.
 
 ## How I got there
 
-I built in layers, starting with the permission problem and the spec's persistence
-requirement. I guided the harness in `CLAUDE.md` toward course-ID routing, saved
-decision histories and explicit enrolment confirmation. I chose SMTP ownership
-verification over simply accepting an ANU-looking address, then worked through
-its configuration ([`20fb86f`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/20fb86f)).
+I built it in layers, starting with the permission problem. In `CLAUDE.md` I
+steered the harness toward routing by course ID, keeping decision histories and
+making students confirm enrolment explicitly. Rather than trust any ANU-looking address, I chose SMTP
+verification to prove ownership, then worked through its setup
+([`20fb86f`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/20fb86f)).
 
-A rebuild needed real catalogue evidence. With automated crawling ruled out,
-I manually downloaded ANU degree, specialisation and course pages. Overlaps and
-year changes prompted separate course/year identities and structured prerequisite
-rules that preserve uncertainty. These became the persistent catalogue used
-by eligibility checks
+Crawling was off the table, so I downloaded ANU's degree, specialisation and
+course pages by hand. The same courses kept turning up under different
+specialisations and changing between years, so each course is identified by
+code and year, and prerequisite rules are structured to keep uncertainty
+visible. The eligibility checks read from that
+persistent catalogue
 ([`978391a`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/978391a),
 [`33722e3`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/33722e3)).
 
-I next requested invited reviewers for unresolved applications, then overload,
-drop and swap functions. The load limit counts units, not courses. I also revised
-profile generation around prior semesters, degree requirements and specialisation,
-so suggestions use coherent fictional histories
+Next I asked for invited reviewers to handle unresolved applications, then
+overload, drop and swap. The load limit counts units, not courses. I also
+reworked profile generation around earlier semesters, degree requirements and
+specialisation, so suggestions build on a fictional history that makes sense
 ([`4fbd143`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/4fbd143),
 [`88f6f50`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/88f6f50),
 [`b4e9474`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/b4e9474)).
 
-I explored LLM review, but permission and overload decisions remain rule-based.
-Llama instead matches interests to course evidence, with suggestions rechecked
-by the planner. Invented quotations prompted selecting source passages rather
-than generating evidence. To avoid paid inference hosting, I configured my
-mini-PC to serve Llama privately; Fly connectivity remains pending
+I explored LLM review, but permission and overload decisions stayed rule-based.
+Llama got a narrower job: matching interests to course evidence, with the
+planner rechecking its suggestions. When it started inventing quotations, I
+switched it to picking source passages instead of writing evidence. To avoid
+paying for inference hosting, I set up my mini-PC to serve Llama privately;
+connecting Fly to it is still to do
 ([`09ed6c1`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/09ed6c1),
 [`5a3a6d0`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/5a3a6d0)).
 
-Docker checks, persistence tests and browser walkthroughs verified these increments;
-[PROCESS_RECORD.md](PROCESS_RECORD.md) records the corrections and remaining deployment checks.
+Docker test runs and browser walkthroughs checked each increment;
+[PROCESS_RECORD.md](PROCESS_RECORD.md) keeps the corrections and outstanding
+deployment checks.
