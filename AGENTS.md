@@ -27,3 +27,4 @@ project harness; do not maintain a competing set of product rules here.
   in `CLAUDE.md`; report failures and checks not run accurately.
 - Use the Node and pnpm versions in `mise.toml`. On Windows, use `pnpm.cmd` if
   PowerShell blocks the `pnpm.ps1` launcher.
+
