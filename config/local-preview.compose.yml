@@ -33,8 +33,9 @@ services:
       SMTP_USER: ""
       SMTP_PASSWORD: ""
       MAIL_FROM: "Local enrolment preview <preview@example.test>"
-      OLLAMA_BASE_URL: http://host.docker.internal:11434
-      OLLAMA_MODEL: llama3.2:3b
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
+      OLLAMA_HOST_HEADER: ${OLLAMA_HOST_HEADER:-}
     volumes:
       - ../:/app:ro
       - node-modules:/app/node_modules:ro

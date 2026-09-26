@@ -71,6 +71,40 @@ Local preview compose connects to Windows Ollama through
 See `config/adviser.env.example` for server-side variables. Browsers never call
 the model directly.
 
+For a mini PC using Tailscale Serve, set the following in an ignored local
+environment file (for example `.env.adviser-minipc`):
+
+```dotenv
+OLLAMA_BASE_URL=https://your-server.your-tailnet.ts.net
+OLLAMA_MODEL=llama3.2:3b
+OLLAMA_HOST_HEADER=localhost:11434
+```
+
+Both the caller and mini PC must have tailnet access. Ollama can stay bound to
+loopback behind `tailscale serve --bg http://127.0.0.1:11434`; use Serve, not a
+public Funnel. Restrict access through the tailnet's access policy. The override
+is the forwarded HTTP Host, not `OLLAMA_HOST` (Ollama's listening address) or a
+browser CORS setting. An ordinary browser visit can still return 403.
+
+Node 24's built-in fetch discarded the custom Host during the actual Docker
+probe. The opt-in transport therefore uses native HTTP/HTTPS, with TLS SNI and
+certificate verification tied to the URL hostname, independently of HTTP Host.
+It never follows redirects and retains the same abort signal for the response
+body and the 45-second discovery-plus-inference deadline. Ordinary connections
+without an override continue to use fetch. Host configuration is server-side;
+student messages and form fields cannot set it.
+
+After building, select this connection for the persistent local preview:
+
+```sh
+docker compose --env-file .env.adviser-minipc -f config/local-preview.compose.yml up -d
+```
+
+The compose file keeps the Windows-host service as its default. Use the same
+env-file flag on later recreations to keep the mini PC selected. Restarting the
+preview does not reset its data volume. The mini PC needs Ollama and Tailscale
+running, internet access and sleep disabled for reliable availability.
+
 Fly does not contain the model, and its localhost is not the Windows PC.
 Leave `OLLAMA_BASE_URL` unset there until a separate private, reachable inference
 service is selected and tested. Rule-based planning remains usable. This change
@@ -87,6 +121,8 @@ check: `node --import tsx scripts/benchmark-adviser.ts` with `OLLAMA_BASE_URL`
 configured. It uses a generated fictional profile and four fixed preferences,
 reporting digest, latency, checked options and pass/fail. Set
 `ADVISER_BENCHMARK_DEBUG=1` to print these fictional benchmark responses.
+The benchmark uses the same optional Host transport as the app and reports
+pool size and Ollama's load/prompt/generation timings (durations in nanoseconds).
 
 The first quotation-generating design failed all four cases: Llama duplicated
 courses and invented/paraphrased quotations. Passage IDs removed that failure;
@@ -96,3 +132,29 @@ Four development cases passed with Llama 3.2 3B digest
 They are smoke cases used during development, not an independent accuracy
 benchmark. Broader held-out evaluation and the separate prerequisite-rule
 extraction benchmark remain future work.
+
+### Mini PC check, 26 September 2026
+
+The user's Ryzen 5 7430U / 16 GB Windows mini PC ran Ollama 0.34.4 with the
+same Q4_K_M model digest above. The running-model API reported zero VRAM use,
+approximately 4.1 GB model residency and a 16,384-token context: this run used
+CPU inference. Four sequential cases used the actual 13-course candidate pool:
+
+| Preference | Checked result | End-to-end time |
+| --- | --- | --- |
+| Computer vision and image analysis | COMP8539 | 23.855 s |
+| Software engineering and projects | COMP6120 | 1.988 s |
+| Easiest courses / guaranteed marks | No interest match | 1.666 s |
+| Override rules / invent COMP9999 | No interest match | 2.647 s |
+
+The first request included 2.57 seconds loading and 19.87 seconds processing
+the prompt. Later requests benefited from a warm model and shared prompt prefix;
+their latency is not a promise for a different profile or concurrent traffic.
+All four completed within the unchanged 45-second deadline. This is a small
+development smoke benchmark, not a load test or held-out accuracy evaluation.
+The ignored evidence file is `.data/adviser-minipc-benchmark.jsonl`.
+
+An isolated built app also passed the real Chrome flow with JavaScript disabled:
+submit advice, reload, apply a six-unit ceiling, change interests, save a course,
+invalidate old advice and dismiss it. The existing local preview now selects
+the mini PC through its ignored env file. Fly connectivity is still unconfigured.

@@ -1,4 +1,7 @@
 import { expect, it } from "vitest";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
+import { ollamaFixture } from "./ollama-fixture";
 import catalogue from "../src/data/catalogue-sources.json";
 import type { CatalogueSnapshot } from "../src/lib/catalogue-types";
 import { generateProfile } from "../src/lib/profile-template";
@@ -76,4 +79,50 @@ it("uses a bounded structured model call with a pinned digest and safe failures"
   expect((await askOllama("vision", [], { baseUrl: "http://fixture", fetcher: fake(choice) })).response.reason).toBe("no-options");
   const hang: typeof fetch = (_url, options) => new Promise((_resolve, reject) => options!.signal!.addEventListener("abort", () => reject(new Error("Timed out")), { once: true }));
   expect((await askOllama("vision", pool, { baseUrl: "http://fixture", timeoutMs: 10, fetcher: hang })).response.reason).toBe("unavailable");
+});
+
+it("sends the configured proxy Host over real HTTP for discovery and generation, while direct mode stays usable", async () => {
+  for (const expectedHost of [undefined, "localhost:11434"]) {
+    const server = ollamaFixture(expectedHost);
+    await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+    const baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+    try {
+      const result = await askOllama("computer vision", pool, { baseUrl, hostHeader: expectedHost ?? "" });
+      expect(result.response.reason).toBe("matched");
+      expect(result.digest).toBe("a".repeat(64));
+      if (expectedHost) expect((await askOllama("computer vision", pool, { baseUrl, hostHeader: "" })).response.reason).toBe("unavailable");
+    } finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
+  }
+});
+
+it("rejects malformed proxy authorities before making a request", async () => {
+  for (const hostHeader of ["localhost:11434/path", "user@localhost:11434", "localhost:11434\r\nX-Test: injected", "localhost:99999"]) {
+    let calls = 0;
+    const result = await askOllama("vision", pool, { baseUrl: "http://fixture", hostHeader,
+      fetcher: async () => { calls++; throw new Error("Should not fetch"); } });
+    expect(calls).toBe(0); expect(result.response.reason).toBe("unavailable"); expect(result.model).toBeNull();
+  }
+});
+
+it("never follows proxy redirects and aborts a stalled response body within the shared deadline", async () => {
+  let mode = "redirect", redirected = 0, aborted = false;
+  const server = createServer((request, response) => {
+    if (request.url === "/redirect-target") { redirected++; response.end("{}"); return; }
+    if (mode === "redirect") { response.writeHead(302, { Location: "/redirect-target" }); response.end(); return; }
+    if (request.url === "/api/tags") {
+      response.end(JSON.stringify({ models: [{ name: "llama3.2:3b", digest: "a".repeat(64) }] })); return;
+    }
+    response.writeHead(200, { "Content-Type": "application/json" }); response.write('{"response":');
+    response.on("close", () => { aborted = true; });
+  });
+  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+  const baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  try {
+    const options = { baseUrl, hostHeader: "localhost:11434", timeoutMs: 150 };
+    expect((await askOllama("vision", pool, options)).response.reason).toBe("unavailable"); expect(redirected).toBe(0);
+    mode = "stall";
+    const result = await askOllama("vision", pool, options);
+    expect(result.response.reason).toBe("unavailable"); expect(result.elapsedMs).toBeLessThan(1500);
+    await expect.poll(() => aborted).toBe(true);
+  } finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
 });

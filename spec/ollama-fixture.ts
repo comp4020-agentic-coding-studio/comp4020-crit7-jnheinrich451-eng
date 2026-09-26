@@ -1,7 +1,8 @@
 import { createServer } from "node:http";
 /** HTTP fixture only. Production has no fake-model switch or test endpoint. */
-export function ollamaFixture() {
+export function ollamaFixture(expectedHost?: string) {
   return createServer(async (request, response) => {
+    if (expectedHost && request.headers.host !== expectedHost) { response.writeHead(403); response.end(); return; }
     response.setHeader("Content-Type", "application/json");
     if (request.url === "/api/tags") { response.end(JSON.stringify({ models: [{ name: "llama3.2:3b", digest: "a".repeat(64) }] })); return; }
     let body = ""; for await (const chunk of request) body += chunk;

@@ -215,6 +215,16 @@ reachable service before live AI is available there. See `docs/course-adviser.md
 for validation, runtime limits and smoke-test scope. This does not implement
 model-based prerequisite extraction or permission review.
 
+John's Windows mini PC now supplies the local preview's adviser through private
+Tailscale Serve. An optional server-only OLLAMA_HOST_HEADER supplies the upstream
+hostname; native HTTPS keeps TLS verification tied to OLLAMA_BASE_URL because
+Node fetch discarded the Host override. The ignored `.env.adviser-minipc` selects
+this connection; compose defaults still support Windows-host Ollama. Four actual
+adviser smoke cases completed inside the existing 45-second limit on CPU.
+Fly still needs tailnet access before it can use this endpoint. No public Funnel
+or model exposure was configured. See `docs/course-adviser.md` for timings and
+the distinction between first-prompt and warm performance.
+
 ## Rules
 
 - **The schema is the ground truth.** Edit `src/lib/schema.ts`, run

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { planStudy, type PlanningInput } from "./study-planning";
+import { fetchOllama } from "./ollama-transport";
 
 export const ADVISER_VERSION = "preference-adviser-v1";
 export const UNIT_TARGETS = [6, 12, 18, 24, 30, 36];
@@ -96,7 +97,7 @@ async function boundedResponse(response: Response) {
 
 /** One bounded server-side inference; no tools, enrolment actions or automatic retries. */
 export async function askOllama(preferences: string, pool: AdviserCandidate[], options: {
-  baseUrl?: string; model?: string; timeoutMs?: number; fetcher?: typeof fetch;
+  baseUrl?: string; model?: string; hostHeader?: string; timeoutMs?: number; fetcher?: typeof fetch;
 } = {}) {
   const baseUrl = options.baseUrl ?? process.env.OLLAMA_BASE_URL;
   const model = options.model ?? process.env.OLLAMA_MODEL ?? "llama3.2:3b";
@@ -105,22 +106,31 @@ export async function askOllama(preferences: string, pool: AdviserCandidate[], o
   const answer = (response: AdviserResponse, digest: string | null = null) => ({ response, model: invoked ? model : null, digest, elapsedMs: Date.now() - started });
   if (!pool.length) return answer({ matches: [], reason: "no-options" });
   if (!baseUrl) return answer({ matches: [], reason: "not-configured" });
-  const fetcher = options.fetcher ?? fetch;
+  const fetcher = options.fetcher ?? ((url, init) => fetchOllama(String(url), init));
   const signal = AbortSignal.timeout(options.timeoutMs ?? ADVISER_TIMEOUT_MS);
   let digest: string | null = null;
   try {
     const url = new URL(baseUrl);
     if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) throw new Error("Invalid endpoint");
+    const headers = new Headers();
+    const hostHeader = options.hostHeader ?? process.env.OLLAMA_HOST_HEADER;
+    if (hostHeader) {
+      const authority = new URL(`http://${hostHeader}`);
+      if (authority.host !== hostHeader.toLowerCase() || authority.username || authority.password) throw new Error("Invalid proxy host");
+      headers.set("Host", hostHeader);
+    }
     const endpoint = baseUrl.replace(/\/$/, "");
-    const tags = await fetcher(`${endpoint}/api/tags`, { signal, redirect: "error" });
+    const tags = await fetcher(`${endpoint}/api/tags`, { signal, headers, redirect: "error" });
     if (!tags.ok) throw new Error("Model unavailable");
     const installed = await tags.json() as { models?: { name: string; digest: string }[] };
     const found = installed.models?.find(m => m.name === model);
     if (!found || !/^[a-f0-9]{64}$/.test(found.digest)) throw new Error("Model identity missing");
     digest = found.digest;
     invoked = true;
+    const generateHeaders = new Headers(headers);
+    generateHeaders.set("Content-Type", "application/json");
     const result = await fetcher(`${endpoint}/api/generate`, { method: "POST", signal, redirect: "error",
-      headers: { "Content-Type": "application/json" }, body: JSON.stringify(adviserPayload(preferences, pool, model)) });
+      headers: generateHeaders, body: JSON.stringify(adviserPayload(preferences, pool, model)) });
     if (!result.ok) throw new Error("Model request failed");
     const raw = await boundedResponse(result);
     if (raw === null) return answer({ matches: [], reason: "invalid", failure: "response-size" }, digest);
