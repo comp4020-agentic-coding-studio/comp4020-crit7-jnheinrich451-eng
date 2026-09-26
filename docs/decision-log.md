@@ -328,7 +328,7 @@ returned no topic rather than a wrong one. The mini-PC's integrated GPU has
 496 MB, so inference runs on CPU; a larger model remains an optional later
 benchmark, not a requirement.
 
-## 2026-09-28 — One email, two invited views and scoped demo reviewing
+## 2026-09-27 — One email, two invited views and scoped demo reviewing
 
 John has one real inbox and asked for a deployed invitation page plus a demo
 reviewer. He explicitly selected reviewing only the visitor's own demo requests.

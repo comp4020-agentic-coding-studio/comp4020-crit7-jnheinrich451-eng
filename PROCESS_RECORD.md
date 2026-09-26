@@ -2833,3 +2833,64 @@ not the tests, caught that the 3B model copies worked examples. Switching the
 model's job from choosing ids to naming subjects moved paraphrases from 0 of 4
 to 9 of 12. Several heredoc edits failed on shell quoting and one regex escape
 was halved during a splice; both were caught before running and rewritten.
+
+## 2026-09-27 04:17 — One email for both views, and reviewing only your own demo
+
+**Prompt:**
+
+> a demo reviewer and a real invitation link page on the deployed web?
+> the teaching team will try to test on their email about both student and reviewer,
+> and if one email can serve two roles?
+
+John confirmed the demo boundary: "Yes — review only their own demo requests".
+
+**Result:**
+Added /reviewer-access/ with owner-only invitation management and a public
+explanation, plus /reviewer-demo/ for a visitor's own course and overload requests.
+An invitation now reserves an assignment and adds its role only after emailed
+confirmation. Existing verified accounts keep their password and student record;
+new reviewers choose a password and can create one persistent fictional student
+profile. The header switches the session's active view, preserving both profiles.
+Demo decisions remain scoped to their own student identity, are recorded as Demo
+reviewer, and cannot grant an invited role or bypass explicit enrolment confirmation.
+
+The invitation manager uses the verified normal account named by a server-only
+setting. Enabled it for John's existing account on Fly. No real invitation was
+sent during implementation. Added a generated migration, updated the shared
+harness and access instructions, and retained the CLI. Work began in an isolated
+worktree because adviser changes were in progress; their completed commits were
+merged before the final checks and deployment, preserving both increments.
+
+**Verified:**
+Docker Node 24 / pnpm 11.9.0: 594 checks passed for the isolated feature, then 596
+in 29 files for the combined build, with no Astro diagnostics. Six HTTP scenarios
+cover owner-only administration, forged grants, invitation acceptance and data
+preservation, role switching, reviewer-first profile creation, resend/cancellation,
+SMTP failure recovery, foreign demo requests, replay, approval/rejection and
+scoped overload decisions. Chrome with JavaScript disabled completed 15 native
+POSTs, all same-origin 303, through invitation acceptance, both view switches,
+private demo verification, demo approval and explicit enrolment. No page overflow
+at 1440 or 390 pixels. Source-bound course and load checks remain unchanged.
+
+Deployed the combined build to the existing Fly machine and volume. Public
+reviewer access and assets return 200; demo reviewing redirects anonymous users;
+private events and new anonymous actions return 401; foreign-origin POSTs return
+403. Linkinator checked 284 links successfully. Eight before/after snapshots
+match for accounts, students, registered transcripts, plans, requests, events,
+enrolments and saved selections. The owner setting is present and matches the
+verified account. Course plugin currency, public repository visibility and
+check:evidence passed. Commits are local; this turn did not push or send real mail.
+
+**Commit:** [`b288965`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/b288965), [`18e4785`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/18e4785)
+
+**What happened:**
+Two test-fixture assumptions failed first: fictional reviewer emails must be
+unique, and enrolments relate to requests by student/course/offering, not an
+application_id column. Those fixtures were corrected. Global Git overrides in
+Docker broke the evidence tests' temporary repositories; limiting the overrides
+to the standalone evidence command fixed the check environment. The first browser
+script looked for enrolment on the request page; the actual Continue to COMP8620
+link led to its confirmation form. That corrected browser flow passed. Integrating
+the adviser work produced one append-only decision-log conflict; both entries were
+retained, and the reviewer-first test now checks the generated record's 60-unit
+contract instead of assuming the old template's fixed ten rows.
