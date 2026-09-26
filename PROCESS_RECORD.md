@@ -2894,3 +2894,50 @@ link led to its confirmation form. That corrected browser flow passed. Integrati
 the adviser work produced one append-only decision-log conflict; both entries were
 retained, and the reviewer-first test now checks the generated record's 60-unit
 contract instead of assuming the old template's fixed ten rows.
+
+## 2026-09-27 04:37 — Reviewer scope and assignment lists that fit the page
+
+**Prompt:**
+
+> many student accounts can register as a Reviewer, and check rest students application right?
+> if need to mention it somewhere in the web?
+> make the list like in columns and rows, it is too long, will display incomplete in web page!
+
+**Result:**
+Clarified the invitation requirement on Reviewer access, registration and Help.
+An existing student account can receive an owner-issued reviewer invitation;
+registration alone grants no reviewer access. Invited roles are scoped to assigned
+course requests or the separate overload role. Demo reviewing remains limited to
+the visitor's own requests. The owner instructions explain one account per
+assignment and one reviewer assignment per account.
+
+Replaced the native dropdown with a responsive radio-card grid. Each card shows
+the reviewer name, availability and all course codes arranged in wrapping rows.
+Assigned choices stay disabled, pending invitations retain the existing resend
+rule, and the form submits the same assignment ID. Updated the shared harness
+and decision log. No account, authorization or database logic was changed.
+
+**Verified:**
+Docker Node 24 / pnpm 11.9.0 check passed 596 tests in 29 files and produced no
+Astro diagnostics; check:evidence passed. Chrome with JavaScript disabled showed
+all seven reviewer choices, selectable radio exclusivity, pending status and a
+disabled assigned choice. Fifteen native form POSTs returned same-origin 303s
+through registration, invitation acceptance, role switching, demo review and
+explicit enrolment. Inspected desktop and mobile screenshots; no page overflow
+at 1440, 768, 390 or 320 pixels, and no course-code clipping.
+
+Deployed the change to Fly. The new invitation guidance and assets load; anonymous
+private actions/events remain 401, demo reviewing redirects to sign-in, and
+foreign-origin POSTs remain 403. Linkinator passed all 284 links. The course
+plugin is current and the repository is public. Work and this record are local
+commits; no push or real invitation was sent. Separate adviser edits appeared
+during the deployment checks and were left unstaged and untouched.
+
+**Commit:** [`98d5b57`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/98d5b57)
+
+**What happened:**
+The previous browser check measured page width but did not catch a native select
+popup extending beyond the screen. John's screenshot exposed that limitation.
+The replacement keeps all options in normal page layout so they wrap and remain
+visible. Two browser-helper edits initially failed PowerShell quote parsing;
+the corrected helper then completed the actual radio submission successfully.
