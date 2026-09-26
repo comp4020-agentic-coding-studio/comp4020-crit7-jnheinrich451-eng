@@ -2457,3 +2457,54 @@ Actual inbox delivery through registration is left for John to confirm on the
 public site.
 
 **Commit:** none — visibility flip and CI deploy only; no repo change besides this entry.
+
+## 2026-09-27 01:19 — Fly gains a private model connection, awaiting device approval
+
+**Prompt:**
+
+> Ty, yes it is the next step, the Fly to mini-pc configuration.
+
+> And next step you can think in separate in next time, I think if can make a dummy email system?
+
+**Result:**
+Added pinned Tailscale binaries and an optional userspace daemon to the existing
+Fly container. Its identity persists on the existing volume; only model calls
+use its loopback outbound proxy. Kept HTTPS verification, the mini PC's required
+Host override, and the existing inference deadline and rule-based fallback.
+Deployed the container with networking enabled. The owner must approve the new
+device through Tailscale; the login link was provided privately in the session.
+Ollama variables remain unset while that approval is pending, so live model
+inference from Fly is not yet claimed. Prepared the existing fictional-input
+benchmark for that next check without creating accounts or sending email.
+
+Recorded guest access as a later proposal: an isolated captured demo inbox,
+because a fictional address cannot receive real SMTP email. Registration and
+verification remain unchanged.
+
+**Verified:**
+Docker Node 24 / pnpm 11.9.0 full check passed with zero Astro diagnostics and
+497 tests in 26 files; process evidence passed. The proxy tests cover trusted
+and untrusted certificates, hostname mismatch, the upstream Host, no redirects,
+stalled body cancellation, and a stalled CONNECT socket closing on abort.
+The exact runtime image served HTTP 200 with Tailscale awaiting login, at about
+80 MiB in a 212 MiB smoke-test limit. Fly retained its existing machine and
+volume. Deployed home and stylesheet returned 200, anonymous events 401,
+same-origin POST 200 and cross-site POST 403; 279 internal links passed.
+Created a pre-deploy SQLite backup and compared all 25 tables: the registered
+transcript and other 24 tables were unchanged. Built-in seed transcript row IDs
+changed on startup, but their contents were unchanged. The course preflight
+confirmed a public repository and current plugin; the new local commits still
+need pushing. The secret scan repeated the three previously reviewed expression
+and test-fixture surfaces, rather than reporting a clean scan.
+
+**Commit:** [`fd25cad`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/fd25cad), [`7010b88`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/7010b88)
+
+**What happened:**
+The initial transport tests passed, but a further test of a proxy that never
+answers CONNECT timed out: Node's built-in proxy agent did not apply the
+request's abort signal before the tunnel existed. Passing the signal in agent
+options also failed. Attaching the same signal to the socket returned by
+createConnection fixed both rejection and socket closure; the full suite passed
+again before the correction was deployed. An initial plain-HTTP fixture also
+showed Node rejects conflicting Host authorities there; HTTPS tunnelling supports
+the required upstream Host while retaining certificate verification.
