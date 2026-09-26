@@ -12,218 +12,235 @@ the course the student actually picked. Both carry a visible status timeline.
 The contract is the crit 7 spec on the course site
 (`/api/crits/07-anu-system.json`). Re-read it before changing scope.
 
-## Design direction
+## Product rules
 
-John has authorised a substantial redesign of the interaction and layout.
-Use ANU's visual style as the reference; the supplied portal screenshots and
-enrolment notes explain the existing experience, not a required screen sequence.
-Neither ANUHub's current workflow nor this prototype's catalogue-first layout
-is fixed. Design around completing enrolment with permission handling integrated
-into that task. Keep the prototype identity clear.
+The active rules from John's authorised increments, grouped by area. Why and
+when each was decided, implementation status and superseded choices are in
+`docs/decision-log.md`; don't revive a superseded choice from there. Designs and
+limitations are in the doc named under each heading.
 
-John accepted course search, informative course pages, saved semester selections,
-integrated permission requests and explicit enrolment confirmation. Search accepts
-full codes, spaced codes, numbers and titles; numeric matches must not silently
-choose a subject. Keep the published scope and functional guarantees below.
+### Design and scope
 
-For the proposed degree-planning increment, John selected Computing (Advanced)
-(VCOMP), 2026 commencement-year requirements as the first example. That proposed
-example is superseded by the 2027 fictional guidance increment below. Keep program/rule-year snapshots separate from offering
-years; the supplied MCOMP 2027 page is not VCOMP 2026 evidence. See
-`docs/MCOMP-2027-source-review.md` for the offline source review and next inputs.
-The later batch of three degrees and seven specialisations is also 2027; see
-`docs/uploaded-sources-2027.md`. Preserve John's reported ML-to-AI change as
-versioned evidence, not an automatic conversion of existing students' rules.
-John intentionally retains duplicate course downloads under specialisation
-folders. Preserve the raw copies; use code/year for course identity and the
-versioned specialisation rules for membership and counting. Folder names alone
-are not authoritative. See `docs/course-source-audit.md` for the current audit.
-Shared course titles do not establish equivalent codes or historical renumbering.
-Keep code/year identities separate and preserve published incompatibilities.
-Distinguish explicit no-current-offerings statements from missing availability;
-neither authorises inventing a semester or assuming permanent discontinuation.
+- ANU's visual style is the reference. The portal screenshots and enrolment
+  notes describe the existing experience, not a required screen sequence;
+  neither ANUHub's workflow nor this prototype's catalogue-first layout is
+  fixed. Design around completing enrolment, with permission handling
+  integrated into that task.
+- Keep the independent-prototype identity visible, including beside the ANU
+  artwork (a browser SVG converted from the supplied EPS).
+- Accepted features: course search, informative course pages, saved semester
+  selections, integrated permission requests, explicit enrolment confirmation.
+  The redesign keeps the published scope and the functional guarantees in Rules.
+- Search accepts full codes, spaced codes, numbers and titles. A numeric match
+  must never silently choose a subject.
+- Request pages use the course code as their main heading, in the gold Georgia
+  serif at its larger size.
+- My courses (formerly My semester) keeps saved candidates, confirmed
+  enrolments and completed demo scenarios in separate sections. Confirmed
+  enrolments and completed scenarios are prominent there and in My profile.
 
-The offline source library is now implemented at `/catalogue/`. Its reproducible
-dataset is `src/data/catalogue-sources.json`, imported into separate SQLite
-catalogue tables at boot. See `docs/catalogue-data.md` for the model and import
-workflow. Imported references mean "mentioned in this source block"; they are
-not approved prerequisite, equivalence or credit-counting rules. Preserve source
-variants and reviews on reseed. Do not wire unreviewed source paragraphs into
-eligibility checks or convert a missing referenced page into another year.
-The library overview groups Degrees, Specialisations, then Courses. Following
-John's question about the year mismatch and shared Find courses entries, the
-active enrolment flow now uses 2027. Both screens read the persistent catalogue;
-All 80 course versions are accounted for in `src/data/enrolment-rules-2027.json`:
-62 fully encoded prototype interpretations, 16 with explicit unresolved conditions
-or alternative readings, and two missing-requisite source gaps (MGMT7020/REGN8014).
-Each is pinned to its source hash and has an interpretation note. Coverage does
-not guarantee a verdict for every record. Changed or conflicting
-sources require a fresh interpretation. See `docs/catalogue-data.md`.
-Historical 2026 rules, requests, approvals and enrolments retain their year;
-approval never transfers across years. Existing registered profiles are preserved.
-New fictional profiles place COMP6670 in 2026 S2 before the 2027 example.
-The 2027 CMSY-SPEC course list names COMP8045, while its explanatory advice links
-COMP8405. Preserve that unresolved source inconsistency; do not alias the codes
-or change allowed-course membership on the assumption that it is a typo.
+### Catalogue and sources
 
-John has agreed two increments: structured eligibility with explicit
-unknown results and a manually reviewed reference set; and saved assessment
-reports with an automated, clearly labelled demo permission path. See
-`docs/eligibility-implementation-plan.md` for dependencies and acceptance checks.
-The first automated demo path is now implemented; existing pending staff requests
-remain pending unless their owner explicitly requests automatic assessment. Preserve
-the existing gate distinctions when adding incomplete assessments. Separate ANU
-source rules from our demo approval policy, and attribute automated decisions to
-a system actor. The first model trial will use Llama through a local runtime;
-this supersedes the earlier Qwen candidate, not the deterministic decision engine.
-Model benchmarking follows the reference set and need not block the demo flow.
-Automatic issuance requires a versioned source interpretation or the explicit
-fictional scenario. Historical 2026 transcriptions cannot gain automatic approval
-just because their old first-round checklist passed; existing human approvals
-retain their offering scope.
-The first foundation increment is now implemented: three-valued requirement
-results, explicit fictional-record completeness, source/evidence references and
-unknown topic conditions for 2027 COMP8620. New request snapshots retain these
-results; historical boolean checks remain readable. The initial manual reference
-cases are in `src/data/eligibility-reference.json`; wider course examples are in
-`spec/catalogue-rule-coverage.test.ts`. Conditional permission, explicit course-list
-credits, distinct-course counts, program exclusions and postgraduate career are
-implemented. GPA, exact marks, equivalence and discretionary evidence remain
-unknown where needed; do not infer them from prose. Versioned authoring remains
-future work. Automated assessment reports
-now save the offering, rule and record snapshots, selected request reason, student
-statement and versioned demo policy. COMP8620's complete fictional topic scenario
-is at `/demo/`; its permissions and confirmation are isolated from profile
-enrolments. Its topic assumptions must never become published ANU conditions.
-Student messages are self-reported context, never numerically weighted authority.
-The explicit record-correction, equivalent-study and exception reasons produce
-evidence/decision-needed results. Prose is preserved but not semantically assessed
-yet; it cannot alter a grade, source rule or permission. Future model extraction
-must keep claims separate from verified facts and pass a statement-variation
-benchmark before it influences handling. No model is called by the demo policy.
-John clarified that permission handling must extend beyond COMP8620's blanket
-permission requirement. An offered course with uninterpreted or uncertain rules
-now accepts an assessment request, preserving unknown rather than claiming a
-failure or granting permission. Known unmet requirements retain their exception
-request route; eligible students enrol directly, and unavailable offerings cannot
-accept enrolment requests. Show the resubmission reminder only while the matching
-student/course/year/term request is pending. Approval or rejection removes it;
-retries reuse the existing pending or approved request without adding events.
-Automatic incomplete results are not pending staff work. Identical automatic
-submissions reuse the saved result; new evidence or a changed reason gets a new
-snapshot. Staff review remains an explicit optional route with an unstaffed-queue
-notice. Converting a pending request preserves its original checks and events.
-COMP7710 now has a source-bound check for both completed and currently enrolled
-COMP1110/COMP1140/COMP6710. Keep these two exclusion types distinct; a course with
-only a completion exclusion must not acquire a concurrent-enrolment exclusion.
-Missing automatic rules are an application coverage gap, not a request for the
-student to fix the gap by rewriting their explanation. Every supplied course is
-now accounted for, including missing evidence; no general model reviewer is running.
-The COMP8620 scenario remains isolated. Ordinary source-bound permission courses
-can also complete the profile workflow when every recorded condition is met.
-Request pages use the course code as their main, prominent heading.
-Keep that heading in the gold Georgia serif style at its larger size.
-The former My semester page is now My courses: saved candidates, confirmed
-academic enrolments, and completed demo scenarios are separate sections.
-Profile enrolments come from enrolment rows even when a saved selection is
-removed. Scenario completions come from their persisted confirmation events and
-are visible in My courses, My profile and My requests; they never enter the
-academic record used by eligibility. Approval still requires explicit confirmation.
-An automatic exception result says Exception decision needed, with no staff review
-in progress. Its unmet academic check is separate from the unresolved waiver;
-display changes must not rewrite saved reports or historical events.
-Use demo-permission-v2 for new assessments with conditional permissions; saved v1
-reports retain their policy and facts. A permission condition is not a failed
-prerequisite or an incompatibility. Unknown intensive mode cannot be inferred from
-semester/session names. Ambiguous AND/OR groups retain their plausible readings:
-agreeing results can settle the group; disagreement is unknown. Repeated rows
-cannot manufacture credit or distinct-course counts. Unknown project approval,
-competitive selection, equivalence, GPA and mark-based suitability cannot receive
-automatic permission. Offered-course checks never invent an unavailable offering.
-The optional staff route accepts explicitly selected exception, equivalent-study
-and record-correction requests even when recorded checks fail. Keep those checks
-unchanged and save the selected reason in a student event; routing is not approval.
-The reason remains selected if the student switches back to automatic assessment.
-Public registration stays student-only; local reviewers activate emailed invitations.
-Verification links opened during an existing session show the current identity
-and require explicit sign-out before activation. Preserve the token through that
-POST without accepting arbitrary return URLs. Reviewer sign-in lands on the queue;
-the course catalogue itself must stay browseable. John selected real @anu.edu.au
-email invitations for markers. Document that deployment needs working SMTP and
-unused reviewer addresses; local captured mail does not prove remote delivery.
+See `docs/catalogue-data.md`, `docs/course-source-audit.md`,
+`docs/uploaded-sources-2027.md` and `docs/MCOMP-2027-source-review.md`.
 
-John requested a 24-unit enrolment limit and overload applications, with immediate
-assessment plus optional human review. This is implemented at `/overload/` using
-the supplied information page, versioned in `src/data/overload-policy.json`; see
-`docs/overload-design.md` for the precise source interpretation and limitations.
-Count confirmed units, not course count or saved candidates. The transactional
-guard applies to direct and permission-code enrolment. Half-years include the
-named non-standard sessions; only proven non-overlap permits the saved-page
-exemption. Missing dates or units remain explicit. Variable-unit courses need a
-validated credit choice, saved with enrolment; never silently assume six units.
-Overload approval raises the student's year/half-year limit to 30 or 36, never
-waives course conditions or confirms enrolment. Dr Avery Hart is the separate
-fictional program-load reviewer; ordinary course convenors cannot decide these
-requests. Requests preserve policy, load and academic snapshots with events.
-Exact marks and program/institution attribution are nullable evidence fields;
-never backfill existing grade-only profiles with invented numbers. Student prose
-is context only. Completion exceptions and late enrolment remain discretionary;
-the supplied page does not support more than 36 units or trimester rules.
+- The active enrolment flow uses 2027. The library (`/catalogue/`, overview
+  order Degrees, Specialisations, Courses) and the enrolment screens both read
+  the persistent catalogue imported from `src/data/catalogue-sources.json`.
+- Course identity is code + year. Keep program/rule-year snapshots separate from
+  offering years; the MCOMP 2027 page is not VCOMP 2026 evidence.
+- Imported references mean "mentioned in this source block", not approved
+  prerequisite, equivalence or credit rules. Never wire unreviewed source
+  paragraphs into eligibility, or convert a missing referenced page into
+  another year.
+- Preserve source variants and reviews on reseed, and keep John's duplicate
+  raw downloads under specialisation folders. Folder names alone aren't
+  authoritative: versioned specialisation rules decide membership and counting.
+- Shared titles don't establish equivalent codes or renumbering; keep code/year
+  identities separate and preserve published incompatibilities. No silent
+  COMP8280 → COMP8260 substitution.
+- 2027 CMSY-SPEC lists COMP8045 but its advice links COMP8405. Keep that
+  inconsistency; don't alias the codes or change membership.
+- An explicit "no current offerings" statement differs from missing
+  availability. Neither lets you invent a semester or assume permanent
+  discontinuation.
+- John's reported ML-to-AI change is versioned evidence, not an automatic
+  conversion of existing students' rules.
+- Each interpretation in `src/data/enrolment-rules-2027.json` is pinned to its
+  source hash with a note; a changed or conflicting source needs a fresh
+  interpretation. MGMT7020 and REGN8014 are missing-requisite source gaps.
+  Coverage doesn't guarantee a verdict for every record.
 
-John's next increment adds drop/swap and makes confirmed enrolments and completed
-demo scenarios prominent in My courses and My profile. Drop/swap are implemented
-as explicit, revision-checked actions with preserved history. Swap checks the
-resulting load and replacement eligibility atomically; it never drops the old
-course while waiting for replacement permission. Kept courses must retain any
-already-satisfied concurrent requirements. Ended enrolments do not count as active
-load or eligibility evidence; seed must not resurrect them. This prototype does
-not implement formal withdrawal deadlines, fees or transcript penalties. See
-`docs/course-changes-and-logo.md`. The supplied EPS is converted to a browser SVG;
-retain the visible independent-prototype identity beside the ANU artwork.
+### Eligibility
 
-John authorised implementation of the recorded profile/suggestion increment.
-It is now implemented for VCOMP with ARTIF-SPEC: versioned fictional templates,
-completed 2026 S1/S2 and 2027 S1 records, exact fictional marks and an initial
-2027 S2 planning preference. The complete scenario deliberately has loads of
-24/18/18 units (60 total) so its lower-level study does not consume space needed
-for the degree's 48-unit advanced minimum. Historical 2026 availability remains
-an explicit assumption, especially COMP6250 whose 2027 page has no offerings.
-No silent COMP8280-to-COMP8260 substitution is allowed. Generated snapshots and
-planning preferences persist separately from transcript facts; old accounts are
-not reseeded. Existing VCOMP accounts can save an AI focus and semester using
-their current record. See `docs/profile-suggestions-next-stage.md`.
+See `docs/eligibility-implementation-plan.md`.
 
-Suggestions call the deterministic gate, respect confirmed and saved-candidate
-load, exclude undated/future completions from dated progress, and separate ready
-options, permission/evidence cases and later offering gaps. A saved candidate is
-never passed credit or an enrolment. Degree buckets allocate each course once;
-the 8000-level threshold is an overlay. Source hash mismatch disables planning
-interpretations. 2028 options use indicative rows in 2027 sources, not invented
-2028 rules or enrolment endpoints. GPA, supervisor/project approval, credit
-substitutions, full degree audits and graduation remain unverified. Suggestions
-do not promise on-time graduation or authorise repeated project enrolment.
+- Results are three-valued: unknown is never reported as a failure or granted.
+  Keep the three gate distinctions when adding incomplete assessments.
+- GPA, exact marks, equivalence and discretionary evidence stay unknown where
+  needed; never infer them from prose.
+- Unknown project approval, competitive selection, equivalence, GPA and
+  mark-based suitability cannot receive automatic permission.
+- A permission condition is not a failed prerequisite or an incompatibility.
+  Intensive mode can't be inferred from semester/session names.
+- Ambiguous AND/OR groups keep their plausible readings: agreeing results settle
+  the group, disagreement is unknown. Repeated rows can't manufacture credit or
+  distinct-course counts.
+- Completion exclusions and concurrent-enrolment exclusions are distinct
+  (COMP7710 has both, for COMP1110/COMP1140/COMP6710). A course with only a
+  completion exclusion must not gain a concurrent one.
+- Offered-course checks never invent an unavailable offering.
+- Manual reference cases: `src/data/eligibility-reference.json`; wider course
+  examples: `spec/catalogue-rule-coverage.test.ts`. Historical boolean checks
+  stay readable.
 
-John authorised the preference-aware course adviser. It accepts study interests
-and an explicit unit preference in My profile, persisting exchanges separately
-from academic facts. A bounded server-side Ollama call selects source passage IDs
-from ready options; the app renders original excerpts and rechecks the combination
-through the deterministic planner. Personal unit ceilings are separate from
-institutional limits. Context changes invalidate old advice. The model cannot
-approve, enrol or edit records. Missing or failed inference retains labelled
-rule-based planning. Local compose uses Windows Ollama; Fly needs a separately
-reachable service before live AI is available there. See `docs/course-adviser.md`
-for validation, runtime limits and smoke-test scope. This does not implement
-model-based prerequisite extraction or permission review.
+### Permission requests and assessments
 
-John's Windows mini PC now supplies the local preview's adviser through private
-Tailscale Serve. An optional server-only OLLAMA_HOST_HEADER supplies the upstream
-hostname; native HTTPS keeps TLS verification tied to OLLAMA_BASE_URL because
-Node fetch discarded the Host override. The ignored `.env.adviser-minipc` selects
-this connection; compose defaults still support Windows-host Ollama. Four actual
-adviser smoke cases completed inside the existing 45-second limit on CPU.
-Fly still needs tailnet access before it can use this endpoint. No public Funnel
-or model exposure was configured. See `docs/course-adviser.md` for timings and
-the distinction between first-prompt and warm performance.
+- By case: eligible → enrol directly; known unmet requirements → exception
+  request route; offered course with uninterpreted or uncertain rules →
+  assessment request that preserves unknown; unavailable offering → no
+  enrolment request.
+- Automatic assessment is the default. It's a clearly labelled demo policy,
+  kept separate from ANU source rules and attributed to a system actor. No model
+  is called by it. New assessments with conditional permissions use
+  demo-permission-v2; saved v1 reports keep their policy and facts.
+- The first model trial for this handling uses Llama through a local runtime
+  (superseding the Qwen candidate, not the deterministic decision engine).
+  Benchmarking follows the reference set and needn't block the demo flow.
+- Automatic issuance needs a versioned source interpretation or the explicit
+  fictional scenario. Historical 2026 transcriptions can't gain automatic
+  approval because their old first-round checklist passed.
+- Reports save the offering, rule and record snapshots, selected reason, student
+  statement and policy version, and new request snapshots keep the three-valued
+  results, record completeness and source/evidence references. Identical
+  automatic submissions reuse the saved result; new evidence or a changed reason
+  gets a new snapshot. Display changes never rewrite saved reports or historical
+  events.
+- Student messages are self-reported context: never numerically weighted, and
+  they can't alter a grade, source rule or permission. Record-correction,
+  equivalent-study and exception reasons produce evidence/decision-needed
+  results. Future model extraction must keep claims separate from verified facts
+  and pass a statement-variation benchmark before it influences handling.
+- An automatic exception result says "Exception decision needed", with no staff
+  review in progress; its unmet academic check stays separate from the
+  unresolved waiver. Automatic incomplete results aren't pending staff work.
+- A missing automatic rule is an application coverage gap. Never ask the student
+  to fix it by rewriting their explanation.
+- Staff review is an explicit optional route with an unstaffed-queue notice. It
+  accepts explicitly selected exception, equivalent-study and record-correction
+  requests even when checks fail: checks stay unchanged, the reason is saved in
+  a student event, routing is not approval, and the reason stays selected if the
+  student switches back to automatic assessment.
+- Existing pending staff requests stay pending unless their owner explicitly
+  requests automatic assessment; converting one preserves its original checks
+  and events.
+- Show the resubmission reminder only while the matching student/course/year/term
+  request is pending; approval or rejection removes it. Retries reuse the
+  existing pending or approved request without adding events.
+- Approval still needs explicit enrolment confirmation. Historical 2026 rules,
+  requests, approvals and enrolments keep their year: approval never transfers
+  across years, and existing human approvals keep their offering scope.
+- Ordinary source-bound permission courses can complete the profile workflow
+  when every recorded condition is met.
+
+### COMP8620 demo scenario
+
+- The complete fictional topic scenario is at `/demo/`. Its permissions and
+  confirmation are isolated from profile enrolments, and its topic assumptions
+  must never become published ANU conditions.
+- Scenario completions come from persisted confirmation events and show in My
+  courses, My profile and My requests. They never enter the academic record used
+  by eligibility.
+
+### Accounts and reviewers
+
+See `docs/accounts-and-data.md`.
+
+- Public registration stays student-only; local reviewers activate emailed
+  invitations, using real @anu.edu.au addresses for markers. Reviewer sign-in
+  lands on the queue, and the catalogue stays browseable.
+- A verification link opened during an existing session shows the current
+  identity and requires explicit sign-out before activation. Carry the token
+  through that POST without accepting arbitrary return URLs.
+- Deployment docs must say it needs working SMTP and unused reviewer addresses;
+  local captured mail doesn't prove remote delivery.
+
+### Study load, overload, drop and swap
+
+See `docs/overload-design.md` and `docs/course-changes-and-logo.md`.
+
+- Overload applications get an immediate assessment plus optional human
+  review. Student prose in them is context only.
+- The 24-unit limit counts confirmed units, not courses or saved candidates. The
+  transactional guard covers both direct and permission-code enrolment.
+- Half-years include the named non-standard sessions; only proven non-overlap
+  permits the saved-page exemption. Missing dates or units stay explicit.
+- Variable-unit courses need a validated credit choice saved with the
+  enrolment. Never silently assume six units.
+- Overload approval (`/overload/`, policy in `src/data/overload-policy.json`)
+  raises the student's year/half-year limit to 30 or 36. It never waives course
+  conditions or confirms enrolment. The source supports nothing above 36 units
+  and no trimester rules; completion exceptions and late enrolment stay
+  discretionary.
+- Dr Avery Hart is the separate fictional program-load reviewer; ordinary
+  course convenors cannot decide overload requests. Requests
+  keep policy, load and academic snapshots with events.
+- Exact marks and program/institution attribution are nullable. Never backfill
+  existing grade-only profiles with invented numbers.
+- Drop and swap are explicit, revision-checked actions with preserved history.
+  Swap checks the resulting load and replacement eligibility atomically and
+  never drops the old course while waiting for replacement permission. Kept
+  courses must keep any already-satisfied concurrent requirements.
+- Ended enrolments don't count as active load or eligibility evidence, and seed
+  must not resurrect them. No withdrawal deadlines, fees or transcript
+  penalties are modelled.
+
+### Profiles and suggestions
+
+See `docs/profile-suggestions-next-stage.md`.
+
+- New fictional profiles use the versioned VCOMP + ARTIF-SPEC template:
+  completed 2026 S1/S2 and 2027 S1 with exact fictional marks (COMP6670 in
+  2026 S2), loads of 24/18/18 so lower-level study doesn't crowd out the 48-unit
+  advanced minimum, and an initial 2027 S2 planning preference. Historical 2026
+  availability is an explicit assumption, notably COMP6250.
+- Generated snapshots and planning preferences persist separately from
+  transcript facts. Preserve existing registered profiles and don't reseed old
+  accounts; existing VCOMP accounts can save an AI focus and semester from their
+  current record. Profile enrolments come from enrolment rows even when a saved
+  selection is removed.
+- Suggestions call the deterministic gate, respect confirmed and saved-candidate
+  load, exclude undated/future completions from dated progress, and separate
+  ready options, permission/evidence cases and later offering gaps. A saved
+  candidate is never passed credit or an enrolment.
+- Degree buckets allocate each course once; the 8000-level threshold is an
+  overlay. A source hash mismatch disables planning interpretations. 2028
+  options use indicative rows in 2027 sources, never invented 2028 rules or
+  enrolment endpoints.
+- GPA, supervisor/project approval, credit substitutions, full degree audits and
+  graduation remain unverified. Suggestions never promise on-time graduation or
+  authorise repeated project enrolment.
+
+### Course adviser
+
+See `docs/course-adviser.md` for validation, runtime limits and timings.
+
+- The model cannot approve, enrol or edit records. The adviser doesn't
+  implement model-based prerequisite extraction or permission review (future
+  extraction has its own conditions under Permission requests).
+- It takes study interests and an explicit unit preference in My profile;
+  exchanges persist separately from academic facts. Personal unit ceilings are
+  separate from institutional limits, and context changes invalidate old advice.
+- A bounded server-side Ollama call selects source passage IDs from ready
+  options; the app renders the original excerpts and rechecks the combination
+  through the deterministic planner. Missing or failed inference falls back to labelled
+  rule-based planning.
+- Compose defaults to Windows-host Ollama; the ignored `.env.adviser-minipc`
+  selects John's mini-PC over private Tailscale Serve (no public Funnel or model
+  exposure). An optional server-only `OLLAMA_HOST_HEADER` supplies the upstream
+  hostname, and native HTTPS keeps TLS verification tied to `OLLAMA_BASE_URL`
+  because Node fetch discarded the Host override. Fly needs its own reachable
+  service or tailnet access before live AI works there.
 
 ## Rules
 
@@ -314,6 +331,9 @@ the distinction between first-prompt and warm performance.
 ## Working
 
 - Small commits that each leave the app working; the message says why.
+- When John authorises an increment, add its active rules as bullets under the
+  matching Product rules heading and its history or status to
+  `docs/decision-log.md`. Replace a superseded rule instead of stacking a new one.
 - **Record every turn.** At the end of a turn that changed the repo or made a
   decision, append an entry to `PROCESS_RECORD.md` using the
   `.claude/skills/process_record/SKILL.md` format: work commit first, record
