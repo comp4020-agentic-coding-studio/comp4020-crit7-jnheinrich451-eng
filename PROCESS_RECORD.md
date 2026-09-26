@@ -3140,3 +3140,39 @@ and all 284 internal links passed. The repository is public and the course plugi
 is current. Work and this record were committed locally without pushing.
 
 **Commit:** [`1a7505c`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/1a7505c)
+
+## 2026-09-27 05:44 — Linked specialisations and readable degree sections
+
+**Prompt:**
+
+> And could you mark specialisations as hyperlinks? And make those like Specialisations; Credit/Exemption Options, etc. those titles in bold, and maybe a more elegant way? Only for 3 degrees, rest are good to me! Ty
+
+**Result:**
+Added a degree-only presentation component: bold advice headings, gold section
+dividers, section jump links and two-column specialisation lists that become one
+column on narrow screens. All three degree pages use it; course and
+specialisation pages keep their existing renderer.
+
+Compared the downloaded degree pages with their stored evidence. Names link to
+matching saved specialisations in the degree's catalogue year. The inconsistent
+published lists are retained: Machine Learning is labelled as having no saved
+2027 page, and Professional Computing opens its original ANU URL with an external
+page label. Neither is silently mapped to Artificial Intelligence. Original
+reference years, source text, hashes and interpreted academic rules are unchanged.
+
+**Verified:**
+Docker Node 24 / pnpm 11.9.0: typecheck clean, all 601 tests in 30 files pass,
+and all ten PROCESS.md citations resolve. The added HTTP check confirms every
+stored degree paragraph remains visible, the advice headings are semantic,
+missing specialisations are not aliased, and non-degree pages retain their layout.
+
+JavaScript-disabled Chrome checked all three degrees at 1440, 768, 390 and 320
+pixels with no horizontal overflow, working section anchors, bold headings and
+all seven saved specialisation destinations returning 200. Inspected desktop
+specialisation lists and mobile credit advice visually. Deployed to Fly and
+repeated the browser checks against the live pages; page/assets, access probes
+and all 284 internal links passed. Repository visibility is public, the course
+plugin is current, and the latest remote CI was green for its older commit.
+Work and this record are committed locally without pushing.
+
+**Commit:** [`c0d7a2b`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/c0d7a2b)
