@@ -1773,3 +1773,109 @@ attempt could not write through the preview's read-only source mount; the backup
 succeeded through a helper with the data volume read-only and ignored backup
 directory writable. The Help route did not initialise the lazy database module;
 loading the catalogue applied migration/seed before the preservation check.
+
+## 2026-09-26 13:30 — Drop and swap without losing the original enrolment
+
+**Prompt:**
+
+> I think should add two functions, which are drop course and swap the course.
+> In My courses, and the My profile, the confirmed enrolments and Demo scenario completions, those parts are not apparent.
+> could you try to use the ./assets/ANU_Primary_Vertical_GoldWhite.eps as ANU logo?
+> this part is my idea you can save and act in next stage
+
+John also proposed a coherent fictional 2026 history, preset 2027 S1, an assigned
+specialisation and useful course suggestions for 2027 S2, without guaranteeing
+graduation on time. That direction was recorded rather than implemented now.
+
+**Result:**
+Confirmed enrolments now offer Drop and Swap on both My courses and My profile.
+Drop has explicit confirmation, releases the enrolled units and removes the
+saved selection while keeping permission decisions and history. Swap previews
+an available replacement in the same year/session and checks eligibility,
+permission and the load after replacement. The final write rechecks inside an
+immediate transaction: a failed replacement leaves the old enrolment intact.
+Equal-unit swaps can therefore succeed at the normal 24-unit limit.
+
+Kept courses retain satisfied concurrent prerequisites, and their own published
+concurrent incompatibilities can block a replacement. These checks do not invent
+the inverse exclusion on courses with completion-only rules. Missing variable
+credit values get an explicit range prompt. Source links remain on replacement
+checks. The feature does not model university withdrawal deadlines, fees or
+transcript penalties; John's account of the current portal is motivation rather
+than verification of ANU's implementation.
+
+Generated migration 0008 adds ended state, revisions and enrolment events.
+Re-enrolment reactivates the offering with a new revision; old forms cannot end
+the new enrolment. Relevant course-permission and linked overload timelines
+retain the change without rewriting assessments. Seed now inserts original
+enrolments only when absent, so a dropped seed course cannot reappear on restart.
+
+Count links, prominent panels and larger gold course codes make confirmed courses
+and completed demos visible before saved candidates or academic result tables.
+The demo panel is visible when empty and states that it uses zero load units.
+Converted the supplied EPS through TeX Live epstopdf and Poppler pdftocairo to a
+committed vector SVG for the shared header, retaining the independent-prototype
+label. No logo was redrawn or generated.
+
+Recorded the next stage in `docs/profile-suggestions-next-stage.md` and linked it
+from CLAUDE.md: versioned fictional templates, separate completed/current study,
+explicit historical assumptions, source-year specialisations, prerequisite-aware
+suggestions and later alternatives. Existing profiles and the selected semester
+were not migrated to the proposed 2027 S2 example.
+
+**Verified:**
+Read the shared harness and published Crit 7 contract. Docker Node 24 / pnpm
+11.9.0 `pnpm check` passed: zero diagnostics across 99 files and 471 tests across
+21 files. HTTP tests exercise the 24-unit swap, persistent drop and re-enrolment,
+stale revisions, competing changes, ownership and reviewer rejection, unavailable
+or foreign-session replacements, permission and variable-unit requirements,
+concurrent dependencies and incompatibilities. A deliberately rejected SQLite
+replacement write returns 500 and rolls the outgoing change/events back. The
+overload journey confirms a drop appears in its timeline while the original
+report and approval remain unchanged. Repeated seed tests retain ended rows and
+their events. New pages are included in the accessibility invariants.
+
+Claude actually returned a bounded read-only review through the installed CLI.
+It verified rollback/savepoint behaviour, stale-form protection, ownership and
+additive migration. Its findings covered kept-course concurrent exclusions,
+missing overload drop/swap events, variable-unit wording, source references and
+transaction/timestamp consistency. Addressed these before the passing run; no
+Claude edits or independent Claude test execution are claimed.
+
+Chrome with JavaScript disabled and fixture sessions on a disposable database:
+blocked an oversized swap, swapped at 24 units, cancelled a drop, confirmed a
+drop to 18 units and reloaded, then completed a separate COMP8620 demo. Both pages
+showed three confirmed courses and one demo. All four native POSTs returned 303.
+Captured My courses, My profile, swap and drop at 1440x1000 and 390x844, with no
+horizontal page overflow. Visually inspected the final desktop course page and
+mobile profile, including the supplied logo and corrected demo row alignment.
+
+Backed up the actual local preview database before migration. After restart and
+catalogue initialisation, hashes preserved all 10 accounts, 10 course requests,
+32 request events, seven enrolments including seed rows, eight registered
+profiles, 48 registered transcript rows, nine selections, one overload request
+and three overload events. Foreign-key check returned zero errors. Local home,
+Help and SVG returned 200. Stopped the disposable server. Staged whitespace
+checks passed. No deployment or push; John's assets and pre-existing AGENTS.md
+change were left outside this commit.
+
+**Commit:** [`dc4aae8`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/dc4aae8), [`6593ecf`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/6593ecf)
+
+**What happened:**
+Early tests incorrectly assumed COMP6528 was ineligible for VCOMP; used an
+actually unmet ENGN6627 case instead. The rollback fault initially expected a
+user-error redirect, but operational errors correctly propagate as 500; changed
+that assertion while retaining rollback verification. A later MCOMP concurrency
+fixture could not directly enrol COMP6442, so its unrelated outgoing course was
+changed to the eligible COMP6528. A long overload HTTP journey exceeded Vitest's
+five-second default under concurrent load; gave that test a bounded 15-second
+timeout without removing assertions. Browser inspection caught a detached
+semester label in the demo row, which was grouped with its course information.
+The final disposable server initially lacked MAIL_FROM because its launch used
+SMTP_FROM; corrected the test launch and reran the browser journey successfully.
+The required repeat before the record commit exposed a separate existing
+assessment journey's five-second timeout (470 passed, one timed out). Limited
+Vitest to four workers because its HTTP suites share one app server and run
+JSDOM/axe concurrently. The full check then passed all 471 tests; cumulative
+test execution time fell from 80.41 to 33.01 seconds, with wall time 14.12 seconds.
+Assertions and the ordinary five-second test timeout remain intact.
