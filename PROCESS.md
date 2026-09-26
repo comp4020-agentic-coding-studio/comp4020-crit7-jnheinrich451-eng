@@ -33,13 +33,16 @@ specialisation, so suggestions build on a fictional history that makes sense
 [`b4e9474`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/b4e9474)).
 
 I explored LLM review, but permission and overload decisions stayed rule-based.
-Llama got a narrower job: matching interests to course evidence, with the
-planner rechecking its suggestions. When it started inventing quotations, I
-switched it to picking source passages instead of writing evidence. To avoid
-paying for inference hosting, I set up my mini-PC to serve Llama privately;
-connecting Fly to it is still to do
+Llama got a narrower job: matching interests to courses, with the planner
+rechecking every suggestion. Early versions invented quotations and couldn't
+match "AI". Unit tests passed, yet a live benchmark showed the 3B model copying
+worked examples, so a reviewed topic list now handles named interests and Llama
+only rephrases the rest: 27 of 30 cases
 ([`09ed6c1`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/09ed6c1),
-[`5a3a6d0`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/5a3a6d0)).
+[`d925e65`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/d925e65)).
+My mini-PC serves it privately to Fly over a tailnet, avoiding paid hosting
+([`5a3a6d0`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/5a3a6d0),
+[`fd25cad`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/fd25cad)).
 
 Docker test runs and browser walkthroughs checked each increment;
 [PROCESS_RECORD.md](PROCESS_RECORD.md) keeps the corrections and outstanding
