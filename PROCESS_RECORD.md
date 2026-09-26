@@ -3102,3 +3102,41 @@ to request panels so other forms retain their established layout.
 The first live link crawl received a 502 at the root. A separate root request
 then returned 200 in 0.2 seconds, and the full retry passed. No cause for that
 transient response was established and no server configuration was changed.
+
+## 2026-09-27 05:25 — Manual matches the current student and reviewer flows
+
+**Prompt:**
+
+> Ty. and after this finish, please update the README.md about the new features!
+
+**Result:**
+Updated the user-authorised README manual against the implemented pages.
+It now covers Normal and Demo registration, the private demo inbox, password
+change and recovery, persistent generated records, both roles on one verified
+account, owner invitations and the visitor's own demo reviewer workflow.
+The permission instructions distinguish an incomplete automatic report from
+pending staff review and explain the same-request handoff, seeded examples,
+offering identity and explicit enrolment confirmation after approval.
+
+Adviser instructions explain named-topic matching, optional Llama paraphrase
+handling, excluded matches, later offerings and standard-plan fallback. Button
+labels match the current Normal and Demo views. Removed obsolete claims about
+one role per address, absent password recovery and local-only fictional email.
+Retained the motivation, fictional-data boundaries and existing load/drop/swap
+instructions. No application behaviour changed.
+
+**Verified:**
+Docker Node 24 / pnpm 11.9.0: typecheck clean, all 600 tests in 30 files pass,
+including the test that the complete README is served at /readme/. Rebuilt and
+reran after the final resend-button wording adjustment. Evidence checks resolve
+all ten PROCESS.md citations. JavaScript-disabled Chrome at 1440, 390 and 320
+pixels found no page overflow and confirmed all three section links target
+existing headings. Inspected the mobile rendering and checked the new manual
+sections against the registration, password, invitation and adviser screens.
+
+Published the guide to Fly's About this project page. Live checks confirmed the
+new instructions and absence of the superseded ones; page/assets, access probes
+and all 284 internal links passed. The repository is public and the course plugin
+is current. Work and this record were committed locally without pushing.
+
+**Commit:** [`1a7505c`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/1a7505c)
