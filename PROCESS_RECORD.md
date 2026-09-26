@@ -3039,3 +3039,25 @@ failure. Checking their student IDs and offering years exposed the actual
 workflow gap. The first full suite passed the new lifecycle tests but failed
 one existing assertion for the old empty-queue wording; updated it to cover
 the new explicit handoff guidance, then reran the full checks successfully.
+
+## 2026-09-27 — Process account names the adviser benchmark correction
+
+**Prompt:**
+
+> Yes please, replace paragraph 4
+
+**Result:**
+Replaced PROCESS.md's LLM paragraph with the adviser harness moment: unit tests
+passed, the live benchmark showed the 3B model copying worked examples, and the
+reviewed topic list now handles named interests (27 of 30 reference cases). The
+stale claim that Fly could not yet reach the mini PC was replaced with the
+private tailnet connection (fd25cad). The rule-driven generator and the email
+domain work were left out at John's choice, to keep each moment substantive
+within the word guidance.
+
+**Verified:**
+check:evidence resolved all ten citations. PROCESS.md is now about 310 words of
+prose, slightly above the 150-300 crit guidance; trimming elsewhere was offered
+and not applied.
+
+**Commit:** [`9016b9e`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/9016b9e)
