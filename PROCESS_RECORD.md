@@ -2271,3 +2271,38 @@ collaboration more than John's layered direction of the rebuild. His revision
 request supplied the intended narrative. The revised account keeps the practical
 decisions and their evidence without becoming a feature manual or claiming that
 an LLM currently approves applications.
+
+## 2026-09-26 17:03 - Recognizable course names in academic results
+
+**Prompt:**
+
+> This is compact, but actually I don't know the courses, and need to check. In your sense, if only use a hyperlink is enough, of show the full name of the course as well?
+
+**Result:**
+Academic results now show a linked course code with the full title immediately
+underneath. Links open the matching saved catalogue entry. A single note identifies
+the 2027 catalogue as the source of names and links, without claiming those pages
+establish the historical result terms. Missing catalogue entries stay unlinked;
+conflicting titles are not silently resolved. Names wrap within the first column;
+the table scrolls horizontally on narrow screens and is keyboard-focusable.
+No transcript facts, eligibility rules or database schema changed.
+
+**Verified:**
+Docker Node 24 / pnpm 11.9.0 check passed: zero diagnostics and 495 tests in 25
+files, including the accessibility invariants. On the disposable preview with
+JavaScript disabled, all ten transcript links returned 200 and retained the
+correct code and 2027 source year. Clicked COMP6442 and confirmed its Software
+Construction heading. The first result remained 2026 S1 and the table retained
+ten rows. Inspected 1920 x 1080 and 390 x 844 captures: titles are readable and
+the page does not overflow horizontally; the mobile table can scroll to its
+last column. Repeated browser checks on the corrected build, stopped the test
+server and refreshed the normal local preview. Preserved John's concurrent
+PROCESS.md, reflection and AGENTS.md edits.
+
+**Commit:** [`4975f62`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/4975f62)
+
+**What happened:**
+The first check found a duplicate accessible name between the results section
+and its new scrollable region. Gave the table region its own distinct name;
+the complete check then passed. A bare code link would still require opening
+each page to identify a course, so the title remains visible in the table.
