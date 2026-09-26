@@ -30,8 +30,13 @@ for (const [uid, name] of [
   ["fixture-overload-auto", "Overload auto student"],
   ["fixture-overload-race", "Overload race student"],
   ["fixture-overload-permission", "Overload permission student"],
+  ["fixture-course-changes", "Course changes student"],
+  ["fixture-course-dependency", "Course dependency student"],
+  ["fixture-swap-failure", "Swap failure student"],
+  ["fixture-change-race", "Course change race student"],
+  ["fixture-swap-incompat", "Swap incompatibility student"],
 ]) {
-  db.insert(students).values({ uid, name, program: "VCOMP" }).run();
+  db.insert(students).values({ uid, name, program: uid === "fixture-swap-incompat" ? "MCOMP" : "VCOMP" }).run();
 }
 const programmingConflict = db.select().from(students).where(eq(students.uid, "fixture-programming-conflict")).get()!;
 for (const uid of ["fixture-staff-exception", "fixture-staff-equivalence", "fixture-staff-correction"]) {
@@ -54,6 +59,14 @@ db.insert(transcript).values({ studentId: historicalStudent.id, courseCode: "COM
 const historicalRequest = submitApplication({ student: historicalStudent, courseCode: "COMP6240", year: 2026, term: "S1", statement: "Historical offering only", dispute: true });
 decide({ convenor: getCourse("COMP6240", 2026)!.convenor, applicationId: historicalRequest.id, approve: true, note: "Fictional 2026 exception" });
 const all = people();
+for (const name of ["Course changes student", "Swap failure student"]) {
+  const student = all.students.find(s => s.name === name)!;
+  for (const code of ["COMP6442", "COMP6242", "COMP6262", "COMP6300"])
+    db.insert(enrolments).values({ studentId: student.id, courseId: getCourse(code)!.id, year: 2027, term: "S1", units: 6, via: "direct" }).run();
+}
+const dependencyStudent = all.students.find(s => s.name === "Course dependency student")!;
+for (const code of ["COMP6442", "COMP6120"])
+  db.insert(enrolments).values({ studentId: dependencyStudent.id, courseId: getCourse(code)!.id, year: 2027, term: "S2", units: 6, via: "direct" }).run();
 for (const name of ["Overload page student", "Overload review student", "Overload auto student", "Overload race student", "Overload permission student"]) {
   const student = all.students.find(s => s.name === name)!;
   // Explicit test scenarios: confirmed load does not assert prerequisite eligibility.

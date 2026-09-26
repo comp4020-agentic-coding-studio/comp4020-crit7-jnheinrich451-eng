@@ -21,6 +21,8 @@ export const ROUTES = [
   "/applications/1/",
   "/record/",
   "/plan/",
+  "/enrolments/1/",
+  "/enrolments/1/?mode=drop",
   "/overload/",
   "/overload/1/",
   "/overload/?course=COMP7710&year=2027&term=S1",

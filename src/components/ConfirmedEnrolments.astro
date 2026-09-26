@@ -7,13 +7,16 @@ const VIA: Record<string, string> = {
   seed: "already enrolled", direct: "enrolled directly", permission: "enrolled with a permission code",
 };
 ---
-<section aria-labelledby="current-heading" data-confirmed-enrolments>
-  <h2 id="current-heading">Confirmed enrolments</h2>
-  <p>These offerings are in your fictional academic record. Saving a course or receiving permission alone does not enrol you.</p>
-  {enrolments.length === 0 ? <p class="muted">No confirmed enrolments yet.</p> : <ul class="plain">
-    {enrolments.map(e => <li>
-      <a href={`/courses/${e.code}/?year=${e.year}&term=${encodeURIComponent(e.term)}`}>{e.code} {e.title}</a>
-      , {`${e.year} ${TERM_LABELS[e.term as Term]}`} ({VIA[e.via]})
+<section class="enrolment-panel" aria-labelledby="current-heading" data-confirmed-enrolments>
+  <div class="section-title"><div><p class="eyebrow">Your enrolled courses</p><h2 id="current-heading">Confirmed enrolments</h2></div><span class="section-count">{enrolments.length}<span class="visually-hidden"> confirmed enrolments</span></span></div>
+  <p>These courses count towards your study load. You can change a confirmed enrolment below.</p>
+  {enrolments.length === 0 ? <p class="empty">No confirmed enrolments yet. Choose a course and confirm enrolment to add it here.</p> : <ul class="enrolled-list">
+    {enrolments.map(e => <li data-enrolment-id={e.id}>
+      <div><p class="eyebrow">{`${e.year} ${TERM_LABELS[e.term as Term]}`} · {e.units ?? "Unconfirmed"} units</p>
+        <h3><a href={`/courses/${e.code}/?year=${e.year}&term=${encodeURIComponent(e.term)}`}><span class="enrolled-code">{e.code}</span> {e.title}</a></h3>
+        <p class="meta">{VIA[e.via]}</p></div>
+      <div class="actions"><a class="button" href={`/enrolments/${e.id}/?mode=swap`} aria-label={`Swap ${e.code}`}>Swap</a>
+        <a class="button danger" href={`/enrolments/${e.id}/?mode=drop`} aria-label={`Drop ${e.code}`}>Drop</a></div>
     </li>)}
   </ul>}
 </section>

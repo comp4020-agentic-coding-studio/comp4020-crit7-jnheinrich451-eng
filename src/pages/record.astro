@@ -3,6 +3,8 @@ import { PROGRAMS, type ProgramKey } from "../data/requisites";
 import Layout from "../layouts/Layout.astro";
 import ConfirmedEnrolments from "../components/ConfirmedEnrolments.astro";
 import ScenarioCompletions from "../components/ScenarioCompletions.astro";
+import EnrolmentOverview from "../components/EnrolmentOverview.astro";
+import EnrolmentHistory from "../components/EnrolmentHistory.astro";
 import { completedScenariosOf, enrolmentsOf, PASSING, transcriptOf } from "../lib/store";
 
 // The record the gate reads. Nothing on it is typed by the student, which is
@@ -41,6 +43,10 @@ const scenarios = student ? completedScenariosOf(student.id) : [];
         </div>
       </dl>
 
+      <EnrolmentOverview confirmed={current.length} scenarios={scenarios.length} results={results.length} />
+      <ConfirmedEnrolments enrolments={current} />
+      <ScenarioCompletions completions={scenarios} />
+      <EnrolmentHistory studentId={student.id} />
       <section aria-labelledby="results-heading">
         <h2 id="results-heading">Fictional academic results</h2>
         {results.length === 0 ? (
@@ -73,8 +79,6 @@ const scenarios = student ? completedScenariosOf(student.id) : [];
         )}
       </section>
 
-      <ConfirmedEnrolments enrolments={current} />
-      <ScenarioCompletions completions={scenarios} />
     </>
   )}
 </Layout>

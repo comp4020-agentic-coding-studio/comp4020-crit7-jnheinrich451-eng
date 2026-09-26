@@ -1,0 +1,10 @@
+---
+interface Props { confirmed: number; scenarios: number; saved?: number; results?: number }
+const { confirmed, scenarios, saved, results } = Astro.props;
+---
+<div class="section-overview" aria-label="Page overview">
+  <a href="#current-heading"><strong>{confirmed}</strong><span>Confirmed enrolments</span><small>Courses in your study load</small></a>
+  <a href="#scenarios-heading"><strong>{scenarios}</strong><span>Demo scenario completions</span><small>Practice examples · 0 load units</small></a>
+  {saved !== undefined ? <a href="#saved-heading"><strong>{saved}</strong><span>Saved courses</span><small>Options you are considering</small></a>
+    : <a href="#results-heading"><strong>{results ?? 0}</strong><span>Academic results</span><small>Your fictional past study</small></a>}
+</div>

@@ -110,10 +110,23 @@ export const enrolments = sqliteTable(
     /** Snapshot for new enrolments; null historical rows use their catalogue year. */
     units: int(),
     overloadRequestId: int("overload_request_id").references(() => overloadRequests.id),
+    endedAt: text("ended_at"),
+    endedReason: text("ended_reason"),
+    revision: int().notNull().default(1),
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex("enrolments_student_course_term").on(t.studentId, t.courseId, t.year, t.term)],
 );
+
+export const enrolmentEvents = sqliteTable("enrolment_events", {
+  id: int().primaryKey({ autoIncrement: true }),
+  enrolmentId: int("enrolment_id").notNull().references(() => enrolments.id),
+  studentId: int("student_id").notNull().references(() => students.id),
+  revision: int().notNull(),
+  kind: text().notNull(),
+  detail: text().notNull(),
+  createdAt: createdAt(),
+});
 
 export const applications = sqliteTable("applications", {
   id: int().primaryKey({ autoIncrement: true }),

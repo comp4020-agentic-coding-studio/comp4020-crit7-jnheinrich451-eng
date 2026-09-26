@@ -12,7 +12,7 @@ import type { CatalogueSnapshot } from "../src/lib/catalogue-types";
 import { seed } from "../src/lib/seed";
 import { seedCatalogue } from "../src/lib/seed-catalogue";
 import { seedPublishedOfferings } from "../src/lib/seed-offerings";
-import { accounts, applicationEvents, applications, courses, enrolments, offerings, selections, students, transcript } from "../src/lib/schema";
+import { accounts, applicationEvents, applications, courses, enrolments, enrolmentEvents, offerings, selections, students, transcript } from "../src/lib/schema";
 
 it("upgrades a populated 2026 database without changing profiles, approvals, events or enrolments", () => {
   const directory = mkdtempSync(join(tmpdir(), "year-migration-"));
@@ -79,5 +79,22 @@ it("rolls back a failed migration and restores foreign-key enforcement", () => {
     expect(client.prepare("SELECT name FROM sqlite_master WHERE name = 'transient_fixture'").get()).toBeUndefined();
     expect(client.inTransaction).toBe(false);
     expect(client.pragma("foreign_keys", { simple: true })).toBe(1);
+  } finally { client.close(); }
+});
+
+it("does not resurrect a dropped seed enrolment or erase its history on repeated boots", () => {
+  const client = new Database(":memory:");
+  try {
+    migrateDatabase(client);
+    const db = drizzle(client);
+    seed(db);
+    const original = db.select().from(enrolments).get()!;
+    db.update(enrolments).set({ endedAt: "2026-09-26T00:00:00Z", endedReason: "dropped", revision: 2 }).where(eq(enrolments.id, original.id)).run();
+    db.insert(enrolmentEvents).values({ enrolmentId: original.id, studentId: original.studentId, revision: 2, kind: "dropped", detail: "Persisted fixture drop" }).run();
+    const before = db.select().from(enrolments).all(), events = db.select().from(enrolmentEvents).all();
+    seed(db); seed(db);
+    expect(db.select().from(enrolments).all()).toEqual(before);
+    expect(db.select().from(enrolmentEvents).all()).toEqual(events);
+    expect(client.pragma("foreign_key_check")).toEqual([]);
   } finally { client.close(); }
 });

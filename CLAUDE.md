@@ -170,6 +170,26 @@ never backfill existing grade-only profiles with invented numbers. Student prose
 is context only. Completion exceptions and late enrolment remain discretionary;
 the supplied page does not support more than 36 units or trimester rules.
 
+John's next increment adds drop/swap and makes confirmed enrolments and completed
+demo scenarios prominent in My courses and My profile. Drop/swap are implemented
+as explicit, revision-checked actions with preserved history. Swap checks the
+resulting load and replacement eligibility atomically; it never drops the old
+course while waiting for replacement permission. Kept courses must retain any
+already-satisfied concurrent requirements. Ended enrolments do not count as active
+load or eligibility evidence; seed must not resurrect them. This prototype does
+not implement formal withdrawal deadlines, fees or transcript penalties. See
+`docs/course-changes-and-logo.md`. The supplied EPS is converted to a browser SVG;
+retain the visible independent-prototype identity beside the ANU artwork.
+
+John requested that the next-stage profile/suggestion idea be recorded now and
+implemented later: versioned fictional templates with a full 2026 history, an
+explicit 2027 S1 state, assigned source-year specialisation, and suggestions for
+2027 S2. Explain source-supported priorities and later options without promising
+on-time graduation. See `docs/profile-suggestions-next-stage.md`. This proposed
+2027 S2 example supersedes the earlier 2026 planning-example preference, but
+current account profiles and selected semesters have not been migrated. Do not
+silently infer real commencement rules or historical offerings from 2027 sources.
+
 ## Rules
 
 - **The schema is the ground truth.** Edit `src/lib/schema.ts`, run

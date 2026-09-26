@@ -57,6 +57,13 @@
       "when": 1790365654795,
       "tag": "0007_equal_ezekiel",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1790392179999,
+      "tag": "0008_lethal_nextwave",
+      "breakpoints": true
     }
   ]
 }

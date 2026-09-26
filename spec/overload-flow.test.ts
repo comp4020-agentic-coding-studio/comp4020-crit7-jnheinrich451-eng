@@ -57,7 +57,14 @@ it("blocks the fifth six-unit course, persists an unknown report, and needs expl
   for (const route of ["/plan/", "/record/"]) expect((await page(route, student)).querySelector("[data-confirmed-enrolments]")?.textContent).toContain("COMP6442");
   expect((await page(path, student)).querySelector(".timeline")?.textContent).toContain("Confirmed COMP6442");
   expect(error(await post("/api/enrol", student, { ...fields, courseCode: "COMP7710" }))).toContain("maximum is 36");
-});
+  const enrolled = (await page("/plan/", student)).querySelector('a[aria-label="Drop COMP6442"]')!;
+  const managePath = enrolled.getAttribute("href")!;
+  const form = (await page(managePath, student)).querySelector('form[action$="/drop"]')!;
+  await post(form.getAttribute("action")!, student, { revision: form.querySelector<HTMLInputElement>('input[name="revision"]')!.value });
+  expect((await page(path, student)).querySelector(".timeline")?.textContent).toContain("Dropped COMP6442");
+  expect(saved(path)).toMatchObject({ status: "approved", approved_limit: 30, assessment: original });
+  expect((await page("/plan/", student)).querySelector("[data-study-load-summary]")?.textContent).toContain("24 units");
+}, 15000); // Many sequential HTTP steps, including JSDOM renders, under the full concurrent suite.
 
 it("automatically approves evidenced criteria but keeps the academic and load permissions separate", async () => {
   const student = "Overload auto student";

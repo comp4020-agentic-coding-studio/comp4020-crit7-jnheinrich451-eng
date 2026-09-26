@@ -4,6 +4,8 @@ import PendingRequestNotice from "../components/PendingRequestNotice.astro";
 import ConfirmedEnrolments from "../components/ConfirmedEnrolments.astro";
 import ScenarioCompletions from "../components/ScenarioCompletions.astro";
 import StudyLoadSummary from "../components/StudyLoadSummary.astro";
+import EnrolmentOverview from "../components/EnrolmentOverview.astro";
+import EnrolmentHistory from "../components/EnrolmentHistory.astro";
 import { studyLoadFor } from "../lib/overload-store";
 import { applicationsOfStudent, enrolmentsOf, gateFor, offeringFor, selectionsOf, TERM_LABELS } from "../lib/store";
 import { applicationStatus } from "../lib/application-status";
@@ -25,14 +27,18 @@ const scenarios = requests.filter(app => app.scenarioKey && app.enrolmentConfirm
       <h1>My courses</h1>
       <p class="lede">
         Save courses to consider, track their requests, and confirm enrolment when ready.
-        Your confirmed enrolments are listed separately below.
+        Manage confirmed enrolments, see completed demos, and keep alternatives for later.
       </p>
     </div>
     <a class="button" href="/">
       Find another course
     </a>
   </div>
+  <EnrolmentOverview confirmed={current.length} scenarios={scenarios.length} saved={selected.length} />
+  <ConfirmedEnrolments enrolments={current} />
   <StudyLoadSummary studentId={actor.student.id} />
+  <ScenarioCompletions completions={scenarios} />
+  <EnrolmentHistory studentId={actor.student.id} />
   <section aria-labelledby="saved-heading" data-saved-courses>
     <h2 id="saved-heading">Saved courses</h2>
     <p>These are courses you are considering. Saving one or submitting a request does not confirm enrolment.</p>
@@ -105,6 +111,4 @@ const scenarios = requests.filter(app => app.scenarioKey && app.enrolmentConfirm
       })}
     </div>
   </section>
-  <ConfirmedEnrolments enrolments={current} />
-  <ScenarioCompletions completions={scenarios} />
 </Layout>

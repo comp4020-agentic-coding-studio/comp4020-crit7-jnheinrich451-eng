@@ -6,7 +6,7 @@ import { catalogueEntries } from "./catalogue";
 import { fixedUnits, publishedTerms, TERM_LABELS } from "./course-evidence";
 import { rulesForSource } from "./course-rules";
 import { db } from "./db";
-import { canRequestAssessment, type Check, firstRound, type Gate, gate, type StudentRecord } from "./eligibility";
+import { canRequestAssessment, type Check, firstRound, type Gate, gate, evaluateRequirement, type StudentRecord } from "./eligibility";
 import { bus } from "./events";
 import { assessDemo, REQUEST_REASONS, requestReason, SCENARIO, scenarioEvidence, snapshotHash, type AssessmentReport } from "./demo-assessment";
 import {
@@ -19,6 +19,7 @@ import {
   convenors,
   courses,
   enrolments,
+  enrolmentEvents,
   type Student,
   students,
   transcript,
@@ -28,7 +29,7 @@ import {
 } from "./schema";
 import { UserError } from "./errors";
 import { studyLoadFor } from "./overload-store";
-import { loadText } from "./study-load";
+import { loadText, unitRange } from "./study-load";
 export { UserError } from "./errors";
 export { actorFrom } from "./auth";
 
@@ -100,6 +101,9 @@ export function transcriptOf(studentId: number) {
 export function enrolmentsOf(studentId: number) {
   return db
     .select({
+      id: enrolments.id,
+      revision: enrolments.revision,
+      units: enrolments.units,
       code: courses.code,
       title: courses.title,
       year: enrolments.year,
@@ -108,9 +112,12 @@ export function enrolmentsOf(studentId: number) {
     })
     .from(enrolments)
     .innerJoin(courses, eq(enrolments.courseId, courses.id))
-    .where(eq(enrolments.studentId, studentId))
+    .where(and(eq(enrolments.studentId, studentId), isNull(enrolments.endedAt)))
     .orderBy(asc(courses.code))
-    .all().map(e => ({ ...e, title: getCourse(e.code, e.year)?.title ?? e.title }));
+    .all().map(e => {
+      const course = getCourse(e.code, e.year);
+      return { ...e, title: course?.title ?? e.title, units: e.units ?? course?.units ?? null };
+    });
 }
 
 export function recordOf(student: Student, term?: string, year = ACTIVE_YEAR): StudentRecord {
@@ -129,10 +136,14 @@ export function recordOf(student: Student, term?: string, year = ACTIVE_YEAR): S
 
 export function gateFor(student: Student, courseCode: string, term?: string, year = ACTIVE_YEAR): Gate {
   const course = getCourse(courseCode, year);
+  return gateForRecord(courseCode, course, recordOf(student, term, year));
+}
+
+function gateForRecord(courseCode: string, course: CourseRow | undefined, record: StudentRecord): Gate {
   const source = course?.source;
   const section = source?.evidence.sections.find(s => s.key === "incompatibility");
-  return gate(courseCode, course?.rules, recordOf(student, term, year), source ? {
-    code: courseCode, year, hash: source.hash, section: "incompatibility", blocks: section?.blocks.map((_, i) => i) ?? [],
+  return gate(courseCode, course?.rules, record, source ? {
+    code: courseCode, year: source.year, hash: source.hash, section: "incompatibility", blocks: section?.blocks.map((_, i) => i) ?? [],
   } : undefined);
 }
 
@@ -157,6 +168,7 @@ function views(where: SQL) {
         select 1 from ${enrolments} where ${enrolments.studentId} = ${applications.studentId}
         and ${enrolments.courseId} = ${applications.courseId} and ${enrolments.year} = ${applications.year}
         and ${enrolments.term} = ${applications.term}
+        and ${enrolments.endedAt} is null
       ) end`,
     })
     .from(applications)
@@ -485,10 +497,15 @@ export function enrol(input: {
     const load = studyLoadFor(input.student.id, course.code, year, input.term, input.units);
     if (load.state !== "within-limit") throw new UserError(
       `Cannot confirm enrolment: ${loadText(load)} against a ${load.limit}-unit limit. ${load.state === "over-maximum" ? "The maximum is 36 units." : "Open Study load to request an overload assessment or resolve missing load information."}`);
-    tx.insert(enrolments)
-      .values({ studentId: input.student.id, courseId: course.id, term: input.term, year, via,
-        units: load.target.units, overloadRequestId: load.maximum! > 24 ? load.approval?.id : null })
-      .run();
+    const old = tx.select().from(enrolments).where(and(eq(enrolments.studentId, input.student.id), eq(enrolments.courseId, course.id), eq(enrolments.year, year), eq(enrolments.term, input.term))).get();
+    if (old && !old.endedAt) throw new UserError("This offering is already enrolled. Refresh your courses.");
+    const values = { studentId: input.student.id, courseId: course.id, term: input.term, year, via,
+      units: load.target.units, overloadRequestId: load.maximum! > 24 ? load.approval?.id ?? null : null,
+      endedAt: null, endedReason: null, revision: old ? old.revision + 1 : 1 };
+    const row = old ? tx.update(enrolments).set(values).where(eq(enrolments.id, old.id)).returning().get()!
+      : tx.insert(enrolments).values(values).returning().get();
+    tx.insert(enrolmentEvents).values({ enrolmentId: row.id, studentId: input.student.id, revision: row.revision, kind: "confirmed",
+      detail: `Confirmed ${course.code}, ${year} ${input.term}, ${load.target.units} units (${via}).` }).run();
     tx.insert(selections)
       .values({ studentId: input.student.id, offeringId: offering.id })
       .onConflictDoNothing()
@@ -515,6 +532,94 @@ export function enrol(input: {
     });
   }
   return via;
+}
+
+export function managedEnrolment(studentId: number, id: number) {
+  const row = db.select().from(enrolments).where(and(eq(enrolments.id, id), eq(enrolments.studentId, studentId))).get();
+  if (!row) return undefined;
+  const course = db.select().from(courses).where(eq(courses.id, row.courseId)).get()!;
+  return { ...row, course: getCourse(course.code, row.year) ?? course };
+}
+
+export function enrolmentHistory(studentId: number) {
+  return db.select().from(enrolmentEvents).where(eq(enrolmentEvents.studentId, studentId)).orderBy(desc(enrolmentEvents.id)).all();
+}
+
+function currentEnrolment(studentId: number, id: number, revision: number) {
+  const row = managedEnrolment(studentId, id);
+  if (!row || row.endedAt || row.revision !== revision) throw new UserError("This enrolment has changed. Refresh My courses before trying again.");
+  return row;
+}
+
+/** Preserve already-satisfied concurrent requirements of courses being kept. */
+function removalIssue(student: Student, old: NonNullable<ReturnType<typeof managedEnrolment>>, replacement?: string) {
+  const before = recordOf(student, old.term, old.year);
+  const after = { ...before, enrolled: [...before.enrolled.filter(code => code !== old.course.code), ...(replacement ? [replacement] : [])] };
+  for (const code of before.enrolled.filter(code => code !== old.course.code)) {
+    const rules = getCourse(code, old.year)?.rules, requires = rules?.requires;
+    if (replacement && rules?.incompatibleEnrolled?.includes(replacement))
+      return `${code} cannot be taken with ${replacement} in this session. Choose another replacement or change ${code} first.`;
+    if (requires && evaluateRequirement(requires, before).status === "met" && evaluateRequirement(requires, after).status !== "met")
+      return `${code} currently relies on ${old.course.code} to meet a concurrent requirement. Drop or swap the dependent course first.`;
+  }
+  return null;
+}
+
+export function changePreview(student: Student, id: number, replacementId?: number, units?: number) {
+  const old = managedEnrolment(student.id, id);
+  if (!old || old.endedAt) throw new UserError("This enrolment is no longer active.");
+  const replacement = replacementId ? db.select({ offering: offerings, course: courses }).from(offerings)
+    .innerJoin(courses, eq(courses.id, offerings.courseId)).where(eq(offerings.id, replacementId)).get() : undefined;
+  if (!replacementId) return { old, issue: removalIssue(student, old), replacement: undefined, gate: undefined, load: undefined };
+  if (!replacement || replacement.offering.year !== old.year || replacement.offering.term !== old.term
+    || !offeringFor(replacement.course.id, old.term, old.year)) throw new UserError("Choose an available replacement in the same year and session.");
+  if (replacement.course.id === old.courseId) throw new UserError("Choose a different course to swap into.");
+  const target = getCourse(replacement.course.code, old.year)!;
+  const record = recordOf(student, old.term, old.year);
+  const after = { ...record, enrolled: record.enrolled.filter(code => code !== old.course.code) };
+  const result = gateForRecord(target.code, target, after);
+  const approval = liveApplication(student.id, target.id, old.term, old.year);
+  const load = studyLoadFor(student.id, target.code, old.year, old.term, units, old.course.code);
+  const range = unitRange(target.unitsText);
+  const issue = range && load.target.units === null ? `Choose a credit value between ${range.min} and ${range.max} units for ${target.code}, then check the replacement again.`
+    : result.outcome === "already" ? result.text
+    : approval?.status !== "approved" && result.outcome !== "eligible" ? "The replacement needs course permission or further eligibility assessment. Keep your current course while you resolve it."
+    : removalIssue(student, old, target.code)
+      ?? (load.state !== "within-limit" ? `The resulting study load is ${loadText(load)}, against a ${load.limit}-unit limit. Resolve the load before swapping.` : null);
+  return { old, replacement: { ...replacement, course: target }, issue, gate: result, load };
+}
+
+type EnrolmentTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+function endEnrolment(tx: EnrolmentTransaction, student: Student, old: NonNullable<ReturnType<typeof managedEnrolment>>, reason: string, detail: string) {
+  tx.update(enrolments).set({ endedAt: sql`(datetime('now'))`, endedReason: reason, revision: old.revision + 1 }).where(eq(enrolments.id, old.id)).run();
+  tx.insert(enrolmentEvents).values({ enrolmentId: old.id, studentId: student.id, revision: old.revision + 1, kind: reason, detail }).run();
+  const selected = tx.select().from(offerings).where(and(eq(offerings.courseId, old.courseId), eq(offerings.year, old.year), eq(offerings.term, old.term))).get();
+  if (selected) tx.delete(selections).where(and(eq(selections.studentId, student.id), eq(selections.offeringId, selected.id))).run();
+  const requests = applicationsOfStudent(student.id).filter(app => !app.scenarioKey && app.courseId === old.courseId && app.year === old.year && app.term === old.term && app.status === "approved");
+  for (const app of requests) tx.insert(applicationEvents).values({ applicationId: app.id, actor: "student", actorName: student.name, kind: reason, detail }).run();
+  if (old.overloadRequestId) tx.insert(overloadEvents).values({ requestId: old.overloadRequestId,
+    actor: "student", actorName: student.name, kind: reason, detail }).run();
+}
+
+export function dropEnrolment(student: Student, id: number, revision: number) {
+  db.transaction((tx) => {
+    const old = currentEnrolment(student.id, id, revision);
+    const issue = removalIssue(student, old);
+    if (issue) throw new UserError(issue);
+    endEnrolment(tx, student, old, "dropped", `Dropped ${old.course.code}, ${old.year} ${old.term}. It no longer counts towards confirmed study load.`);
+  }, { behavior: "immediate" });
+}
+
+export function swapEnrolment(student: Student, id: number, revision: number, replacementId: number, units?: number) {
+  db.transaction((tx) => {
+    const old = currentEnrolment(student.id, id, revision);
+    const preview = changePreview(student, id, replacementId, units);
+    if (!preview.replacement || preview.issue) throw new UserError(preview.issue ?? "Choose a replacement offering.");
+    endEnrolment(tx, student, old, "swapped-out", `Swapped ${old.course.code} for ${preview.replacement.course.code}, ${old.year} ${old.term}.`);
+    // The nested enrol transaction is a savepoint: any failure rolls back the
+    // outgoing change, its events and selections as well as the replacement.
+    enrol({ student, courseCode: preview.replacement.course.code, year: old.year, term: old.term, units });
+  }, { behavior: "immediate" });
 }
 
 export function offeringFor(courseId: number, term: string, year = ACTIVE_YEAR) {

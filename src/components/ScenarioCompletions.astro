@@ -4,13 +4,13 @@ import { type ApplicationView, TERM_LABELS } from "../lib/store";
 interface Props { completions: ApplicationView[] }
 const { completions } = Astro.props;
 ---
-{completions.length > 0 && <section aria-labelledby="scenarios-heading" data-scenario-completions>
-  <h2 id="scenarios-heading">Demo scenario completions</h2>
-  <p>These completed examples use a separate fictional record. They do not count towards your academic enrolments or eligibility checks.</p>
-  <ul class="plain">
+<section class="enrolment-panel scenario-panel" aria-labelledby="scenarios-heading">
+  <div class="section-title"><div><p class="eyebrow">Practice workflow</p><h2 id="scenarios-heading">Demo scenario completions</h2></div><span class="section-count">{completions.length}<span class="visually-hidden"> completed demos</span></span></div>
+  <p>Completed practice examples, saved separately. They use <strong>0 units</strong> of your study load.</p>
+  {completions.length > 0 ? <ul class="enrolled-list" data-scenario-completions>
     {completions.map(app => <li>
-      <a href={`/applications/${app.id}/`}>{app.course.code} {app.course.title}</a>
-      , {`${app.year} ${TERM_LABELS[app.term as Term]}`} — Scenario enrolment confirmed
+      <div><h3><a href={`/applications/${app.id}/`}><span class="enrolled-code">{app.course.code}</span> {app.course.title}</a></h3>
+        <p class="meta">{`${app.year} ${TERM_LABELS[app.term as Term]}`} · Scenario enrolment confirmed</p></div>
     </li>)}
-  </ul>
-</section>}
+  </ul> : <p class="muted">No completed examples yet. <a href="/demo/">Try the permission workflow demo</a>.</p>}
+</section>

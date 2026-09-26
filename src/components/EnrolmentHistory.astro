@@ -1,0 +1,9 @@
+---
+import { enrolmentHistory } from "../lib/store";
+interface Props { studentId: number }
+const changes = enrolmentHistory(Astro.props.studentId);
+---
+{changes.length > 0 && <details data-enrolment-history>
+  <summary>Enrolment change history ({changes.length})</summary>
+  <ol class="timeline">{changes.map(event => <li><p>{event.detail}</p><time class="meta">{event.createdAt} UTC</time></li>)}</ol>
+</details>}

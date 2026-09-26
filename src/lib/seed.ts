@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { COURSES } from "../data/courses";
 import { CONVENORS, convenorFor, STUDENTS } from "../data/people";
@@ -7,9 +7,9 @@ import { LEGACY_YEAR } from "./academic-year";
 
 // Brings the database's reference data in line with src/data/ on every boot.
 // Convenors, courses and students are upserted by their natural keys, so ids
-// (and every application pointing at them) survive a reseed. Transcripts and
-// seed enrolments belong to the seed alone and are rewritten wholesale;
-// applications and the enrolments people make are never touched.
+// (and every application pointing at them) survive a reseed. Seed transcripts
+// are rewritten; enrolments are inserted only when missing so drops, swaps and
+// their history survive reseeding, including changes to an original seed course.
 export function seed(db: BetterSQLite3Database): void {
   db.transaction((tx) => {
     const convenorIds = new Map<string, number>();
@@ -61,9 +61,6 @@ export function seed(db: BetterSQLite3Database): void {
           .run();
       }
 
-      tx.delete(enrolments)
-        .where(and(eq(enrolments.studentId, row.id), eq(enrolments.via, "seed")))
-        .run();
       for (const code of s.enrolled) {
         tx.insert(enrolments)
           .values({ studentId: row.id, courseId: courseIds.get(code) as number, year: LEGACY_YEAR, term: "S2", via: "seed" })

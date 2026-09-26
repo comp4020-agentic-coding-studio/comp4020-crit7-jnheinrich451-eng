@@ -1,0 +1,75 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import RequirementChecks from "../../components/RequirementChecks.astro";
+import { changePreview, listCourses, managedEnrolment, offeringFor, TERM_LABELS } from "../../lib/store";
+import { loadText, unitRange } from "../../lib/study-load";
+import { userMessage } from "../../lib/http";
+import type { Term } from "../../data/courses";
+const actor = Astro.locals.actor;
+if (actor?.kind !== "student") return new Response("Enrolment not found", { status: 404 });
+const current = managedEnrolment(actor.student.id, Number(Astro.params.id));
+if (!current) return new Response("Enrolment not found", { status: 404 });
+const query = Astro.url.searchParams, dropping = query.get("mode") === "drop";
+const replacementId = dropping ? undefined : Number(query.get("replacementId")) || undefined;
+const units = query.has("units") ? Number(query.get("units")) : undefined;
+let preview: ReturnType<typeof changePreview> | undefined, error: string | undefined;
+if (!current.endedAt) {
+  try { preview = changePreview(actor.student, current.id, replacementId, units); }
+  catch (err) { error = userMessage(err); }
+}
+const choices = dropping ? [] : listCourses(query.get("q") ?? "", "", current.year)
+  .filter(c => c.id !== current.courseId && c.termList.includes(current.term as Term))
+  .map(course => ({ course, offering: offeringFor(course.id, current.term, current.year)! }));
+const target = preview?.replacement;
+const range = unitRange(choices.find(choice => choice.offering.id === replacementId)?.course.unitsText);
+const title = `${dropping ? "Drop" : "Swap"} ${current.course.code}`;
+---
+<Layout title={title} actor={actor}>
+  <p><a href="/plan/#current-heading">My courses</a> / Change enrolment</p>
+  <h1>{title}</h1>
+  <p class="lede">{current.course.title} · {current.year} {TERM_LABELS[current.term as Term]}</p>
+  <p class="field-help">Changes affect this prototype's fictional enrolments. University withdrawal deadlines, fees and transcript penalties are not modelled here.</p>
+  {current.endedAt ? <div class="surface"><h2>This enrolment has ended</h2><p>Your earlier change is saved. Return to My courses to manage your active enrolments.</p></div> : <>
+    {error && <p class="warning" role="alert">{error}</p>}
+    {dropping ? <section class="surface change-summary">
+      <h2>Remove this confirmed enrolment</h2>
+      <p>Dropping <strong>{current.course.code}</strong> releases its enrolled units and removes it from your saved courses. Your completed results, permission decisions and change history are kept.</p>
+      {preview?.issue && <p class="warning">{preview.issue}</p>}
+      <form action={`/api/enrolments/${current.id}/drop`} method="post" class="actions">
+        <input type="hidden" name="revision" value={current.revision} />
+        <button class="danger" disabled={!!preview?.issue || !!error}>Confirm drop</button>
+        <a class="button" href="/plan/#current-heading">Keep this course</a>
+      </form>
+    </section> : <>
+      <p>Your current course stays enrolled until the swap succeeds. The replacement must be in the same session; the load check counts the resulting selection.</p>
+      <form method="get" class="stack surface">
+        <input type="hidden" name="mode" value="swap" />
+        <label for="replacement">Replacement course</label>
+        <select id="replacement" name="replacementId" required>
+          <option value="">Choose a course</option>
+          {choices.map(({course, offering}) => <option value={offering.id} selected={offering.id === replacementId}>{course.code} — {course.title} ({course.unitsText})</option>)}
+        </select>
+        {range && <><label for="replacement-units">Units for the replacement</label>
+          <input id="replacement-units" type="number" name="units" min={range.min} max={range.max} step="1" value={Number.isFinite(units) ? units : ""} required />
+          <p class="field-help">Choose within the published {range.min}–{range.max} unit range. Class-specific credit options still need confirmation.</p></>}
+        <button>Check replacement</button>
+      </form>
+      {target && preview && <section class="surface change-summary">
+        <h2>Your proposed swap</h2>
+        <div class="swap-comparison"><div><span class="eyebrow">Remove</span><h3>{current.course.code}</h3><p>{current.course.title}</p></div>
+          <div><span class="eyebrow">Enrol instead</span><h3>{target.course.code}</h3><p>{target.course.title}</p></div></div>
+        {preview.load && <p data-swap-load>Resulting study load: <strong>{loadText(preview.load)}</strong>. Limit: {preview.load.limit} units.</p>}
+        {preview.gate && "checks" in preview.gate && <RequirementChecks checks={preview.gate.checks} />}
+        {preview.issue ? <><p class="warning" data-swap-issue>{preview.issue}</p>
+          <p><a href={`/courses/${target.course.code}/?year=${current.year}&term=${current.term}`}>Open replacement requirements and permission options</a></p></> : <p class="flash flash-ok">The replacement can be enrolled within your current load limit.</p>}
+        <form action={`/api/enrolments/${current.id}/swap`} method="post" class="actions">
+          <input type="hidden" name="revision" value={current.revision} />
+          <input type="hidden" name="replacementId" value={target.offering.id} />
+          <input type="hidden" name="units" value={preview.load?.target.units ?? ""} />
+          <button class="primary" disabled={!!preview.issue}>Confirm swap</button>
+          <a class="button" href="/plan/#current-heading">Keep this course</a>
+        </form>
+      </section>}
+    </>}
+  </>}
+</Layout>

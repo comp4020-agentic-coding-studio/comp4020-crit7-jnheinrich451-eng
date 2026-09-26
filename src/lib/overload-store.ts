@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { db } from "./db";
 import { courses, convenors, enrolments, offerings, overloadEvents, overloadRequests, students, transcript, type Student, type Convenor } from "./schema";
 import { catalogueEntries } from "./catalogue";
@@ -26,7 +26,7 @@ export function courseLoad(code: string, year: number, term: string, units?: num
 }
 export function loadCoursesOf(studentId: number): LoadCourse[] {
   return db.select({ code: courses.code, year: enrolments.year, term: enrolments.term, units: enrolments.units })
-    .from(enrolments).innerJoin(courses, eq(courses.id, enrolments.courseId)).where(eq(enrolments.studentId, studentId)).all()
+    .from(enrolments).innerJoin(courses, eq(courses.id, enrolments.courseId)).where(and(eq(enrolments.studentId, studentId), isNull(enrolments.endedAt))).all()
     .map(e => courseLoad(e.code, e.year, e.term, e.units));
 }
 export function loadApproval(studentId: number, year: number, period: HalfYear | null) {
@@ -34,9 +34,10 @@ export function loadApproval(studentId: number, year: number, period: HalfYear |
   return db.select().from(overloadRequests).where(and(eq(overloadRequests.studentId, studentId), eq(overloadRequests.year, year),
     eq(overloadRequests.period, period), eq(overloadRequests.status, "approved"))).orderBy(desc(overloadRequests.approvedLimit)).get();
 }
-export function studyLoadFor(studentId: number, code: string, year: number, term: string, units?: number) {
+export function studyLoadFor(studentId: number, code: string, year: number, term: string, units?: number, excludingCode?: string) {
   const approval = loadApproval(studentId, year, halfOf(term));
-  return { ...projectLoad(loadCoursesOf(studentId), courseLoad(code, year, term, undefined, units), approval?.approvedLimit ?? 24), approval };
+  const current = loadCoursesOf(studentId).filter(c => !(c.code === excludingCode && c.year === year && c.term === term));
+  return { ...projectLoad(current, courseLoad(code, year, term, undefined, units), approval?.approvedLimit ?? 24), approval };
 }
 export function studyLoadsOf(studentId: number) {
   const courses = loadCoursesOf(studentId);
@@ -75,7 +76,7 @@ export function submitOverload(input: { student: Student; code: string; year: nu
   if (!course || ![ACTIVE_YEAR, LEGACY_YEAR].includes(input.year) || !terms.includes(input.term as Term)
     || !db.select().from(offerings).where(and(eq(offerings.courseId, course.id), eq(offerings.year, input.year), eq(offerings.term, input.term))).get())
     throw new UserError("That course offering is unavailable.");
-  if (db.select().from(enrolments).where(and(eq(enrolments.studentId, input.student.id), eq(enrolments.courseId, course.id), eq(enrolments.year, input.year), eq(enrolments.term, input.term))).get())
+  if (db.select().from(enrolments).where(and(eq(enrolments.studentId, input.student.id), eq(enrolments.courseId, course.id), eq(enrolments.year, input.year), eq(enrolments.term, input.term), isNull(enrolments.endedAt))).get())
     throw new UserError("You are already enrolled in this offering.");
   if (input.reason !== "standard" && input.reason !== "final-30") throw new UserError("Choose a valid overload reason.");
   const statement = input.statement.trim();

@@ -22,7 +22,7 @@ for (const route of ROUTES) {
     beforeAll(async () => {
       const publicAuth = ["/login/", "/register/", "/verify/"].includes(route);
       const res = await fetch(new URL(route, baseUrl), {
-        headers: { cookie: publicAuth ? "" : inject("fixtureCookies")[route === "/overload/1/" ? "Overload page student" : "Olivia Park"] },
+        headers: { cookie: publicAuth ? "" : inject("fixtureCookies")[route.startsWith("/enrolments/1/") ? "Mei Lin" : route === "/overload/1/" ? "Overload page student" : "Olivia Park"] },
       });
       status = res.status;
       dom = new JSDOM(await res.text(), {
