@@ -2694,3 +2694,32 @@ the checks, then HTTP and even a no-op SSH command stalled despite a started
 machine. A restart restored access; bounded, separate diagnostics and preservation
 checks then passed. The cause of that transient stall was not established. No
 machine-size, volume, networking or mail-secret changes were made by this turn.
+
+## 2026-09-27 — Verification email moved to an authenticated johnz.fyi sender
+
+**Prompt:**
+
+> Ty, the Brevo suggests using a authenticated domain, and gmail those emails cannot fit.
+
+> Oh I have one! [...] johnz.fyi [...] And if the .env is correctly configured?
+
+**Result:**
+Brevo flagged the Gmail sender as non-compliant. Its fallback sent as a shared
+`brevosend.com` subdomain with Brevo's default DKIM, so authentication passed
+but on a shared domain's reputation. John registered `johnz.fyi` through
+Cloudflare Registrar and authenticated and branded it in Brevo. Fly `MAIL_FROM`
+is now "Crit-7 project enrolment prototype <crit7@johnz.fyi>". In the local
+`.env`, John was advised to remove the inline comment from `APP_ORIGIN`, since
+Docker `--env-file` would keep it as part of the URL, and to add the standard
+space before `<` in `MAIL_FROM`. Credential values were checked only for
+presence and shape, never printed.
+
+**Verified:**
+DNS for johnz.fyi: `brevo-code` TXT, `brevo1`/`brevo2._domainkey` CNAMEs to
+Brevo DKIM, DMARC `p=none`, and `crit7.johnz.fyi` pointing to Brevo's branded
+domain. It has no MX record, so the address cannot receive replies yet. After
+the secret restart, SMTP `verify()` inside Fly succeeded from 75.102.33.82 with
+the new MAIL_FROM and the fly.dev APP_ORIGIN. Inbox delivery and DKIM alignment
+(`header.from=johnz.fyi`) are for John to confirm from a received header.
+
+**Commit:** none — Fly secret change only; no repo change besides this entry.
