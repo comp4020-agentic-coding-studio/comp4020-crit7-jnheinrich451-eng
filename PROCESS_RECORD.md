@@ -2723,3 +2723,58 @@ the new MAIL_FROM and the fly.dev APP_ORIGIN. Inbox delivery and DKIM alignment
 (`header.from=johnz.fyi`) are for John to confirm from a received header.
 
 **Commit:** none — Fly secret change only; no repo change besides this entry.
+
+## 2026-09-27 03:34 — Forgotten passwords have a separate inbox recovery route
+
+**Prompt:**
+
+> The change password, I think this text box should input the verification code,
+> or we remove it, use another password reset key? And we fill in new password.
+> If we know the password, why we need to change it haha
+
+**Result:**
+Separated changing a known password from recovering a forgotten one. Sign-in now
+offers Forgot password, and My account links to recovery beside the explanation
+of its existing current-password field. Recovery needs only the verified ANU
+address: the emailed single-use link is the verification key, followed by the
+new password twice. Existing password-link storage, expiry, credential fingerprint
+and session revocation are reused; no schema migration or profile regeneration.
+
+Public normal-account responses do not disclose existence, verification, rate
+limits or provider failure. Delivery runs outside the response, with its attempt
+status saved; there is no durable retry worker. Demo recovery requires an existing
+private inbox capability or a signed-in demo session. It cannot recover someone
+else's inbox from a fictional address. Documented the routes and limits in the
+shared harness and account guide, and deployed the fix to Fly.
+
+**Verified:**
+Node 24 / pnpm 11.9.0 Docker checks passed: zero Astro diagnostics, 572 tests in
+28 files, and evidence checks. HTTP tests cover no-session recovery, reviewer
+role preservation, normal/demo isolation, rejected mail, per-address limits,
+non-disclosing responses, single-use links, revoked sessions and retained records.
+Chrome with JavaScript disabled completed real forms against isolated local SMTP
+capture for normal and demo accounts; all 12 POSTs returned 303 with the correct
+Origin. Screens at 390 and 1440 pixels had no horizontal overflow.
+
+Live recovery pages and the referenced stylesheet returned 200; anonymous events
+returned 401, an invalid same-origin recovery form returned 303, and cross-site
+POST returned 403. Linkinator passed 283 internal links. No real reset email was
+sent during these checks. Before/after hashes matched accounts, students, study
+plans, requests/events, enrolments and selections. Transcript auditing confirmed
+all 20 registered rows were unchanged; only the 15 seeded reference row IDs were
+refreshed by the existing boot routine, with all other fields matching.
+
+Preflight confirmed the public GitHub repo, current course plugin and green CI
+at remote main 947c41c. The deadline helper lacks jq; published group data still
+gives Bada Monday 28 September at 13:30. This turn deploys directly and leaves
+the implementation and process-record commits local for John to push.
+
+**Commit:** [`88efa62`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/88efa62)
+
+**What happened:**
+The earlier interface supported a known-password change but offered no recovery
+when the user could not sign in. A whole-table transcript checksum initially
+differed after deployment; a read-only audit reproduced the pre-deploy hash by
+undoing only the seed row ID increment, confirming no registered records changed.
+PowerShell stripped the link-check regex quoting; an ignored shell script passed
+the exact argument and the link check then succeeded.
