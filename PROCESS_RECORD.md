@@ -2778,3 +2778,58 @@ differed after deployment; a read-only audit reproduced the pre-deploy hash by
 undoing only the seed row ID increment, confirming no registered records changed.
 PowerShell stripped the link-check regex quoting; an ignored shell script passed
 the exact argument and the link check then succeeded.
+
+## 2026-09-27 — Rule-driven profiles and a three-tier adviser harness
+
+**Prompt:**
+
+> could you check the My profile score transcripte template generator? I find everytime it is the same right? And the course advisor, the llama is not smart, maybe we need to build a template for it, like harness to guide the generate process?
+
+> my previous thought is about the we have a rule for those link of prerequisite, timeslot, specialization rules, and degree specs. And we use them to generate, it has two benefits, first we can create various plans, second, we know what remains to proceed.
+
+> What model do you need, the parameter, the GPU of mini pc is: AMD Radeon (TM) Graphics (496 MB)
+
+**Result:**
+The v1 profile was one fixed ten-course schedule; only marks varied, from 72
+to 84. Following John's design, `generateProfile` became a seeded search over
+the reviewed 2027 rules: the eligibility gate, published semester patterns,
+fixed units and the degree and specialisation groups. The planner's own buckets
+report what remains. Neither professional-practice course has a 2027 offering,
+so v2 leaves that requirement outstanding instead of repeating v1's COMP6250
+assumption. v1 stays as `generateAuthoredProfile` for existing accounts,
+fixtures and the benchmark.
+
+The adviser's v1 filter kept only words of three or more letters, so "AI" and
+"ML" never matched, and required the student's exact words in the course
+sentence. The first v2 attempt asked Llama to choose topic ids with worked
+examples. It was rejected after the live benchmark: it added unrelated topics
+and answered "creative" for "just give me 24 units". A variant without worked
+examples missed 4 of 4 paraphrases. The adopted harness has three tiers: named
+topics come from a reviewed vocabulary without a model; requests about marks,
+units, approvals or rules stop without a model; Llama only restates paraphrases
+as subject names, which pass through the same vocabulary. John's mini PC has a
+496 MB integrated GPU, so inference is CPU-only; `llama3.2:3b` is kept and a
+larger model is an optional later comparison.
+
+**Verified:**
+The generator produced 300 distinct transcripts from 300 seeds, with no
+failures. Tests cover 60 seeds: each course is gate-eligible at its term and
+in a published pattern, loads, the lower-level cap, the mark/grade mapping, a
+GPA of at least 6, and `remaining` matching the planner. Changed or conflicting
+sources are excluded. Three account tests assumed v1's fixed courses; they now
+assert shape. The enrolment fallback was checked against 500 seeds (at least
+two eligible options each time). Docker `pnpm check` passed 574 tests in 28
+files; `check:evidence` passed. The live mini-PC benchmark passed 27 of 30
+reference cases: all 18 named and non-subject cases without a model, and 9 of
+12 paraphrases at about 1 second each. The misses returned no topic, not a
+wrong one.
+
+**Commit:** [`d925e65`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/d925e65)
+
+**What happened:**
+The first adviser harness looked right in unit tests and failed on the real
+model: 14 of 23, with invented topics for non-subject requests. The benchmark,
+not the tests, caught that the 3B model copies worked examples. Switching the
+model's job from choosing ids to naming subjects moved paraphrases from 0 of 4
+to 9 of 12. Several heredoc edits failed on shell quoting and one regex escape
+was halved during a splice; both were caught before running and rewritten.

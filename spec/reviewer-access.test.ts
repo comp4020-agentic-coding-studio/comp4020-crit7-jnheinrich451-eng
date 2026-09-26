@@ -98,7 +98,8 @@ it("supports reviewer-first accounts, resends to the same invitation, and create
   cookie = cookieOf(await post("/api/auth/switch-role", { role: "student" }, cookie));
   const account = sql("SELECT * FROM accounts WHERE email = ?", email)[0];
   const saved = records(Number(account.student_id));
-  expect(saved.transcript).toHaveLength(10);
+  expect(saved.transcript.length).toBeGreaterThan(0);
+  expect(saved.transcript.reduce((units, row) => units + Number(row.units), 0)).toBe(60);
   expect(saved.plan).toHaveLength(1);
   expect(await (await get("/record/", cookie)).text()).toContain("Fictional academic results");
   cookie = cookieOf(await post("/api/auth/switch-role", { role: "reviewer" }, cookie));

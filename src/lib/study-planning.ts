@@ -55,7 +55,23 @@ export function planningProgress(results: AcademicResult[]) {
     // A lower bound only: no inference that this alone fulfils the degree.
     minimumFurtherUnits: Math.max(0, 96 - allocated, 48 - advancedUnits, 24 - sum(project)) };
 }
-function referencedCourses(requirement?: Requirement): string[] {
+/** What the recorded study leaves outstanding, in the same exclusive buckets.
+ * The 8000-level line is a threshold that overlaps the groups above it, so the
+ * total is the planner's lower bound, never a sum of the lines. */
+export function remainingRequirements(progress: ReturnType<typeof planningProgress>) {
+  const items: { key: string; text: string; units: number }[] = [];
+  const core = policy.program.core.filter(code => !progress.core.includes(code));
+  if (core.length) items.push({ key: "core", text: `Compulsory ${core.length === 1 ? "course" : "courses"}: ${core.join(", ")}`, units: core.length * 6 });
+  if (!progress.professional.length) items.push({ key: "professional", text: `Professional practice: ${policy.program.professional.join(" or ")}`, units: 6 });
+  const ai = Math.max(0, policy.specialisation.totalUnits - progress.aiUnits), aiAdvanced = Math.max(0, policy.specialisation.advancedMinimum - progress.aiAdvancedUnits);
+  if (ai || aiAdvanced) items.push({ key: "specialisation", text: `${policy.specialisation.title} specialisation: ${Math.max(ai, aiAdvanced)} more units${aiAdvanced ? `, including ${aiAdvanced} from its advanced list` : ""}`, units: Math.max(ai, aiAdvanced) });
+  const project = Math.max(0, policy.program.projectUnits - progress.projectUnits);
+  if (project) items.push({ key: "project", text: `Research project (${policy.program.project}): ${project} units across consecutive semesters`, units: project });
+  const advanced = Math.max(0, policy.program.advancedCompUnits - progress.advancedUnits);
+  if (advanced) items.push({ key: "advanced", text: `8000-level COMP study: ${advanced} more units, which can overlap the groups above`, units: advanced });
+  return { totalUnits: policy.program.totalUnits, allocatedUnits: progress.allocated, minimumUnits: progress.minimumFurtherUnits, items };
+}
+export function referencedCourses(requirement?: Requirement): string[] {
   if (!requirement) return [];
   if ("course" in requirement) return [requirement.course];
   if ("all" in requirement) return requirement.all.flatMap(referencedCourses);

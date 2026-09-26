@@ -26,27 +26,37 @@ still requires the student's explicit actions through the existing course flow.
 
 ## Model and rule boundary
 
+Version `preference-adviser-v2` (27 September 2026) replaces the passage-ID
+design below; see the decision log for why.
+
 1. The existing planner identifies individually eligible, offered, fixed-unit
    candidates. Permission, uncertain evidence and unavailable offerings retain
    their existing next-step sections.
-2. Supply at most 24 ready courses, in deterministic priority order, within a
-   24,000-character source-passage budget. The snapshot records omissions.
-   Llama receives only public course passages and the student's preferences,
-   not account identifiers, names, emails, grades or transcript rows.
-3. Llama selects up to three passage IDs through Ollama's JSON-schema format.
-   Validate IDs, deduplicate courses, and require a shared subject word between
-   each passage and the preference. Generic enrolment/difficulty words do not
-   count. Display the original excerpt; accept no generated quotation or verdict.
-4. Re-run the planner with the chosen priorities, personal unit ceiling, current
+2. Supply at most 24 ready courses, in deterministic priority order. The
+   snapshot records omissions.
+3. Tier one: topics the student names are read from the reviewed vocabulary
+   in `src/data/adviser-topics-2027.json` without a model. Aliases are what
+   students type ("AI", "robots", "SQL"); longer aliases claim text first, so
+   "video games" is games rather than video. Tier two: requests about marks,
+   units, approvals, the rules or course codes end as no-match without a model.
+4. Tier three, paraphrases only: Llama receives just the student's text and
+   returns up to three short subject names through Ollama's JSON-schema format
+   (`temperature` 0, 60 tokens, 2,048-token context). The names pass through
+   the same vocabulary; model text is never displayed or trusted, so only
+   reviewed topics can result. No account data, grades or course text are sent.
+5. A course matches a topic only when one of its own saved passages contains a
+   reviewed course-side term. Title matches weigh most and passing mentions
+   least, so Algorithms listing the fields it enables does not outrank
+   Artificial Intelligence. The original excerpt is displayed.
+6. Re-run the planner with the chosen priorities, personal unit ceiling, current
    prerequisites, concurrent incompatibilities, approvals, reserved load and
    degree/project-space checks. An individual match may not fit the combination;
    display its exclusion reason and source link.
 
-The conservative relevance filter can miss synonyms, short acronyms and
-non-English interests. Shared words do not prove semantic relevance; Llama can
-misread negation or nuanced preferences. Inspect the original excerpt, update
-preferences or return to standard suggestions. No model output can change an
-academic fact, enrolment, course rule or approval.
+The vocabulary cannot see negation ("not AI"), and a small model can miss or
+decline a paraphrase. A miss returns no match rather than a guessed topic.
+Inspect the excerpt, reword the interest or return to standard suggestions. No
+model output can change an academic fact, enrolment, course rule or approval.
 
 ## Persistence and failure handling
 
@@ -122,22 +132,36 @@ alone does not establish advice quality.
 
 ## Reproducible checks
 
-`pnpm check` uses a private HTTP model fixture, never a real model. Opt-in live
-check: `node --import tsx scripts/benchmark-adviser.ts` with `OLLAMA_BASE_URL`
-configured. It uses a generated fictional profile and four fixed preferences,
-reporting digest, latency, checked options and pass/fail. Set
-`ADVISER_BENCHMARK_DEBUG=1` to print these fictional benchmark responses.
-The benchmark uses the same optional Host transport as the app and reports
-pool size and Ollama's load/prompt/generation timings (durations in nanoseconds).
+`pnpm check` uses a private HTTP model fixture, never a real model. It checks
+every named and non-subject case in `src/data/adviser-reference.json` against
+the vocabulary. Opt-in live check: `node --import tsx scripts/benchmark-adviser.ts`
+with `OLLAMA_BASE_URL` configured. It runs all 30 reference cases on the
+authored fictional profile and reports topics, method, matches, latency, digest
+and pass/fail. A subject case passes when an acceptable topic is chosen and a
+course is grounded whenever the ready pool has one; a non-subject case must
+match nothing. Set `ADVISER_BENCHMARK_DEBUG=1` to print raw model responses.
+
+### v2 benchmark, 27 September 2026
+
+On the mini PC's `llama3.2:3b` (CPU only; its integrated GPU has 496 MB), the
+final v2 harness passed 27 of 30 cases. All 18 named and non-subject cases
+passed without a model call. Paraphrases passed 9 of 12 at about one second
+each; the three misses ("start my own tech company", "personal information
+private", "computers faster for scientists") returned no topic rather than a
+wrong one. Two rejected variants are recorded for comparison: choosing topic
+ids with worked examples passed 14 of 23 and invented topics for non-subject
+requests; choosing topic ids without examples passed 0 of 4 paraphrases. These
+are development cases, not a held-out accuracy evaluation. A larger model such
+as `llama3.1:8b` can be compared with the same script later.
+
+### v1 history
 
 The first quotation-generating design failed all four cases: Llama duplicated
 courses and invented/paraphrased quotations. Passage IDs removed that failure;
 the relevance filter removed spurious matches for difficulty/approval requests.
 Four development cases passed with Llama 3.2 3B digest
-`a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72`.
-They are smoke cases used during development, not an independent accuracy
-benchmark. Broader held-out evaluation and the separate prerequisite-rule
-extraction benchmark remain future work.
+`a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72`. That filter
+also dropped two-letter words, so "AI" and "ML" could never match; v2 fixes it.
 
 ### Mini PC check, 26 September 2026
 

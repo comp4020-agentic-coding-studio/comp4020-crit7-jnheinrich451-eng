@@ -59,6 +59,6 @@ export async function requestAdvice(student: Student, preferences: string, targe
   db.transaction(tx => {
     const updated = tx.update(adviserRuns).set({ status: fallback ? "fallback" : "complete", response: JSON.stringify(answer.response),
       model: answer.model, modelDigest: answer.digest, elapsedMs: answer.elapsedMs }).where(and(eq(adviserRuns.id, run.id), eq(adviserRuns.status, "pending"))).run();
-    if (updated.changes) tx.insert(studyPlanEvents).values({ studentId: student.id, detail: `Course adviser request ${run.id} finished: ${!answer.model ? "no model called; rule-based suggestions" : fallback ? "rule-based fallback" : "interest matching checked"}. Suggestions still require current rule and load checks; no enrolment changed.` }).run();
+    if (updated.changes) tx.insert(studyPlanEvents).values({ studentId: student.id, detail: `Course adviser request ${run.id} finished: ${answer.response.method === "keywords" ? (answer.response.topics?.length ? "named interests matched to reviewed topics without a model" : "not a subject interest; no model called") : !answer.model ? "no model called; rule-based suggestions" : fallback ? "rule-based fallback" : "interest matching checked"}. Suggestions still require current rule and load checks; no enrolment changed.` }).run();
   });
 }

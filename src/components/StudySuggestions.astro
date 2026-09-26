@@ -1,18 +1,20 @@
 ---
 import type { Student } from "../lib/schema";
 import { profileGuidance } from "../lib/planning-store";
-import { PLANNING_POLICY, PLANNING_PERIODS } from "../lib/study-planning";
+import { PLANNING_POLICY, PLANNING_PERIODS, remainingRequirements } from "../lib/study-planning";
 import type { generateProfile } from "../lib/profile-template";
 import { catalogueLink } from "../lib/catalogue";
 import { offeringFor, TERM_LABELS } from "../lib/store";
 import type { Term } from "../data/courses";
 import CourseAdviser from "./CourseAdviser.astro";
 import { adviserView } from "../lib/adviser-store";
+import { topicLabel } from "../lib/course-adviser";
 interface Props { student: Student }
 const { student } = Astro.props;
 const adviser = adviserView(student);
 const standard = profileGuidance(student, adviser.input);
 const g = { ...standard, ...(adviser.personalised ?? {}) }, p = g.progress;
+const remaining = remainingRequirements(p);
 const template = g.plan?.templateSnapshot ? JSON.parse(g.plan.templateSnapshot) as ReturnType<typeof generateProfile> : null;
 const periodLabel = (period: string) => { const [year, term] = period.split(" "); return `${year} ${TERM_LABELS[term as Term]}`; };
 const title = periodLabel(`${g.year} ${g.term}`);
@@ -25,9 +27,10 @@ const linkFor = (code: string) => g.future ? catalogueLink("course", code, PLANN
     <p class="lede">{title} · Artificial Intelligence</p>
     <p>{g.plan?.templateId ? "Your assigned fictional specialisation" : g.plan ? "Your saved fictional study focus" : "Example study focus for your existing record"}. Suggestions use your completed results and the saved 2027 catalogue. They do not guarantee graduation or approve enrolment.</p>
     {template ? <details data-profile-template><summary>Your generated academic scenario</summary>
-      <p>Template {template.id}: {template.semesterLoads.map(s => `${s.term} (${s.units} units)`).join(", ")}. The lighter semesters are intentional and the record is complete. The scenario date is {template.scenarioDate}; results through {template.completedThrough} are completed study, not current enrolments.</p>
+      <p>Template {template.id}: {template.semesterLoads.map(s => `${s.term} (${s.units} units)`).join(", ")}. The record is complete for those semesters. The scenario date is {template.scenarioDate}; results through {template.completedThrough} are completed study, not current enrolments.</p>
       <p>{template.assumption} All marks, grades and program attribution are fictional.</p>
       <p>{template.professionalPracticeAssumption}</p>
+      <p>{template.validation}</p>
     </details> : <p class="field-help">Your existing academic record is preserved. Saving a study focus changes only these suggestions; it does not generate or replace past results.</p>}
     <form action="/api/study-plan" method="post" class="actions planning-controls">
       <div><label for="planning-period">Semester to plan</label><select id="planning-period" name="period">
@@ -45,7 +48,7 @@ const linkFor = (code: string) => g.future ? catalogueLink("course", code, PLANN
         <p class="meta">{course.units} units · {g.future ? "Meets current saved checks; future offering indicative" : "Recorded eligibility checks met"}</p>
         <p>{reasons.join(" ")}</p>
         {adviser.active && adviser.response?.matches.filter(m => m.code === course.code).map(match => <div class="interest-match" data-interest-match>
-          <p><strong>Suggested for the interests you described</strong></p>
+          <p><strong>Suggested for the interests you described</strong>{match.topics?.length ? <> · {match.topics.map(topicLabel).join(", ")}</> : null}</p>
           <p>Excerpt from the saved course description: <q>{match.courseQuote}</q></p>
         </div>)}
         <p class="field-help"><a data-source-hash={course.source?.hash} href={catalogueLink("course", course.code, 2027)}>Course evidence</a>{unlocks.length > 0 && <> · Later requirements: {unlocks.map((code, i) => <>{i ? ", " : ""}<a href={catalogueLink("course", code, 2027)}>{code}</a></>)}</>}</p>
@@ -53,7 +56,9 @@ const linkFor = (code: string) => g.future ? catalogueLink("course", code, PLANN
       </li>)}</ul> : <p class="empty">{g.constrained || g.saved.length ? "No further priority fits alongside your current selection. Review My courses to change it." : "No additional course is prioritised in this plan. Review the next steps below or browse courses at your preference."}</p>}
       {g.saved.length > 0 && <p data-planning-saved>Already saved: {g.saved.map(c => c.code).join(", ")}. <a href="/plan/#saved-heading">Review saved courses</a>.</p>}
       {g.exceedsOneSemester && <p class="planning-note">Your remaining recorded requirements extend beyond one normal semester. These suggestions are still useful if you take longer; they are not a promised completion date.</p>}
-      <details class="planning-progress" data-planning-progress><summary>What your completed study covers</summary>
+      <details class="planning-progress" data-planning-progress open><summary>What your completed study covers · at least {remaining.minimumUnits} units still needed</summary>
+        <div data-planning-remaining><p><strong>Still needed:</strong> at least {remaining.minimumUnits} more units toward the degree's {remaining.totalUnits}; {remaining.allocatedUnits} recorded units count toward its groups so far.</p>
+          {remaining.items.length > 0 && <ul>{remaining.items.map(item => <li>{item.text}</li>)}</ul>}</div>
         <p>Partial planning checks, based on {p.recordedUnits} recorded completed units before this semester. Current enrolments and saved courses are not passed credit.</p>
         <dl class="facts">
           <div><dt>Compulsory courses</dt><dd>{p.core.length} of 2 completed</dd></div>

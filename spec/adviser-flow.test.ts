@@ -22,7 +22,7 @@ function state() {
 
 it("persists checked advice through reload, reuses retries, isolates identity and invalidates stale advice", async () => {
   const before = state(); await page(); expect(state()).toEqual(before);
-  const form = { preferences: "I like computer vision <script>alert(1)</script>", targetUnits: "6", studentId: "1", mark: "100", approvedLimit: "36" };
+  const form = { preferences: "I enjoy looking at pictures <script>alert(1)</script>", targetUnits: "6", studentId: "1", mark: "100", approvedLimit: "36" };
   const response = await post(form); expect(response.status).toBe(303); expect(response.headers.get("location")).toBe("/record/#adviser-heading");
   let doc = await page();
   expect(doc.querySelector("[data-adviser-reply]")?.textContent).toContain("matched to course evidence");
@@ -45,16 +45,24 @@ it("persists checked advice through reload, reuses retries, isolates identity an
 
 it("persists failures and retries, serialises duplicate in-flight requests, and applies the unit preference on fallback", async () => {
   const before = state();
-  for (const preferences of ["computer vision malformed", "computer vision outage"]) {
+  for (const preferences of ["I enjoy looking at pictures malformed", "I enjoy looking at pictures outage"]) {
     expect((await post({ preferences, targetUnits: "6" })).status).toBe(303);
-    const doc = await page(); expect(doc.querySelector("[data-adviser-reply]")?.textContent).toContain("Rule-based suggestions remain available");
+    const doc = await page(), reply = doc.querySelector("[data-adviser-reply]")?.textContent ?? "";
+    expect(reply).toContain("Rule-based suggestions remain available");
+    expect(doc.querySelector("[data-interest-match]")).toBeNull();
     expect(doc.querySelectorAll("[data-suggestion-options] > li")).toHaveLength(1);
     expect(state().runs.at(-1)?.status).toBe("fallback");
   }
-  const request = { preferences: "computer vision delayed", targetUnits: "6" };
+  // A named topic is matched without the model, even while the model is down, and says so.
+  expect((await post({ preferences: "computer vision outage", targetUnits: "6" })).status).toBe(303);
+  const named = await page();
+  expect(named.querySelector("[data-adviser-reply]")?.textContent).toContain("by keyword");
+  expect(named.querySelector("[data-interest-match]")?.textContent).toContain("Computer vision");
+  expect(state().runs.at(-1)).toMatchObject({ status: "complete", model_digest: null });
+  const request = { preferences: "I enjoy looking at pictures delayed", targetUnits: "6" };
   const replies = await Promise.all([post(request), post(request)]);
   expect(replies.filter(r => r.headers.get("location")?.includes("error="))).toHaveLength(1);
-  expect(state().runs).toHaveLength(before.runs.length + 3);
+  expect(state().runs).toHaveLength(before.runs.length + 4);
   expect((await page()).querySelector("[data-interest-match]")).not.toBeNull();
   expect(state().results).toEqual(before.results); expect(state().enrolments).toEqual(before.enrolments);
 });

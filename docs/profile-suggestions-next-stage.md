@@ -3,9 +3,25 @@
 Implemented following John's 26 September request to proceed. The original
 direction below remains the design rationale; this section states what is built.
 
-## Implemented first example
+## Rule-driven profiles (v2, 27 September 2026)
 
-New registrations receive `vcomp-ai-2027-s2-v1`, a reproducible fictional VCOMP
+New registrations now receive `vcomp-ai-2027-s2-v2` from `generateProfile`, a
+seeded search over the reviewed 2027 rules. Each course is placed only where the
+gate finds its saved prerequisites met by earlier results or allowed concurrent
+study, in a semester matching its saved 2027 offering pattern. Permission-only,
+unreviewed, conflicting, variable-credit and project courses are excluded.
+Loads are a permutation of 24/18/18, lower-level credit stays within 48 units,
+and marks run 65-92 (Credit to High Distinction) with a GPA of at least 6 over
+the first 48 units. The snapshot saves `remaining`, the planner's own reading of
+what the record leaves outstanding, and My profile shows "still needed" from
+live progress. Professional practice stays outstanding while neither COMP6250
+nor COMP8260 has a 2027 offering. Across 300 seeds the generator produced 300
+distinct transcripts. The v1 example below is kept as `generateAuthoredProfile`
+for accounts created before this change, test fixtures and the benchmark.
+
+## Implemented first example (v1)
+
+Registrations before 27 September 2026 received `vcomp-ai-2027-s2-v1`, a reproducible fictional VCOMP
 profile assigned ARTIF-SPEC under the supplied 2027 source interpretations.
 The scenario starts on 1 July 2027, with results completed through 2027 S1.
 Its complete history uses deliberately lighter semesters:

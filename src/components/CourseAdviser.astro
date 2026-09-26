@@ -1,6 +1,6 @@
 ---
 import type { adviserView } from "../lib/adviser-store";
-import { UNIT_TARGETS } from "../lib/course-adviser";
+import { UNIT_TARGETS, topicLabel } from "../lib/course-adviser";
 import { catalogueLink } from "../lib/catalogue";
 interface Props { adviser: ReturnType<typeof adviserView> }
 const { adviser: a } = Astro.props;
@@ -13,7 +13,7 @@ const omitted = a.active ? a.response?.matches.filter(m => !a.personalised?.opti
   <p class="eyebrow">A little help choosing</p>
   <h3 id="adviser-heading">Course adviser</h3>
   <p>Describe an interest, a career direction or a research goal to find options for this semester.</p>
-  {!a.configured && <p class="planning-note">AI interest matching is not available on this deployment. You can still save your preferences and apply a unit limit to the rule-based suggestions.</p>}
+  {!a.configured && <p class="planning-note">AI interest matching is not available on this deployment. Topics you name directly, such as “AI” or “robots”, are still matched against a reviewed topic list, and your unit limit is applied to the rule-based suggestions.</p>}
   <form action="/api/adviser" method="post">
     <label for="adviser-preferences">Your interests and goals</label>
     <textarea id="adviser-preferences" name="preferences" rows="3" minlength="3" maxlength="1000" required aria-describedby="adviser-help" placeholder="For example: I’m interested in computer vision and want to prepare for a research project.">{run?.preferences ?? ""}</textarea>
@@ -22,7 +22,7 @@ const omitted = a.active ? a.response?.matches.filter(m => !a.personalised?.opti
       <div><label for="adviser-units">Preferred total units this semester</label><select id="adviser-units" name="targetUnits">
         {UNIT_TARGETS.map(units => <option value={units} selected={units === (run?.targetUnits ?? 24)}>{units} units{units > (a.input.limit ?? 24) ? " (needs overload approval)" : ""}</option>)}
       </select></div>
-      <button>{!a.configured ? "Apply unit preference" : run && run.status !== "dismissed" ? "Update my suggestions" : "Ask adviser"}</button>
+      <button>{!a.configured ? "Match interests and apply units" : run && run.status !== "dismissed" ? "Update my suggestions" : "Ask adviser"}</button>
     </div>
     <p class="field-help">Includes confirmed and saved courses. Higher loads still need overload approval.{a.configured && <> Please allow up to 45 seconds.</>}</p>
   </form>
@@ -30,7 +30,10 @@ const omitted = a.active ? a.response?.matches.filter(m => !a.personalised?.opti
     {a.stale ? <p>Your semester, selection or supporting record has changed. Update your suggestions to use these preferences with the current record. Standard suggestions are shown below.</p>
       : run.status === "pending" ? <p>{a.expired ? "The last request was interrupted. Update your suggestions to try again." : "The adviser is working. Reload this page in a moment to see the result."}</p>
       : <>
-        <p><strong>{a.response?.reason === "matched" ? "Your interests have been matched to course evidence." : a.response?.reason === "no-match" ? "No clear interest match was found in the available options." : a.response?.reason === "no-options" ? "There are no ready courses to match in this semester." : a.response?.reason === "not-configured" ? "Your unit preference has been applied without AI matching." : "The AI adviser couldn’t complete this request."}</strong></p>
+        <p><strong>{a.response?.reason === "matched" && a.response.method === "keywords" ? "Your interests have been matched to course topics by keyword." : a.response?.reason === "matched" ? "Your interests have been matched to course evidence." : a.response?.reason === "no-match" ? "No clear interest match was found in the available options." : a.response?.reason === "no-options" ? "There are no ready courses to match in this semester." : a.response?.reason === "not-configured" ? "Your unit preference has been applied without AI matching." : "The AI adviser couldn’t complete this request."}</strong></p>
+        {a.response?.method === "keywords" && (a.response.topics?.length ? <p>You named these topics directly, so they were matched against a reviewed topic list without AI.</p>
+          : <p>Requests about marks, unit load, approvals or the rules are not subject interests, so no AI reading was attempted. Your unit limit still applies.</p>)}
+        {a.response?.topics && a.response.topics.length > 0 && <p data-adviser-topics>Topics: {a.response.topics.map(topicLabel).join(", ")}.</p>}
         {run.status === "fallback" && <p>Rule-based suggestions remain available below.</p>}
         {checkedOptions.length > 0 ? <>
           <h4>Your suggested courses</h4>
@@ -43,7 +46,7 @@ const omitted = a.active ? a.response?.matches.filter(m => !a.personalised?.opti
         <p class="field-help">Suggestions use a {effectiveLimit}-unit ceiling{run.targetUnits > effectiveLimit ? ` within your approved limit, rather than the requested ${run.targetUnits} units` : ""}, including confirmed and saved courses. This is a maximum, not a promise to fill every unit.</p>
         {omitted.length > 0 && <ul>{omitted.map(m => <li><a href={catalogueLink("course", m.code, 2027)}>{m.code}</a>: {a.personalised?.optionExclusions[m.code] ?? "Not part of the checked combination."}</li>)}</ul>}
         <details><summary>How these suggestions were checked</summary>
-          <p>When AI matching is available, Llama selects original course excerpts. The planner checks your record, study load and space for required study. An interest match does not approve enrolment or guarantee graduation.</p>
+          <p>Topics you name directly, such as “AI” or “robots”, are matched against a reviewed topic list without AI. When you describe an interest in other words and AI matching is available, Llama chooses up to three topics from the same list. The app then finds ready courses whose own saved descriptions mention those topics and quotes that text; a match in a course title counts most. The planner checks your record, study load and space for required study. An interest match does not approve enrolment or guarantee graduation.</p>
           <p>The adviser considers {a.context.pool.length} ready courses{a.context.omittedCount ? `; ${a.context.omittedCount} further ready courses are outside this shortlist` : ""}. Courses needing permission or more evidence remain in the next-step sections below.</p>
           <p class="meta">Saved {run.createdAt} UTC{run.modelDigest && <> · Model: {run.model}</>}. Future semesters remain indicative.</p>
         </details>
