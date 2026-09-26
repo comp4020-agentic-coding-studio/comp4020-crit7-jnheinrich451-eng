@@ -376,3 +376,13 @@ remains historical evidence after a human decision. Seed examples, request IDs,
 student identities and offering years are explicit in the queue and decision
 page. Approval still requires the student to confirm enrolment before it appears
 in My courses or My profile.
+
+## 2026-09-27 — Consistent request panels and account-aware action labels
+
+John asked for the new request boxes to match Confirmed enrolments' gold top
+border, and questioned "Get demo assessment" on a normal account. Request
+status, handoff and decision panels now share that border, serif headings and
+spacing, with full-width outer edges. Normal-account actions use "Get assessment"
+and "Run automatic assessment"; Demo accounts keep their explicit labels.
+Nearby text still identifies the prototype and fictional record. Saved policy
+versions, reports and event wording are retained; this changes presentation only.

@@ -54,7 +54,7 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
       {ownStudentProfile && <p class="note">This request belongs to your own student profile.</p>}
       <p class="lede">{app.course.title}</p>
 
-      <section class={`status status-${app.status}`} aria-labelledby="status-heading">
+      <section class={`status status-${app.status} request-panel`} aria-labelledby="status-heading">
         <h2 id="status-heading">{status.label}</h2>
         <p>{status.say}</p>
         {mine && isEnrolled && <p><a href="/plan/">View in My courses</a> · <a href="/record/">View My profile</a></p>}
@@ -76,14 +76,14 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
         )}
       </section>
 
-      {mine && app.status === "assessment-incomplete" && !app.scenarioKey && <form action={`/api/applications/${app.id}/review`} method="post" class="stack surface">
+      {mine && app.status === "assessment-incomplete" && !app.scenarioKey && <form action={`/api/applications/${app.id}/review`} method="post" class="stack surface request-panel">
         <h2>Ask your reviewer for a decision</h2>
         <p>Send request #{app.id} for {app.course.code}, {app.year} {TERM_LABELS[app.term as Term]}, to {app.convenor.name}. Your explanation and saved assessment stay attached to this request.</p>
         <p class="field-help">This needs someone using the assigned reviewer account. Sending it does not grant permission or confirm enrolment.</p>
         <button class="primary">Send this request to reviewer</button>
       </form>}
 
-      {mine && app.scenarioKey && app.status === "approved" && !isEnrolled && <form action="/api/scenario-enrol" method="post" class="stack surface">
+      {mine && app.scenarioKey && app.status === "approved" && !isEnrolled && <form action="/api/scenario-enrol" method="post" class="stack surface request-panel">
         <input type="hidden" name="applicationId" value={app.id} />
         <p>Confirming saves completion of this scenario only.</p>
         <button class="primary">Confirm scenario enrolment</button>
@@ -122,14 +122,14 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
       </section>
 
       {app.report && <AssessmentReport report={app.report} historical={app.staffReview} />}
-      {mine && app.status === "with-convenor" && !app.report && <form action={`/api/applications/${app.id}/assessment`} method="post" class="stack surface">
+      {mine && app.status === "with-convenor" && !app.report && <form action={`/api/applications/${app.id}/assessment`} method="post" class="stack surface request-panel">
         <h2>Get an automatic result instead</h2>
-        <p>This replaces the pending staff review with a demo assessment. Missing evidence remains unresolved, with next steps. Your original statement and history are kept.</p>
+        <p>This replaces the pending staff review with an automatic assessment using your fictional academic record. Missing evidence remains unresolved, with next steps. Your original statement and history are kept.</p>
         <label for="assessment-reason">What should be assessed?</label>
         <select id="assessment-reason" name="reason">
           {Object.entries(REQUEST_REASONS).map(([value, label]) => <option value={value} selected={value === staffReason}>{label}</option>)}
         </select>
-        <button class="primary">Run automated demo assessment</button>
+        <button class="primary">{studentAccount?.kind === "demo" ? "Run automated demo assessment" : "Run automatic assessment"}</button>
       </form>}
 
       {app.checkList.length > 0 && (
@@ -144,7 +144,7 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
       )}
 
       {routedToMe && app.status === "with-convenor" && (
-        <section aria-labelledby="decide-heading" class="decide">
+        <section aria-labelledby="decide-heading" class="decide request-panel">
           <h2 id="decide-heading">Your decision</h2>
           <p><strong>Request #{app.id}: {app.student.name} ({app.student.uid})</strong><br />{app.course.code} · {app.year} {TERM_LABELS[app.term as Term]}</p>
           <p>Approval issues permission for this student's offering. The student must then confirm enrolment.</p>

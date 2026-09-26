@@ -35,6 +35,11 @@ limitations are in the doc named under each heading.
   must never silently choose a subject.
 - Request pages use the course code as their main heading, in the gold Georgia
   serif at its larger size.
+- Request status and action panels share Confirmed enrolments' gold top border,
+  serif headings and spacing. Keep their outer widths aligned on mobile and desktop.
+- Normal-account assessment actions say "Get assessment" or "Run automatic
+  assessment"; Demo accounts retain explicit demo action labels. Nearby copy
+  must still explain the prototype policy and fictional academic record.
 - My courses (formerly My semester) keeps saved candidates, confirmed
   enrolments and completed demo scenarios in separate sections. Confirmed
   enrolments and completed scenarios are prominent there and in My profile.

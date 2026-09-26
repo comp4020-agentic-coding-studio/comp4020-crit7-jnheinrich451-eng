@@ -552,7 +552,13 @@ th {
 .section-overview strong { font: 2.3rem Georgia, serif; color: #705c32; }
 .section-overview span { font-weight: 700; margin: 0.35rem 0; }
 .section-overview small { color: var(--muted); }
-.enrolment-panel { margin: 2rem 0; padding: 1.4rem; background: white; border: 1px solid var(--line); border-top: 4px solid var(--gold); }
+.enrolment-panel,
+.request-panel { margin: 2rem 0; padding: 1.4rem; background: white; border: 1px solid var(--line); border-top: 4px solid var(--gold); }
+.request-panel { border-radius: 0; }
+.request-panel.stack { max-width: none; }
+.request-panel > h2 { margin: 0 0 0.7rem; font: 1.8rem Georgia, serif; }
+.request-panel.stack > p { max-width: 75ch; margin: 0.35rem 0; }
+.request-panel > :last-child { margin-bottom: 0; }
 .scenario-panel { background: #f0ede5; border-top-color: #716b5d; }
 .section-title { display: flex; gap: 1rem; justify-content: space-between; align-items: center; }
 .section-title h2 { margin: 0.3rem 0 0.7rem; font: 1.8rem Georgia, serif; }
@@ -634,7 +640,9 @@ th {
   .section-overview a { display: grid; grid-template-columns: 2.5rem 1fr; gap: 0 0.7rem; padding: 0.8rem 1rem; }
   .section-overview strong { grid-row: 1/3; }
   .section-overview small { grid-column: 2; }
-  .enrolment-panel { padding: 1rem; }
+  .enrolment-panel,
+  .request-panel { padding: 1rem; }
+  .request-panel > h2 { font-size: 1.55rem; }
   .enrolled-list > li { flex-direction: column; align-items: stretch; }
   .section-title h2 { font-size: 1.55rem; }
   .swap-comparison { grid-template-columns: 1fr; }
