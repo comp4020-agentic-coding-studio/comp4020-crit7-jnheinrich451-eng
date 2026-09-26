@@ -2579,3 +2579,35 @@ less-than comparison as fragment syntax; moving the expiry calculation into
 frontmatter fixed it. The preservation fixture initially requested COMP7710,
 which the generated record could enrol in directly; it was corrected to the
 permission-required COMP8830 rather than weakening the course gate.
+
+## 2026-09-27 — Verification email sender renamed; ANU delivery diagnosed
+
+**Prompt:**
+
+> I send 3 emails only received one in my real inbox, even junk box does not contain email, but Brevo sender shows 3 emails are delivered. So if ANU email has some security blocker?
+
+> Then I plan to change the heading of the email, current is "ANU enrolment prototype" [...] If can be set as "Crit-7 project enrolment prototype"
+
+**Result:**
+ANU's MX is Microsoft 365 (`anu-edu-au.mail.protection.outlook.com`), so
+Brevo's "delivered" means only that Exchange Online accepted the message. The
+first hypothesis, an unaligned Gmail sender failing authentication, was wrong.
+John's headers show Brevo rewrote the From to `12257996.brevosend.com`, with
+spf/dkim/dmarc/compauth all passing, SCL 1, SFV:NSPM, and SFTY 9.25
+(first-contact tip only, no impersonation code). An all-folder search found one
+message (sends 0:25, 0:30, 1:57; one received 0:32), and John's quarantine view
+was empty. That points to an ANU-side verdict after acceptance, such as an
+admin-only quarantine or transport rule, or rate-based handling of a new
+sender. Only an ANU IT message trace with Brevo's Message-IDs can settle it.
+Tokens are not invalidated by resends, so the app does not explain the gap.
+At John's request the Fly `MAIL_FROM` display name changed from "ANU enrolment
+prototype" to "Crit-7 project enrolment prototype", which keeps the prototype
+identity clear. The address is unchanged.
+
+**Verified:**
+DNS lookups for the ANU MX and the gmail.com/anu.edu.au DMARC records. After the
+secret update restarted the machine, SMTP `verify()` inside Fly succeeded from
+75.102.33.82 and read the new display name; `/` returned 200. Actual inbox
+arrival under the new name is for John to confirm with spaced email tests.
+
+**Commit:** none — Fly secret change and diagnosis only; no repo change besides this entry.
