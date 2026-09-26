@@ -1,10 +1,10 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { and, eq, gt, lt } from "drizzle-orm";
 import type { AstroCookies } from "astro";
-import { STUDENTS } from "../data/people";
-import { COURSES } from "../data/courses";
 import { db } from "./db";
-import { accounts, authLimits, convenors, emailTokens, sessions, students, transcript } from "./schema";
+import { accounts, authLimits, convenors, emailTokens, sessions, students, transcript, studyPlans, studyPlanEvents } from "./schema";
+import { generateProfile } from "./profile-template";
+import { catalogueEntries } from "./catalogue";
 import { UserError } from "./errors";
 import { hashPassword, validPassword, verifyPassword } from "./passwords";
 import { mailConfig, sendVerification } from "./mail";
@@ -76,30 +76,34 @@ export async function register(input: { email: string; password: string; name: s
   // A duplicate never changes an existing password, name, role or record.
   if (db.select().from(accounts).where(eq(accounts.email, email)).get()) return;
   const passwordHash = await hashPassword(input.password);
-  const scenario = STUDENTS[0];
+  const uid = `demo-${randomUUID()}`;
+  const scenario = generateProfile(uid, catalogueEntries());
   const account = db.transaction((tx) => {
     if (tx.select().from(accounts).where(eq(accounts.email, email)).get()) return null;
     const student = tx
       .insert(students)
       .values({
-        uid: `demo-${randomUUID()}`,
+        uid,
         name,
         program: scenario.program,
         recordSource: "Fictional Computing (Advanced) scenario — not an ANU academic record",
       })
       .returning()
       .get();
-    for (const [courseCode, grade, term] of scenario.results) {
+    for (const { courseCode, grade, term, units, mark, program, institution } of scenario.records) {
       tx.insert(transcript)
         .values({
           studentId: student.id,
           courseCode,
           grade,
           term,
-          units: COURSES.find((c) => c.code === courseCode)?.units ?? 6,
+          units, mark, program, institution,
         })
         .run();
     }
+    tx.insert(studyPlans).values({ studentId: student.id, ruleYear: scenario.ruleYear, specialisation: scenario.specialisation,
+      planningYear: scenario.planningYear, planningTerm: scenario.planningTerm, templateId: scenario.id, templateSnapshot: JSON.stringify(scenario) }).run();
+    tx.insert(studyPlanEvents).values({ studentId: student.id, detail: `Created fictional template ${scenario.id}: completed through ${scenario.completedThrough}; planning ${scenario.planningYear} ${scenario.planningTerm}.` }).run();
     return tx.insert(accounts).values({ email, passwordHash, studentId: student.id }).returning().get();
   });
   if (account) await deliverToken(account.id, email);

@@ -35,6 +35,7 @@ for (const [uid, name] of [
   ["fixture-swap-failure", "Swap failure student"],
   ["fixture-change-race", "Course change race student"],
   ["fixture-swap-incompat", "Swap incompatibility student"],
+  ["fixture-planning-legacy", "Planning legacy student"],
 ]) {
   db.insert(students).values({ uid, name, program: uid === "fixture-swap-incompat" ? "MCOMP" : "VCOMP" }).run();
 }

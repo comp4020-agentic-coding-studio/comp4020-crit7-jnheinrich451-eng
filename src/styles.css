@@ -568,6 +568,15 @@ th {
 .swap-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .swap-comparison > div { background: #f6f5f2; padding: 1rem; }
 .change-summary { margin: 1.5rem 0; }
+.study-suggestions > h2 { font: 1.9rem Georgia, serif; margin-top: 0.5rem; }
+.planning-controls { align-items: end; margin: 1.5rem 0; flex-wrap: wrap; }
+.planning-controls label { display: block; margin-bottom: 0.4rem; }
+.planning-controls select { max-width: 100%; }
+.planning-note { border-left: 3px solid var(--gold); padding: 0.8rem 1rem; background: #f6f5f2; }
+.suggestion-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); list-style: none; gap: 1rem; padding: 0; }
+.suggestion-list > li { border: 1px solid var(--line); padding: 1.1rem; }
+.suggestion-list h4 { font-size: 1rem; margin: 0; }
+.suggestion-list h4 a { text-decoration: none; color: var(--ink); }
 .plan-row {
   display: grid;
   grid-template-columns: 1fr auto;

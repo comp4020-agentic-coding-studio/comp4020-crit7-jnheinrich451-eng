@@ -1,7 +1,78 @@
-# Next stage: generated profiles and semester suggestions
+# Generated profiles and semester suggestions
 
-Recorded from John's 26 September request. This is an agreed next-stage direction,
-not implemented by the drop/swap and layout increment.
+Implemented following John's 26 September request to proceed. The original
+direction below remains the design rationale; this section states what is built.
+
+## Implemented first example
+
+New registrations receive `vcomp-ai-2027-s2-v1`, a reproducible fictional VCOMP
+profile assigned ARTIF-SPEC under the supplied 2027 source interpretations.
+The scenario starts on 1 July 2027, with results completed through 2027 S1.
+Its complete history uses deliberately lighter semesters:
+
+| Semester | Completed fictional courses | Units |
+| --- | --- | --- |
+| 2026 S1 | COMP6442, COMP6262, COMP6528, COMP8610 | 24 |
+| 2026 S2 | COMP6670, COMP6250, COMP8280 | 18 |
+| 2027 S1 | COMP6445, COMP6320, COMP8600 | 18 |
+
+The 60 units include 18 at COMP8000 level and 42 at lower levels. This leaves
+room within 96 units for the 24-unit project, an advanced AI course and another
+six-unit elective, subject to the remaining checks. It does not establish
+approval, actual future availability or a graduation date. An earlier 72-unit
+draft was rejected after Claude's source review found it had 66 lower-level
+units, incompatible with fitting the 48-unit advanced minimum within 96.
+
+Marks derive from template ID, the generated profile seed and course code
+(72–84, with matching D/HD grades). Attribution to VCOMP/ANU is explicitly
+fictional. No existing grade-only record receives invented marks. The template
+validates earlier-completion/corequisite chains, incompatibilities, source hashes,
+unique source versions, credit values, the load and level mix. It verifies actual
+saved class rows for 2027 S1. All 2026 availability is an explicit assumption;
+COMP6250 is specially labelled because its 2027 page lists no current offerings.
+COMP8280 counts as separate completed study, never a substitute for professional
+practice. COMP8490's ambiguous programming condition stays unknown.
+
+My profile contains course suggestions and partial requirement progress; My courses
+links back to it. The reviewed program/AI group definition is
+`src/data/study-planning-2027.json`. Source hashes must match the persistent
+catalogue. Course gates retain their own source-bound interpretations. Suggestions
+prioritise missing requirements and helpful prerequisites, check the selected
+semester and compose a compatible load within confirmed/approved limits.
+Saved candidates reserve suggestion space but never satisfy completed-credit
+requirements. Hypothetical credit allocation only avoids redundant recommendations
+and reserves degree space for the compulsory project; it never enters eligibility.
+
+The progress calculation allocates core, professional practice, project, AI,
+further and elective buckets without duplicate course credit. AI foundation
+credit is capped at 12; at least 12 advanced AI units remain necessary. The
+48-unit COMP8000 threshold is an overlay, not another bucket. Repeated project
+credit counts only for two distinct consecutive 12-unit semester results.
+This deterministic allocation is an illustration, not an optimised credit audit.
+
+New `study_plans` and `study_plan_events` tables persist immutable generation
+snapshots and explicit preference changes (migration `0009_remarkable_kree.sql`).
+Registration writes the account, generated results, plan and creation event
+atomically before email delivery. Verification remains mandatory. Existing
+accounts retain their complete state; existing VCOMP users can save an AI focus
+and semester using their actual stored fictional history. Reading a profile
+does not create metadata or rewrite results. Suggestions are recomputed from
+current state, rather than storing stale recommendations.
+
+Planning choices are 2027 S2, 2028 S1 and 2028 S2. The latter two use indicative
+class rows within the 2027 pages; their links lead to evidence, with no enrolment
+or save-course controls. They do not fabricate a 2028 catalogue or copy 2027
+permissions. Find courses uses a saved preference only for a supported catalogue
+year; explicitly choosing All terms still works.
+
+GPA, supervisor approval, project registration, external-credit attribution,
+substitutions and graduation remain unverified. The normal course gate still
+does not authorise enrolling again after a completed research-project instance;
+the guidance identifies required continuation and directs students to the program
+team. Other programs and specialisations remain outside this first increment.
+No LLM is used to generate academic facts or decide suggestions.
+
+## Original agreed direction
 
 The prototype should generate a coherent, labelled fictional academic scenario
 from a template, then suggest useful courses using that scenario. Suggestions

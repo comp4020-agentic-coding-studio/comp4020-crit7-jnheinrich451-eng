@@ -12,7 +12,8 @@ import type { CatalogueSnapshot } from "../src/lib/catalogue-types";
 import { seed } from "../src/lib/seed";
 import { seedCatalogue } from "../src/lib/seed-catalogue";
 import { seedPublishedOfferings } from "../src/lib/seed-offerings";
-import { accounts, applicationEvents, applications, courses, enrolments, enrolmentEvents, offerings, selections, students, transcript } from "../src/lib/schema";
+import { accounts, applicationEvents, applications, courses, enrolments, enrolmentEvents, offerings, selections, students, transcript, studyPlans, studyPlanEvents } from "../src/lib/schema";
+import { generateProfile } from "../src/lib/profile-template";
 
 it("upgrades a populated 2026 database without changing profiles, approvals, events or enrolments", () => {
   const directory = mkdtempSync(join(tmpdir(), "year-migration-"));
@@ -96,5 +97,23 @@ it("does not resurrect a dropped seed enrolment or erase its history on repeated
     expect(db.select().from(enrolments).all()).toEqual(before);
     expect(db.select().from(enrolmentEvents).all()).toEqual(events);
     expect(client.pragma("foreign_key_check")).toEqual([]);
+  } finally { client.close(); }
+});
+
+it("preserves generated templates, marks and changed planning preferences across migrations and reseeds", () => {
+  const client = new Database(":memory:");
+  try {
+    migrateDatabase(client); const db = drizzle(client); seed(db);
+    const template = generateProfile("persistence-fixture");
+    const student = db.insert(students).values({ uid: "persistent-template", name: "Generated fixture", program: "VCOMP" }).returning().get();
+    for (const { courseCode, grade, units, term, mark, program, institution } of template.records)
+      db.insert(transcript).values({ studentId: student.id, courseCode, grade, units, term, mark, program, institution }).run();
+    db.insert(studyPlans).values({ studentId: student.id, ruleYear: 2027, specialisation: template.specialisation,
+      planningYear: 2028, planningTerm: "S1", templateId: template.id, templateSnapshot: JSON.stringify(template) }).run();
+    db.insert(studyPlanEvents).values({ studentId: student.id, detail: "Selected 2028 S1" }).run();
+    const state = () => ({ results: db.select().from(transcript).where(eq(transcript.studentId, student.id)).all(),
+      plans: db.select().from(studyPlans).all(), events: db.select().from(studyPlanEvents).all() });
+    const before = state(); migrateDatabase(client); seed(db); seed(db);
+    expect(state()).toEqual(before); expect(client.pragma("foreign_key_check")).toEqual([]);
   } finally { client.close(); }
 });

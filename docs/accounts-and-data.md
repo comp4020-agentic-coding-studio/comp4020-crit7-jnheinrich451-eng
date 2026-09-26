@@ -196,9 +196,14 @@ catalogue. The queue also lists the reviewer's assigned courses.
   retain the legacy 2026 reference data; old requests keep their offering year.
 - `offerings`: stable course/year/term combinations; `selections` links each
   student to their saved offerings.
-- `students` and `transcript`: each registered student receives an independent,
-  explicitly fictional Computing (Advanced) record based on the existing Mei
-  demonstration scenario. No real grades or university identifiers are inferred.
+- `students` and `transcript`: new registrations receive the versioned fictional
+  Computing (Advanced)/Artificial Intelligence template: 60 completed units across
+  2026 S1/S2 and 2027 S1 with consistent fictional marks. Existing records remain
+  intact. No real grades or university identifiers are inferred.
+- `study_plans` and `study_plan_events`: immutable generation snapshots, assigned
+  specialisation, catalogue year and saved planning preferences. New profiles start
+  at 2027 S2; existing VCOMP users can save an AI focus without replacing history.
+  See `docs/profile-suggestions-next-stage.md` for assumptions and guidance limits.
 - `applications`, `application_events` and `enrolments`: persistent actions.
   Decisions and events are transactional, and approvals are scoped to an
   offering. Repeated saves and active requests do not create duplicates.

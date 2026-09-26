@@ -95,7 +95,16 @@ describe("verified student accounts", () => {
     const page = await (await get("/record/", cookie)).text();
     expect(page).toContain("New student");
     expect(page).toContain("Fictional Computing");
-    expect(page).toContain("COMP6710");
+    expect(page).toContain("COMP6442");
+    expect(page).toContain("vcomp-ai-2027-s2-v1");
+    const recordDb = new Database(inject("testDatabase"), { readonly: true });
+    try {
+      const stored = recordDb.prepare("SELECT p.* FROM study_plans p JOIN accounts a ON a.student_id = p.student_id WHERE a.email = ?").get(email) as { student_id: number; template_id: string; template_snapshot: string; planning_year: number; planning_term: string };
+      expect(stored).toMatchObject({ template_id: "vcomp-ai-2027-s2-v1", planning_year: 2027, planning_term: "S2" });
+      const snapshot = JSON.parse(stored.template_snapshot);
+      expect(snapshot.s1State).toBe("completed");
+      expect(recordDb.prepare("SELECT SUM(units) AS units, COUNT(mark) AS marks FROM transcript WHERE student_id = ?").get(stored.student_id)).toEqual({ units: 60, marks: 10 });
+    } finally { recordDb.close(); }
     expect(
       (await post("/api/applications/1/decision", { decision: "approve" }, cookie)).headers.get("location"),
     ).toContain("Only");
@@ -134,7 +143,7 @@ describe("verified student accounts", () => {
     expect((await get("/record/", cookie)).status).toBe(303);
     cookie = (await post("/api/auth/login", { email, password })).headers.get("set-cookie")!.split(";")[0];
     expect(await (await get("/plan/", cookie)).text()).toContain("Computer Vision");
-    expect(await (await get("/record/", cookie)).text()).toContain("COMP6710");
+    expect(await (await get("/record/", cookie)).text()).toContain("COMP6442");
   });
   it("never exposes someone else's application or private live stream", async () => {
     expect((await get("/applications/1/", cookie)).status).toBe(404);

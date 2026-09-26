@@ -35,6 +35,7 @@ const scenarios = requests.filter(app => app.scenarioKey && app.enrolmentConfirm
     </a>
   </div>
   <EnrolmentOverview confirmed={current.length} scenarios={scenarios.length} saved={selected.length} />
+  <p><a href="/record/#suggestions-heading">See course suggestions for your next semester</a></p>
   <ConfirmedEnrolments enrolments={current} />
   <StudyLoadSummary studentId={actor.student.id} />
   <ScenarioCompletions completions={scenarios} />

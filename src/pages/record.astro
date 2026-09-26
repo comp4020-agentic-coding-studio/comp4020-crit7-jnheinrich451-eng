@@ -5,6 +5,7 @@ import ConfirmedEnrolments from "../components/ConfirmedEnrolments.astro";
 import ScenarioCompletions from "../components/ScenarioCompletions.astro";
 import EnrolmentOverview from "../components/EnrolmentOverview.astro";
 import EnrolmentHistory from "../components/EnrolmentHistory.astro";
+import StudySuggestions from "../components/StudySuggestions.astro";
 import { completedScenariosOf, enrolmentsOf, PASSING, transcriptOf } from "../lib/store";
 
 // The record the gate reads. Nothing on it is typed by the student, which is
@@ -44,6 +45,7 @@ const scenarios = student ? completedScenariosOf(student.id) : [];
       </dl>
 
       <EnrolmentOverview confirmed={current.length} scenarios={scenarios.length} results={results.length} />
+      <StudySuggestions student={student} />
       <ConfirmedEnrolments enrolments={current} />
       <ScenarioCompletions completions={scenarios} />
       <EnrolmentHistory studentId={student.id} />
@@ -59,6 +61,7 @@ const scenarios = student ? completedScenariosOf(student.id) : [];
                   <th scope="col">Course</th>
                   <th scope="col">Term</th>
                   <th scope="col">Grade</th>
+                  <th scope="col">Fictional mark</th>
                   <th scope="col">Units</th>
                   <th scope="col">Counts as passed</th>
                 </tr>
@@ -69,6 +72,7 @@ const scenarios = student ? completedScenariosOf(student.id) : [];
                     <td>{r.courseCode}</td>
                     <td>{r.term}</td>
                     <td>{r.grade}</td>
+                    <td>{r.mark ?? "Not recorded"}</td>
                     <td>{r.units}</td>
                     <td>{PASSING.has(r.grade) ? "Yes" : "No"}</td>
                   </tr>

@@ -27,8 +27,8 @@ full codes, spaced codes, numbers and titles; numeric matches must not silently
 choose a subject. Keep the published scope and functional guarantees below.
 
 For the proposed degree-planning increment, John selected Computing (Advanced)
-(VCOMP), 2026 commencement-year requirements as the first example. Planning is
-not implemented yet. Keep program/rule-year snapshots separate from offering
+(VCOMP), 2026 commencement-year requirements as the first example. That proposed
+example is superseded by the 2027 fictional guidance increment below. Keep program/rule-year snapshots separate from offering
 years; the supplied MCOMP 2027 page is not VCOMP 2026 evidence. See
 `docs/MCOMP-2027-source-review.md` for the offline source review and next inputs.
 The later batch of three degrees and seven specialisations is also 2027; see
@@ -181,14 +181,27 @@ not implement formal withdrawal deadlines, fees or transcript penalties. See
 `docs/course-changes-and-logo.md`. The supplied EPS is converted to a browser SVG;
 retain the visible independent-prototype identity beside the ANU artwork.
 
-John requested that the next-stage profile/suggestion idea be recorded now and
-implemented later: versioned fictional templates with a full 2026 history, an
-explicit 2027 S1 state, assigned source-year specialisation, and suggestions for
-2027 S2. Explain source-supported priorities and later options without promising
-on-time graduation. See `docs/profile-suggestions-next-stage.md`. This proposed
-2027 S2 example supersedes the earlier 2026 planning-example preference, but
-current account profiles and selected semesters have not been migrated. Do not
-silently infer real commencement rules or historical offerings from 2027 sources.
+John authorised implementation of the recorded profile/suggestion increment.
+It is now implemented for VCOMP with ARTIF-SPEC: versioned fictional templates,
+completed 2026 S1/S2 and 2027 S1 records, exact fictional marks and an initial
+2027 S2 planning preference. The complete scenario deliberately has loads of
+24/18/18 units (60 total) so its lower-level study does not consume space needed
+for the degree's 48-unit advanced minimum. Historical 2026 availability remains
+an explicit assumption, especially COMP6250 whose 2027 page has no offerings.
+No silent COMP8280-to-COMP8260 substitution is allowed. Generated snapshots and
+planning preferences persist separately from transcript facts; old accounts are
+not reseeded. Existing VCOMP accounts can save an AI focus and semester using
+their current record. See `docs/profile-suggestions-next-stage.md`.
+
+Suggestions call the deterministic gate, respect confirmed and saved-candidate
+load, exclude undated/future completions from dated progress, and separate ready
+options, permission/evidence cases and later offering gaps. A saved candidate is
+never passed credit or an enrolment. Degree buckets allocate each course once;
+the 8000-level threshold is an overlay. Source hash mismatch disables planning
+interpretations. 2028 options use indicative rows in 2027 sources, not invented
+2028 rules or enrolment endpoints. GPA, supervisor/project approval, credit
+substitutions, full degree audits and graduation remain unverified. Suggestions
+do not promise on-time graduation or authorise repeated project enrolment.
 
 ## Rules
 

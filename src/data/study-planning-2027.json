@@ -1,0 +1,35 @@
+{
+  "version": "vcomp-ai-guidance-v1",
+  "year": 2027,
+  "program": {
+    "key": "VCOMP",
+    "code": "7722XVCOMP",
+    "hash": "ae6f12a5a8d79c89204ba942fd5a5916cda1ff031512987a473cdeb8f89faddd",
+    "section": "program-requirements",
+    "totalUnits": 96,
+    "advancedCompUnits": 48,
+    "core": ["COMP6442", "COMP6445"],
+    "professional": ["COMP6250", "COMP8260"],
+    "project": "COMP8800",
+    "projectUnits": 24,
+    "furtherUnits": 18,
+    "electiveUnits": 12
+  },
+  "specialisation": {
+    "code": "ARTIF-SPEC",
+    "title": "Artificial Intelligence",
+    "hash": "08237a727a17de99db70805cd1852bf2f262abc521b77462cf7ca197ff3e1f5e",
+    "section": "requirements",
+    "totalUnits": 24,
+    "foundationMaximum": 12,
+    "advancedMinimum": 12,
+    "foundation": ["COMP6262", "COMP6320", "COMP6242", "COMP6670", "COMP6528"],
+    "advanced": ["COMP8490", "COMP8539", "COMP8600", "COMP8620", "COMP8650", "COMP8691"]
+  },
+  "notes": [
+    "The program-requirements section governs these partial checks. Academic advice elsewhere differs on which courses count toward the 8000-level minimum; non-COMP substitutions are not assumed.",
+    "The specialisation page supplies membership. The program text still mentions Machine Learning although its linked specialisation list does not; no automatic ML-to-AI conversion is made.",
+    "COMP8280 is not silently substituted for COMP6250 or COMP8260 in the degree requirement.",
+    "GPA, admission, supervisor approval, project registration, substitutions, external credit and graduation are not certified by this guidance."
+  ]
+}

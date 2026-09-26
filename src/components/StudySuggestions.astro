@@ -1,0 +1,72 @@
+---
+import type { Student } from "../lib/schema";
+import { profileGuidance } from "../lib/planning-store";
+import { PLANNING_POLICY, PLANNING_PERIODS } from "../lib/study-planning";
+import type { generateProfile } from "../lib/profile-template";
+import { catalogueLink } from "../lib/catalogue";
+import { offeringFor, TERM_LABELS } from "../lib/store";
+import type { Term } from "../data/courses";
+interface Props { student: Student }
+const { student } = Astro.props;
+const g = profileGuidance(student), p = g.progress;
+const template = g.plan?.templateSnapshot ? JSON.parse(g.plan.templateSnapshot) as ReturnType<typeof generateProfile> : null;
+const periodLabel = (period: string) => { const [year, term] = period.split(" "); return `${year} ${TERM_LABELS[term as Term]}`; };
+const title = periodLabel(`${g.year} ${g.term}`);
+const linkFor = (code: string) => g.future ? catalogueLink("course", code, PLANNING_POLICY.year) : `/courses/${code}/?year=${g.year}&term=${g.term}`;
+---
+<section class="enrolment-panel study-suggestions" aria-labelledby="suggestions-heading" data-study-suggestions>
+  <p class="eyebrow">Your next semester</p>
+  <h2 id="suggestions-heading">Course suggestions</h2>
+  {student.program !== "VCOMP" ? <p>This first guided example supports Computing (Advanced) with an Artificial Intelligence focus. <a href="/">Browse courses for your program</a>.</p> : <>
+    <p class="lede">{title} · Artificial Intelligence</p>
+    <p>{g.plan?.templateId ? "Your assigned fictional specialisation" : g.plan ? "Your saved fictional study focus" : "Example study focus for your existing record"}. Suggestions use your completed results and the saved 2027 catalogue. They do not guarantee graduation or approve enrolment.</p>
+    {template ? <details data-profile-template><summary>Your generated academic scenario</summary>
+      <p>Template {template.id}: {template.semesterLoads.map(s => `${s.term} (${s.units} units)`).join(", ")}. The lighter semesters are intentional and the record is complete. The scenario date is {template.scenarioDate}; results through {template.completedThrough} are completed study, not current enrolments.</p>
+      <p>{template.assumption} All marks, grades and program attribution are fictional.</p>
+      <p>{template.professionalPracticeAssumption}</p>
+    </details> : <p class="field-help">Your existing academic record is preserved. Saving a study focus changes only these suggestions; it does not generate or replace past results.</p>}
+    <form action="/api/study-plan" method="post" class="actions planning-controls">
+      <div><label for="planning-period">Semester to plan</label><select id="planning-period" name="period">
+        {PLANNING_PERIODS.map(period => <option value={period} selected={period === `${g.year} ${g.term}`}>{periodLabel(period)}{period.startsWith("2028") ? " (indicative)" : ""}</option>)}
+      </select></div><button>Save planning preference</button>
+    </form>
+    {!g.supported ? <p class="warning">The saved degree or specialisation source no longer matches the reviewed interpretation. Suggestions are unavailable until it is reviewed.</p> : <>
+      {g.future && <p class="warning">These are indicative later options from the 2027 pages. Future rules and offerings may change; enrolment is not open here for {g.year}.</p>}
+      {g.unknownDates && <p class="warning">Some results have an unknown study period. They are excluded from dated progress and eligibility remains uncertain.</p>}
+      <details class="planning-progress" data-planning-progress><summary>What your completed study covers</summary>
+        <p>Partial planning checks, based on {p.recordedUnits} recorded completed units before this semester. Current enrolments and saved courses are not passed credit.</p>
+        <dl class="facts">
+          <div><dt>Compulsory courses</dt><dd>{p.core.length} of 2 completed</dd></div>
+          <div><dt>Professional practice</dt><dd>{p.professional.length ? p.professional.join(", ") : "Still required"}{g.plan?.templateId && p.professional.includes("COMP6250") ? " (historical scenario assumption)" : ""}</dd></div>
+          <div><dt>Artificial Intelligence</dt><dd>{p.aiUnits} / 24 units; {p.aiAdvancedUnits} advanced (minimum 12); {p.aiFoundationUnits} foundation (maximum 12)</dd></div>
+          <div><dt>8000-level COMP study</dt><dd>{p.advancedUnits} / 48 units</dd></div>
+          <div><dt>Research project</dt><dd>{p.projectUnits} / 24 units in consecutive semesters</dd></div>
+        </dl>
+        <p>Each course is allocated once between degree groups. The 8000-level minimum is a separate threshold, not extra credit. Project approval, GPA and a complete graduation audit still need review.</p>
+        {p.aiFoundationSurplus.length > 0 && <p>{p.aiFoundationSurplus.join(", ")} fall outside the specialisation's 12-unit foundation allowance. They may count in other degree groups, but are not counted again as AI credit.</p>}
+        <p>The degree also requires a GPA of 6 in the first 48 attempted units and an identified supervisor for the research project. These conditions are not certified by the suggestions.</p>
+        {p.projectUnits === 12 && <p>The research project needs a second 12-unit instance in the next consecutive semester. Confirm continuation arrangements with the program team; the earlier completion does not itself approve another instance.</p>}
+        <p><a data-source-hash={PLANNING_POLICY.program.hash} href={catalogueLink("program", PLANNING_POLICY.program.code, 2027)}>Saved degree requirements</a> · <a data-source-hash={PLANNING_POLICY.specialisation.hash} href={catalogueLink("specialisation", PLANNING_POLICY.specialisation.code, 2027)}>Saved specialisation requirements</a></p>
+      </details>
+      {g.exceedsOneSemester && <p class="planning-note">Your remaining recorded requirements extend beyond one normal semester. These suggestions are still useful if you take longer; they are not a promised completion date.</p>}
+      <h3>{g.hasPriorities ? "Options for this semester" : "Choose at your preference"}</h3>
+      <p>These options fit together within the recorded load limit, allowing for confirmed enrolments and {g.reservedUnits} units of saved candidates. Suggestions leave degree space for the compulsory research project. Saving a course updates the options; it does not enrol you.</p>
+      {g.options.length ? <ul class="suggestion-list" data-suggestion-options>{g.options.map(({course, reasons, unlocks}) => <li>
+        <h4><a href={linkFor(course.code)}><span class="enrolled-code">{course.code}</span> {course.title}</a></h4>
+        <p class="meta">{course.units} units · {g.future ? "Meets current saved checks; future offering indicative" : "Recorded eligibility checks met"}</p>
+        <p>{reasons.join(" ")}</p>
+        <p class="field-help"><a data-source-hash={course.source?.hash} href={catalogueLink("course", course.code, 2027)}>Course evidence</a>{unlocks.length > 0 && <> · Later requirements: {unlocks.map((code, i) => <>{i ? ", " : ""}<a href={catalogueLink("course", code, 2027)}>{code}</a></>)}</>}</p>
+        {!g.future && <form action="/api/selections" method="post"><input type="hidden" name="action" value="add" /><input type="hidden" name="offeringId" value={offeringFor(g.courses.find(c => c.code === course.code)!.id, g.term, g.year)?.id} /><button aria-label={`Save suggested ${course.code}`}>Save course</button></form>}
+      </li>)}</ul> : <p class="empty">{g.constrained || g.saved.length ? "No further priority fits alongside your current selection. Review My courses to change it." : "No additional course is prioritised in this plan. Review the next steps below or browse courses at your preference."}</p>}
+      {g.saved.length > 0 && <p data-planning-saved>Already saved: {g.saved.map(c => c.code).join(", ")}. <a href="/plan/#saved-heading">Review saved courses</a>.</p>}
+      {g.attention.length > 0 && <details data-planning-attention open><summary>Relevant courses needing another step</summary><ul>
+        {g.attention.map(({course, result, reasons}) => <li><p><a href={linkFor(course.code)}><strong>{course.code}</strong> {course.title}</a> — {course.units === null ? "Choose the credit value before assessing the load" : g.attentionLabel(result)}.</p><p>{reasons[0]}</p>{"checks" in result && result.checks.filter(c => c.nextAction && !c.met).slice(0, 2).map(c => <p class="field-help">{c.nextAction}</p>)}</li>)}
+      </ul></details>}
+      {g.later.length > 0 && <details data-planning-later><summary>Later options and offering gaps</summary><ul>
+        {g.later.map(({course, later, reasons}) => <li><p><a href={catalogueLink("course", course.code, 2027)}>{course.code} {course.title}</a> — {later ? `next saved offering: ${periodLabel(`${later.year} ${later.term}`)} (indicative)` : "no later offering recorded; check with the teaching team"}.</p><p>{reasons[0]} Eligibility must be checked again when you plan that semester.</p></li>)}
+      </ul></details>}
+      <p class="field-help">This is a fictional scenario using 2027 source interpretations, not an audit of a real student's commencement-year rules. <a href="/guide/#planning">How suggestions work</a>.</p>
+    </>}
+    {g.events.length > 0 && <details><summary>Planning history</summary><ul>{g.events.map(event => <li>{event.detail} <span class="meta">{event.createdAt} UTC</span></li>)}</ul></details>}
+  </>}
+</section>

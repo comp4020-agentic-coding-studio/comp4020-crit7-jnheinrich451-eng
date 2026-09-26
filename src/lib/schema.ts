@@ -47,6 +47,25 @@ export const students = sqliteTable("students", {
   recordSource: text("record_source").notNull().default("Fictional demonstration record"),
 });
 
+/** Planning metadata is separate from transcript facts; legacy profiles stay intact. */
+export const studyPlans = sqliteTable("study_plans", {
+  studentId: int("student_id").primaryKey().references(() => students.id),
+  ruleYear: int("rule_year").notNull(),
+  specialisation: text().notNull(),
+  planningYear: int("planning_year").notNull(),
+  planningTerm: text("planning_term").notNull(),
+  templateId: text("template_id"),
+  templateSnapshot: text("template_snapshot"),
+  createdAt: createdAt(),
+});
+
+export const studyPlanEvents = sqliteTable("study_plan_events", {
+  id: int().primaryKey({ autoIncrement: true }),
+  studentId: int("student_id").notNull().references(() => students.id),
+  detail: text().notNull(),
+  createdAt: createdAt(),
+});
+
 /** Past results. Codes are text, not course ids: a transcript holds
  *  undergraduate and other courses the postgraduate catalogue doesn't list. */
 export const transcript = sqliteTable("transcript", {
