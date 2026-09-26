@@ -4,6 +4,7 @@ import PendingRequestNotice from "../../components/PendingRequestNotice.astro";
 import { type ApplicationView, applicationsOfStudent, listCourses, queueOf, TERM_LABELS } from "../../lib/store";
 import type { Term } from "../../data/courses";
 import { applicationStatus } from "../../lib/application-status";
+import { accountFor } from "../../lib/email-checks";
 
 // A student's own requests, or a convenor's queue: only requests routed to
 // them, waiting ones first. Auto-rejected requests never reached a person,
@@ -87,6 +88,7 @@ const assignedCourses = actor.kind === "convenor" ? listCourses().filter(c => c.
                   {actor.kind === "convenor" ? `${a.student.name} (${a.student.uid})` : a.course.title}
                 </span>
                 <span class="meta">
+                  {actor.kind === "convenor" && accountFor({ kind: "student", student: a.student })?.kind === "demo" && "Demo account · "}
                   {a.scenarioKey && "Fictional topic scenario · "}
                   {`${a.year} ${TERM_LABELS[a.term as Term]}`} · sent{" "}
                   {a.createdAt.slice(0, 16).replace("T", " ")} UTC

@@ -8,6 +8,7 @@ import AssessmentReport from "../../components/AssessmentReport.astro";
 import { REQUEST_REASONS } from "../../lib/demo-assessment";
 import { getApplication, TERM_LABELS } from "../../lib/store";
 import { applicationStatus } from "../../lib/application-status";
+import { accountFor } from "../../lib/email-checks";
 
 // One request: where it is, who has it, what the automatic round checked, and
 // every step as a timeline. The student who sent it and the convenor it was
@@ -46,6 +47,7 @@ const ACTOR_LABEL: Record<string, string> = { student: "Student", system: "Syste
     <>
       <h1 class="request-course">{app.course.code}</h1>
       <p class="request-label">Enrolment request</p>
+      {routedToMe && accountFor({ kind: "student", student: app.student })?.kind === "demo" && <p class="note">Demo account: this request belongs to a visitor's fictional profile. Your decision is a prototype decision.</p>}
       <p class="lede">{app.course.title}</p>
 
       <section class={`status status-${app.status}`} aria-labelledby="status-heading">

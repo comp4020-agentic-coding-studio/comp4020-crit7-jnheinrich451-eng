@@ -8,7 +8,7 @@ import { UserError } from "./errors";
 import type { Actor } from "./store";
 
 export function accountFor(actor: Actor) {
-  return db.select({ id: accounts.id, email: accounts.email, verifiedAt: accounts.verifiedAt }).from(accounts)
+  return db.select({ id: accounts.id, email: accounts.email, kind: accounts.kind, verifiedAt: accounts.verifiedAt }).from(accounts)
     .where(actor.kind === "student" ? eq(accounts.studentId, actor.student.id) : eq(accounts.convenorId, actor.convenor.id)).get();
 }
 
@@ -19,6 +19,7 @@ export function lastEmailCheck(accountId: number) {
 export async function requestEmailCheck(actor: Actor) {
   const account = accountFor(actor);
   if (!account?.verifiedAt) throw new UserError("Sign in to a verified account first.");
+  if (account.kind === "demo") throw new UserError("Demo accounts use the private demo inbox. Use Change password in My account.");
   throttle(`email-check:${account.id}`, 3);
   const token = randomBytes(32).toString("hex"), now = Date.now();
   const row = db.insert(emailChecks).values({ accountId: account.id, tokenHash: digest(token),

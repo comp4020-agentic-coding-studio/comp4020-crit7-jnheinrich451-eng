@@ -1,10 +1,13 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { accountFor, lastEmailCheck } from "../lib/email-checks";
+import { lastPasswordChange } from "../lib/password-changes";
 const actor = Astro.locals.actor;
 if (!actor) return Astro.redirect("/login/", 303);
 const account = accountFor(actor);
 const check = account ? lastEmailCheck(account.id) : undefined;
+const change = account ? lastPasswordChange(account.id) : undefined;
+const changeExpired = change && change.expiresAt <= Date.now();
 const expired = check && check.expiresAt <= Date.now();
 const date = (value: number) => new Date(value).toLocaleString("en-AU", { timeZone: "Australia/Sydney", timeZoneName: "short" });
 ---
@@ -12,21 +15,35 @@ const date = (value: number) => new Date(value).toLocaleString("en-AU", { timeZo
   <h1>My account</h1>
   <p>Your prototype login is separate from ANU's systems.</p>
   {account && <>
-    <dl class="facts"><div><dt>Verified email</dt><dd>{account.email}</dd></div></dl>
-    <section aria-labelledby="email-test-heading">
-      <h2 id="email-test-heading">Test verification email</h2>
-      <p>Send a fresh test link to your saved email address, then open it and confirm receipt. You can repeat this without deleting your account.</p>
-      <p class="muted">Your password, sign-in sessions, profile, requests and enrolments stay unchanged. Up to three tests every 15 minutes.</p>
-      <form method="post" action="/api/auth/email-test"><button class="primary">Send a fresh verification test</button></form>
-      {check && <div data-email-check>
-        <h3>Latest test</h3>
+    <dl class="facts"><div><dt>{account.kind === "demo" ? "Demo address" : "Verified email"}</dt><dd>{account.email}</dd></div></dl>
+    {account.kind === "demo" && <p>This is a persistent demo account. Its private inbox simulates email delivery; it does not verify an ANU identity. <a href="/demo-inbox/">Open your demo inbox</a>.</p>}
+    <section aria-labelledby="password-heading" class="auth-card">
+      <h2 id="password-heading">Change password</h2>
+      <p>{account.kind === "demo" ? "We will place a confirmation link in your private demo inbox." : "We will email a confirmation link to your saved address."} Open it to choose your new password.</p>
+      <p>Your profile, requests and enrolments are preserved. Completing the change signs out all your sessions. Links expire after 30 minutes; up to three requests every 15 minutes.</p>
+      <form method="post" action="/api/auth/password-change" class="stack">
+        <label for="current-password">Current prototype password</label>
+        <input id="current-password" name="currentPassword" type="password" autocomplete="current-password" required maxlength="128" />
+        <button class="primary">Send password-change link</button>
+      </form>
+      {change && <div data-password-change>
+        <h3>Latest password request</h3>
+        <p>Requested {date(change.requestedAt)}.</p>
+        <p>{change.status === "completed" ? "Password changed successfully."
+          : change.status === "failed" ? "The message could not be sent. Your password is unchanged."
+          : changeExpired || change.status === "superseded" ? "This link is no longer active. You can request another."
+          : change.status === "sent" ? account.kind === "demo" ? "Your confirmation link is in your private demo inbox." : "The email service accepted the message. Inbox delivery is not confirmed; check all folders and quarantine."
+          : "Sending has not finished. Reload to check its status."}</p>
+      </div>}
+    </section>
+      {check && <details data-email-check>
+        <summary>Previous verification test receipt</summary>
         <p>Requested <time datetime={new Date(check.requestedAt).toISOString()}>{date(check.requestedAt)}</time>.</p>
         {check.status === "confirmed" && check.confirmedAt ? <p>Receipt confirmed <time datetime={new Date(check.confirmedAt).toISOString()}>{date(check.confirmedAt)}</time>.</p>
           : check.status === "failed" ? <p>The email service could not send this test. Your account remains verified.</p>
-          : expired ? <p>This test expired. Send a fresh test when you are ready.</p>
+          : expired ? <p>This earlier test expired. Use Change password above when you want a fresh email confirmation.</p>
           : check.status === "sent" ? <p>The email service accepted this test. Check your inbox and spam folder, then confirm receipt using its link. Provider acceptance does not guarantee delivery.</p>
           : <p>The send attempt has not finished. Reload to check its status; an interrupted attempt will expire.</p>}
-      </div>}
-    </section>
+      </details>}
   </>}
 </Layout>

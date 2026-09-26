@@ -17,6 +17,7 @@ declare module "vitest" {
     expiredToken: string;
     expiredSession: string;
     expiredEmailCheck: string;
+    expiredPasswordChange: string;
   }
 }
 
@@ -58,6 +59,9 @@ export default async function setup(project: TestProject): Promise<() => void> {
         message += chunk.toString();
       });
       stream.on("end", () => {
+        if (session.envelope.rcptTo.some(r => r.address === "password-change-failure@anu.edu.au") && message.includes("Change your enrolment prototype password")) {
+          done(new Error("Simulated password-change rejection")); return;
+        }
         if (session.envelope.rcptTo.some(r => r.address === "email-check-failure@anu.edu.au") && message.includes("Test your enrolment prototype")) {
           done(new Error("Simulated test-message rejection")); return;
         }
@@ -127,6 +131,7 @@ export default async function setup(project: TestProject): Promise<() => void> {
   project.provide("expiredToken", data.expiredToken);
   project.provide("expiredSession", data.expiredSession);
   project.provide("expiredEmailCheck", data.expiredEmailCheck);
+  project.provide("expiredPasswordChange", data.expiredPasswordChange);
   project.provide("mailDir", mailDir);
   project.provide("testDatabase", database);
   return () => {

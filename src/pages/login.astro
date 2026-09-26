@@ -1,5 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import AccountModes from "../components/AccountModes.astro";
+const demo = Astro.url.searchParams.get("mode") === "demo";
 if (Astro.locals.actor)
   return Astro.redirect(Astro.locals.actor.kind === "convenor" ? Astro.locals.actor.convenor.purpose === "overload" ? "/overload/" : "/applications/" : "/plan/", 303);
 ---
@@ -8,10 +10,12 @@ if (Astro.locals.actor)
   <div class="auth-card">
     <p class="eyebrow">COURSE ENROLMENT · PROTOTYPE</p>
     <h1>Welcome back</h1>
+    <AccountModes page="login" demo={demo} />
     <p>Sign in to your saved courses and permission requests.</p>
-    <p class="field-help">Use the ANU email address you verified for this prototype, such as u1234567@anu.edu.au or your ANU email alias.</p>
+    <p class="field-help">{demo ? "Use the @enrolment.test address you chose. Your password also lets you reopen a private inbox if you have not confirmed the account yet." : "Use the ANU email address you verified for this prototype, such as u1234567@anu.edu.au or your ANU email alias."}</p>
     <form method="post" action="/api/auth/login" class="stack">
-      <label for="email">ANU email</label>
+      <input type="hidden" name="mode" value={demo ? "demo" : "normal"} />
+      <label for="email">{demo ? "Demo email" : "ANU email"}</label>
       <input id="email" name="email" type="email" autocomplete="username" required maxlength="254" />
       <label for="password">Prototype password</label>
       <input
@@ -25,16 +29,17 @@ if (Astro.locals.actor)
       <button class="primary">Sign in</button>
     </form>
     <p>
-      New here? <a href="/register/">Create a student account</a>
+      New here? <a href={`/register/${demo ? "?mode=demo" : ""}`}>Create a student account</a>
     </p>
-    <details>
+    {!demo && <details>
       <summary>Resend verification email</summary>
       <form method="post" action="/api/auth/resend" class="stack">
         <label for="resend-email">ANU email</label>
         <input id="resend-email" name="email" type="email" autocomplete="email" required maxlength="254" />
         <button>Resend verification</button>
       </form>
-    </details>
+      <p class="muted">Already verified? Sign in. Resend sends only for accounts awaiting activation. You can request a password-change email from My account after signing in.</p>
+    </details>}
     <p class="muted">Staff accounts are invitation-only. This prototype has separate credentials from ANU. <a href="/guide/#reviewers">Reviewer and teaching-team access</a>.</p>
   </div>
 </Layout>

@@ -1,17 +1,21 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import AccountModes from "../components/AccountModes.astro";
 if (Astro.locals.actor) return Astro.redirect("/plan/", 303);
+const demo = Astro.url.searchParams.get("mode") === "demo";
 ---
 
 <Layout title="Create an account" actor={null}>
   <div class="auth-card">
     <p class="eyebrow">COURSE ENROLMENT · PROTOTYPE</p>
     <h1>Create your account</h1>
-    <p>Verify your ANU email, then explore enrolment with a fictional academic profile.</p>
+    <AccountModes page="register" demo={demo} />
+    <p>{demo ? "Choose your demo address and confirm it in a private inbox here. No real email account is needed." : "Verify your ANU email, then explore enrolment with a fictional academic profile."}</p>
     <form method="post" action="/api/auth/register" class="stack">
+      <input type="hidden" name="mode" value={demo ? "demo" : "normal"} />
       <label for="name">Display name</label>
       <input id="name" name="name" autocomplete="name" maxlength="80" required />
-      <label for="email">ANU email</label>
+      <label for="email">{demo ? "Choose a demo email" : "ANU email"}</label>
       <input
         id="email"
         name="email"
@@ -20,9 +24,10 @@ if (Astro.locals.actor) return Astro.redirect("/plan/", 303);
         maxlength="254"
         required
         aria-describedby="email-help"
+        placeholder={demo ? "your-choice@enrolment.test" : undefined}
       />
       <p id="email-help" class="field-help">
-        Use your real ANU address, such as u1234567@anu.edu.au or your ANU email alias. We will email you a verification link to check ownership.
+        {demo ? "Choose the part before @enrolment.test (up to 48 letters, numbers, dots, hyphens or underscores). Use a nickname and a password you can remember. Nothing is sent through email." : "Use your real ANU address, such as u1234567@anu.edu.au or your ANU email alias. We will email you a verification link to check ownership."}
       </p>
       <label for="password">Create a prototype password</label>
       <input
@@ -38,14 +43,14 @@ if (Astro.locals.actor) return Astro.redirect("/plan/", 303);
       <p id="password-help" class="field-help">
         15–128 characters. Use a new password, not your ANU password.
       </p>
-      <button class="primary">Create account &amp; send verification</button>
+      <button class="primary">{demo ? "Create demo account & open inbox" : "Create account & send verification"}</button>
     </form>
     <p class="muted">
       Your generated program and grades are demonstration data. This is not ANU's enrolment service and does
       not access your university record.
     </p>
     <p>
-      Already registered? <a href="/login/">Sign in</a>
+      Already registered? <a href={`/login/${demo ? "?mode=demo" : ""}`}>Sign in</a>
     </p>
   </div>
 </Layout>

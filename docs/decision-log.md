@@ -254,3 +254,30 @@ choices rather than automatic routing by address shape, because ANU supports
 name-based aliases too. Proposed guests receive generated `.test` identities
 and a private captured inbox with clear simulation labels. This is recorded in
 `demo-inbox-design.md`, not implemented or advertised as available.
+
+## 27 September 2026: chosen demo addresses and useful email confirmation
+
+John replaced the standalone verification-test interface with a useful password
+change, and approved explicit Normal / Demo tabs. The visitor chooses a `.test`
+address and password, receives a private simulated confirmation and enters a
+persistent fictional profile. Real ANU addresses and aliases still require SMTP.
+The inbox uses a hashed browser capability and HMAC-derived links; it never
+captures real account, password or reviewer mail. Links need explicit POSTs.
+
+Signed-in password changes require the current password and a fresh inbox link.
+The final POST revokes sessions and other change links while retaining academic
+history. Old receipt links remain compatible and cannot change credentials.
+No account deletion or forgotten-password recovery is included.
+
+The earlier proposed separate guest queue is refined to permit labelled demo
+requests in the assigned invited reviewer's queue. This supports marking both
+sides with one real mailbox: a normal invited reviewer and a chosen demo student.
+Account isolation and course assignment still determine access. Public signup
+never creates reviewers. The build now includes an owner-only invitation CLI;
+its `--list` path is read-only and sends no mail. Actual invitations need an
+explicit intended recipient and an available fictional reviewer slot.
+
+Brevo's Delivered status establishes recipient-server acceptance, not Inbox
+placement. Quarantine and recipient mail rules remain possible causes; no ANU
+mail trace has established why John's specific message was missing. Keep that
+uncertainty separate from local capture tests and successful SMTP submission.

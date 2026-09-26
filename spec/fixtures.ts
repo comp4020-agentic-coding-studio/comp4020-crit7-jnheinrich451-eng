@@ -105,6 +105,10 @@ for (const person of [
   cookies[person.name] = `enrol_session=${createSession(account.id)}`;
 }
 const first = db.select().from(accounts).get()!;
+const { passwordChanges } = await import("../src/lib/schema");
+const expiredPasswordChange = randomBytes(32).toString("hex");
+db.insert(passwordChanges).values({ accountId: first.id, tokenHash: digest(expiredPasswordChange),
+  credentialHash: digest(first.passwordHash!), status: "sent", requestedAt: Date.now() - 120_000, expiresAt: Date.now() - 60_000 }).run();
 const expiredEmailCheck = randomBytes(32).toString("hex");
 db.insert(emailChecks).values({ accountId: first.id, tokenHash: digest(expiredEmailCheck), status: "sent",
   requestedAt: Date.now() - 120_000, sentAt: Date.now() - 120_000, expiresAt: Date.now() - 60_000 }).run();
@@ -130,4 +134,4 @@ const reviewer = db
   .returning()
   .get();
 await inviteStaff("invited-reviewer@anu.edu.au", reviewer.id);
-writeFileSync(process.env.SPEC_FIXTURE_FILE, JSON.stringify({ cookies, expiredToken, expiredSession, expiredEmailCheck }));
+writeFileSync(process.env.SPEC_FIXTURE_FILE, JSON.stringify({ cookies, expiredToken, expiredSession, expiredEmailCheck, expiredPasswordChange }));

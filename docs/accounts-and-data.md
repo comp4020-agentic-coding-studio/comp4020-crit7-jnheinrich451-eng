@@ -1,16 +1,37 @@
 # Accounts, email and the enrolment dataset
 
-Student accounts must verify an address ending exactly in `@anu.edu.au` before
-signing in. This confirms email ownership only, not student status. The app is
+Normal accounts must verify an address ending exactly in `@anu.edu.au` before
+signing in. The explicit Demo tab instead accepts user-chosen `@enrolment.test`
+addresses and a private simulated inbox; it proves no real email ownership.
+Normal verification confirms email ownership only, not student status. The app is
 an independent prototype; it does not use ANU SSO or access university records.
 Students should use a separate prototype password.
 
-## Repeat a verification email test
+## Change a password through email confirmation
 
-After signing in, open **My account** in the header and choose **Send a fresh
-verification test**. The server sends only to that account's saved address;
-there is no recipient field. Open the message and press **Confirm test email
-receipt**. My account keeps the latest send/receipt status across reloads.
+Open **My account → Change password**, enter the current prototype password and
+request a link. Normal accounts receive SMTP mail at their saved address; demo
+accounts receive a message in their private demo inbox. Open the link, choose
+and confirm a different 15–128-character password, then sign in again.
+
+Links last 30 minutes and work once. GET requests cannot consume them. The final
+POST updates only the credential, records completion, invalidates other password
+links and signs out all account sessions. Demo inbox grants also expire. The
+academic profile, enrolments, requests and adviser history remain saved. A failed
+send leaves the current password and sessions intact. Up to three requests per
+account every 15 minutes; current-password failures count toward that limit.
+
+The separate `password_changes` table stores token hashes, a fingerprint of the
+credential at issuance (not another stored password hash), status and timestamps.
+Activation and old receipt tokens cannot be used as password-change links.
+This is signed-in password management; forgotten-password recovery remains outside
+this increment. Real Inbox delivery is still a provider/university mail concern.
+
+## Previous verification email tests
+
+The previous standalone verification-test action has been replaced in My account
+by Change password. Existing test links still offer **Confirm test email receipt**;
+their latest send/receipt status remains in the previous-receipt disclosure.
 The service accepts up to three tests per account every 15 minutes; links last
 30 minutes and work once. Opening a link alone does not consume it, so email
 scanners cannot confirm receipt by prefetching the page.
@@ -25,7 +46,7 @@ registration or regenerate the academic profile. No account deletion is needed.
 
 The deployed action is intended for the account holder to trigger themselves.
 Automated tests use captured mail; they do not prove real inbox delivery.
-See `demo-inbox-design.md` for the separately proposed guest mode.
+See `demo-inbox-design.md` for the implemented public Demo mode.
 
 ## Try the workflow without an external email service
 
@@ -176,11 +197,10 @@ give access on Fly. The marker must receive the invitation, set a prototype
 password and verify it. No public staff sign-up or shared reviewer password is
 provided.
 
-Next-stage access review: confirm real SMTP delivery after deployment and arrange
-student/reviewer testing with distinct real addresses. John asked whether
-fictional addresses could work publicly; this increment adds no verification
-bypass, public captured inbox or guest-account flow. Any later guest demonstration
-should be an explicitly separate access mode.
+For marking, confirm real reviewer SMTP delivery after deployment. Student testing
+can use the explicit Demo tab and a chosen `.test` address with a private captured
+inbox. This does not bypass ownership checks on Normal accounts or grant a public
+reviewer role. See `demo-inbox-design.md` for this separate access mode.
 
 Before the marking session, the project owner should:
 
@@ -190,12 +210,13 @@ Before the marking session, the project owner should:
 2. Arrange each marker's reviewer address before they register it as a student.
    The current model allows one role per email and one account per fictional
    convenor. Assign an unused convenor and tell the marker which courses it owns.
-   The same email cannot also be a student account; testing both roles needs a
-   separate student account/session.
-3. Run `scripts/invite-staff.ts` against the **deployed** database and mail
-   environment using an administrative environment with the development
-   dependencies. The normal production image does not include `tsx` or this
-   source script; do not claim that a local invitation provisions the Fly account.
+   The same email cannot also be a student account. A marker can use a chosen
+   `@enrolment.test` demo account to test the student side in a separate session.
+3. Run the bundled `dist/admin/invite-staff.mjs` through Fly SSH against the
+   **deployed** database and mail environment. No development dependencies are
+   required in the runtime image. See [reviewer-invitations.md](reviewer-invitations.md)
+   for listing assignments and issuing an invitation. A local invitation does
+   not provision the Fly account.
 4. Share the deployed `/guide/#reviewers` link through the submission/teaching-team
    channel, together with the assigned fictional reviewer and a matching course.
    An invitation expires after 30 minutes; the invited recipient can request a

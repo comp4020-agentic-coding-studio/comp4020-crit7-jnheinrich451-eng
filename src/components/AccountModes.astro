@@ -1,0 +1,14 @@
+---
+interface Props { page: "login" | "register"; demo: boolean; }
+const { page, demo } = Astro.props;
+---
+<nav class="account-modes" aria-label="Account mode">
+  <a href={`/${page}/`} aria-current={!demo ? "page" : undefined}>Normal <small>Real ANU email</small></a>
+  <a href={`/${page}/?mode=demo`} aria-current={demo ? "page" : undefined}>Demo <small>Private demo inbox</small></a>
+</nav>
+<style>
+  .account-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 0; margin: 1.5rem 0; border: 1px solid var(--line); }
+  .account-modes a { padding: .8rem .5rem; color: #333; text-align: center; text-decoration: none; border-bottom: 3px solid transparent; }
+  .account-modes a[aria-current] { color: #403315; background: #eee9de; border-bottom-color: #8a7135; font-weight: bold; }
+  .account-modes small { display: block; font-weight: normal; }
+</style>

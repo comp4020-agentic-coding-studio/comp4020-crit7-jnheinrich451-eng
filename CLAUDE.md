@@ -164,15 +164,24 @@ See `docs/accounts-and-data.md`.
   through that POST without accepting arbitrary return URLs.
 - Deployment docs must say it needs working SMTP and unused reviewer addresses;
   local captured mail doesn't prove remote delivery.
-- Verified, signed-in users can send a repeatable verification test from My
-  account to their saved email only. Test tokens and durable receipts are
-  separate from activation tokens. Confirmation cannot activate an account,
-  change credentials or revoke sessions. Preserve profiles and enrolment history;
-  no account deletion is part of this increment. Limit tests to three per
-  account per 15 minutes. See `docs/accounts-and-data.md`.
-- Explain UID-style and name-based ANU addresses without treating syntax as
-  proof of ownership. The proposed public demo inbox is still a separate future
-  access mode, described in `docs/demo-inbox-design.md`; it is not implemented.
+- My account offers a real password change: current password, then a single-use
+  confirmation link to the saved inbox, then a new password. Only the final POST
+  changes credentials and revokes sessions; preserve academic data. Links last
+  30 minutes and requests are limited to three per account per 15 minutes.
+  Previous verification-test links and receipts remain compatible, separately
+  scoped; they can never change a password. No account deletion is included.
+- Normal / Demo tabs explicitly choose delivery. Normal mode accepts UID-style
+  and name-based ANU addresses and requires SMTP ownership verification. Demo
+  users choose their own `@enrolment.test` address and password. Their private
+  captured inbox uses an HttpOnly browser capability; opening a new inbox requires
+  password authentication or an existing demo session. Never capture real mail.
+  Demo accounts are labelled, persistent, student-only and cannot grant reviewer
+  access. They may send labelled fictional requests to assigned invited reviewers.
+  See `docs/demo-inbox-design.md` for expiry, access and shared resource limits.
+- Package the owner-only invitation CLI in the deployed image. Listing available
+  fictional reviewer slots sends no mail; an explicit recipient and slot send
+  an SMTP invitation. Existing accounts never silently change roles. Markers can
+  use their real address for reviewing and a chosen demo account for student testing.
 
 ### Study load, overload, drop and swap
 
@@ -277,10 +286,11 @@ See `docs/course-adviser.md` for validation, runtime limits and timings.
   titles and requisites follow ANU's published courses, transcribed by hand
   and verified by John — do not crawl ANU sites (their robots.txt disallows AI
   agents). Don't put real staff names on invented decisions.
-- **Verified accounts.** John's 25 September instruction replaces the original
-  no-auth design. Student registration accepts exactly the `anu.edu.au` email
-  domain, hashes passwords, and requires a single-use SMTP email verification
-  link before sign-in. Domain matching alone is not proof of ownership.
+- **Verified accounts.** Normal student registration accepts exactly the
+  `anu.edu.au` domain, hashes passwords, and requires single-use SMTP verification
+  before sign-in. The explicitly selected Demo mode confirms a private simulated
+  inbox instead; it never claims a verified ANU identity. Domain matching alone
+  is not proof of ownership.
 - **Staff are invited.** Never grant a reviewer role from public registration
   or a browser-supplied actor id. Provision staff through `scripts/invite-staff.ts`;
   reviewers can access only their assigned requests and relevant evidence.

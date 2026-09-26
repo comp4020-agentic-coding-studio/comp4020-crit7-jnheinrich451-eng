@@ -1,47 +1,63 @@
-# Public demo inbox — proposed next stage
+# Normal and Demo account access
 
-Status: design only. Real ANU registration and reviewer invitations still use
-SMTP ownership verification. No public captured inbox or demo-account creation
-route is implemented by the Fly/email-test increment.
+Implemented in the 27 September account-mode increment. Deployment and check
+evidence are recorded in PROCESS_RECORD.md after verification.
 
-John proposed recognising `u` plus seven digits at `anu.edu.au` as a real
-account, treating other input as a dummy address, and displaying its verification
-message in a popup. ANU's [email guidance](https://services.anu.edu.au/information-technology/email/email-addresses-lists)
-also describes staff name-based addresses and optional postgraduate aliases.
-An address's syntax cannot prove ownership or safely choose its delivery route.
+Normal and Demo are explicit tabs on registration and sign-in. ANU UID-style
+addresses and name-based aliases stay in Normal mode and require real SMTP
+verification. Address shape never decides whether verification is simulated.
 
-## Recommended flow
+## Visitor flow
 
-1. Offer explicit **Use my ANU email** and **Try a demo account** choices on
-   registration/sign-in. Real addresses always receive SMTP verification;
-   preserve support for UID-style addresses and ANU aliases.
-2. The demo path asks for a display name and prototype password, then generates
-   a unique address such as `alex-7b2c@enrolment.test`. A nickname is sufficient;
-   do not ask visitors to invent an address in a real person's domain or use
-   `@anu.edu.au` for a simulated identity. Show the generated address so they
-   can use it again to sign in.
-3. Open **Your demo inbox** as a normal page with a clearly labelled captured
-   message and a verification link. A dialog can enhance it later, but the
-   complete flow must work without JavaScript. The message is captured inside
-   the app; no SMTP message is sent and no real inbox ownership is claimed.
-4. Only that visitor can access their inbox through an unguessable browser
-   capability; knowing or guessing a demo email address must not expose it.
-   Keep real verification/invitation tokens entirely out of this subsystem.
-   Links expire and are single-use, with an explicit confirmation POST.
-5. Create a persistent, labelled fictional profile. Display **Demo account**
-   throughout its session; never call it a verified ANU account. Account kind
-   is server-controlled and cannot grant a real reviewer role. Separate guest
-   data and review queues from real account access, and bound creation and
-   model use before publishing this route.
+1. Select Demo, choose a display name, an address such as `alex@enrolment.test`,
+   and a separate prototype password. The visitor chooses the entire address;
+   nothing is generated or sent through SMTP. Real domains are rejected in this
+   mode. The local part permits 1–48 letters, numbers, dots, hyphens or underscores
+   and must start with a letter or number. Addresses are case-insensitive.
+2. Registration opens a private inbox page. Its confirmation link leads to an
+   explicit POST, then into the fictional profile in the same browser. A GET
+   cannot activate an account. Without that browser's inbox capability, a valid
+   confirmation link activates the demo account but still requires password sign-in.
+3. The profile, selections, requests, advice and enrolments persist. The session
+   displays Demo account and never claims verified ANU identity. Signing in again
+   uses the visitor's chosen address and password.
+4. My account supports the same password-change sequence, delivered inside the
+   private inbox. Completing it invalidates all old sessions and inbox grants.
 
-The inbox needs database-backed account/message state and an explicit access
-boundary, rather than a popup that exposes whatever email was typed. Reviewer
-demo access and cross-browser inbox recovery need a defined scope before this
-proposal is implemented.
+## Inbox privacy and recovery
 
-## Repeating a real SMTP test
+An eight-hour HttpOnly, SameSite=Lax cookie (Secure on HTTPS) is the private inbox
+capability. The database stores its hash, message metadata and random nonces.
+Message links are reconstructed using HMAC with the browser secret; neither raw
+capabilities nor raw verification/password-change tokens are saved in SQLite.
+Inbox and confirmation pages are not cacheable and do not leak token paths in
+referrers. Guessing an address or changing a query parameter cannot open an inbox.
+Signing out revokes that browser's grant. Normal sign-in also closes its demo inbox.
 
-John chose to retain the existing account and academic data. **My account →
-Send a fresh verification test** supplies repeatable real email checks through
-a separate receipt token. This is implemented independently of the proposed
-demo inbox. Full account deletion and re-registration are not included.
+In another browser, or after expiry, sign in with the chosen demo address and
+password. An unconfirmed account gets a new private inbox and confirmation link;
+a confirmed account gets a session and new inbox. Old captured messages belong
+to their original browser grant, not the new inbox. Academic data is retained.
+Losing both the password and browser access is not recoverable in this increment.
+
+Confirmation/password links last 30 minutes and are single-use. Duplicate
+registration never replaces an account or opens its inbox. Demo confirmation
+resends require the private capability and are limited to three per account per
+15 minutes. Demo creation is limited to 30 per 15 minutes across the deployment,
+in addition to the existing per-address and shared authentication limits.
+Adviser requests retain their per-student limit, two-call concurrency bound and
+deadline; demo users additionally share 30 new requests per 15 minutes.
+
+## Reviewers and marking
+
+Public demo accounts are students only. They can test the full enrolment and
+optional human-review flow. Explicitly submitted requests are visible to their
+assigned invited reviewer and labelled Demo account in the queue. This is an
+intentional refinement of the earlier proposed separate guest queue: markers
+can exercise both sides with one real mailbox, using a fictional student identity
+for submissions and their invited normal account for decisions. Students still
+cannot read other students' records or requests. Use fictional request details.
+
+Invitations always use real SMTP and cannot enter a captured inbox. See
+[reviewer-invitations.md](reviewer-invitations.md). No public reviewer signup,
+real-account role switch, ANU SSO or account deletion is included.

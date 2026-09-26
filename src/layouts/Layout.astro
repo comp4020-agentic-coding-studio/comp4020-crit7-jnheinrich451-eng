@@ -1,5 +1,6 @@
 ---
 import type { Actor } from "../lib/store";
+import { accountFor } from "../lib/email-checks";
 import "../styles.css";
 interface Props {
   title: string;
@@ -7,6 +8,7 @@ interface Props {
   watch?: { applicationId?: number; convenorId?: number; studentId?: number };
 }
 const { title, actor } = Astro.props;
+const demoAccount = actor && accountFor(actor)?.kind === "demo";
 const here = Astro.url.pathname;
 const navLinks =
   actor?.kind === "convenor"
@@ -75,6 +77,7 @@ navLinks.push({ href: "/catalogue/", label: "Course library" });
       </nav>
     </header>
     <main id="main">
+      {demoAccount && <p class="note" data-demo-account><strong>Demo account</strong> · Your fictional profile and actions are saved. <a href="/demo-inbox/">Private demo inbox</a>. Human-review requests are visible to assigned prototype reviewers; use fictional details.</p>}
       {Astro.url.searchParams.get("error") && (
         <p class="flash flash-error" role="alert">
           {Astro.url.searchParams.get("error")}

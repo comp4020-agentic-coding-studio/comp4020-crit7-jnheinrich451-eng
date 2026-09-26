@@ -9,7 +9,7 @@ const currentName = actor?.kind === "student" ? actor.student.name : actor?.conv
 
 <Layout title="Verify your email" actor={actor}>
   <div class="auth-card">
-    <h1>Verify your email</h1>
+    <h1>{info?.purpose === "demo-verify" ? "Confirm your demo account" : "Verify your email"}</h1>
     {info && actor ? (
       <section aria-labelledby="switch-account-heading" data-account-switch>
         <h2 id="switch-account-heading">Sign out to continue</h2>
@@ -26,7 +26,7 @@ const currentName = actor?.kind === "student" ? actor.student.name : actor?.conv
         <p>
           {info.purpose === "invite"
             ? "Choose a password to activate your invited reviewer account."
-            : "Confirm to activate your student account."}
+            : info.purpose === "demo-verify" ? "This is a simulated inbox confirmation. Continue to explore enrolment with your persistent fictional profile." : "Confirm to activate your student account."}
         </p>
         <form method="post" action="/api/auth/verify" class="stack">
           <input type="hidden" name="token" value={token} />
@@ -45,7 +45,7 @@ const currentName = actor?.kind === "student" ? actor.student.name : actor?.conv
               <p class="field-help">15–128 characters. Do not reuse your ANU password.</p>
             </>
           )}
-          <button class="primary">Confirm email address</button>
+          <button class="primary">{info.purpose === "demo-verify" ? "Confirm & enter demo" : "Confirm email address"}</button>
         </form>
       </>
     ) : (

@@ -20,7 +20,7 @@ for (const route of ROUTES) {
     let doc: Document;
 
     beforeAll(async () => {
-      const publicAuth = ["/login/", "/register/", "/verify/"].includes(route);
+      const publicAuth = ["/login/", "/register/", "/verify/"].includes(route.split("?")[0]);
       const res = await fetch(new URL(route, baseUrl), {
         headers: { cookie: publicAuth ? "" : inject("fixtureCookies")[route.startsWith("/enrolments/1/") ? "Mei Lin" : route === "/overload/1/" ? "Overload page student" : "Olivia Park"] },
       });

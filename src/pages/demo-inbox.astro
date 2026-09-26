@@ -1,0 +1,38 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { inboxFor, inboxMessages, INBOX_COOKIE } from "../lib/demo-inbox";
+import { accountFor } from "../lib/email-checks";
+const secret = Astro.cookies.get(INBOX_COOKIE)?.value ?? "";
+const actor = Astro.locals.actor;
+const account = actor ? accountFor(actor) : undefined;
+const granted = inboxFor(secret);
+const inbox = granted && (!actor || account?.id === granted.accountId) ? granted : undefined;
+const messages = inbox ? inboxMessages(secret) : [];
+const demoSession = account?.kind === "demo";
+---
+<Layout title="Your demo inbox" actor={actor}>
+  <div class="auth-card">
+    <p class="eyebrow">DEMO ACCOUNT</p>
+    <h1>Your demo inbox</h1>
+    <p>Messages here are simulated. No email is sent, and confirmation does not prove ownership of an ANU address.</p>
+    {inbox ? <>
+      <p>Private inbox for <strong>{inbox.email}</strong></p>
+      <p class="muted">This browser has access for up to eight hours. Signing out closes it. Sign in with your chosen demo address and password to open a new inbox; your saved academic profile remains.</p>
+      {messages.length === 0 && <p>No messages yet. You can request a password change from My account.</p>}
+      {messages.map(message => <article class="demo-message">
+        <h2>{message.purpose === "demo-verify" ? "Confirm your demo account" : "Change your demo password"}</h2>
+        <p><time datetime={new Date(message.createdAt).toISOString()}>{new Date(message.createdAt).toLocaleString("en-AU", { timeZone: "Australia/Sydney", timeZoneName: "short" })}</time></p>
+        <p>{message.purpose === "demo-verify" ? "Confirm your chosen address to enter the enrolment demo." : "Choose a new password using the link below. Your academic data will be preserved."}</p>
+        {message.expiresAt > Date.now() ? <a class="button" href={message.href}>{message.purpose === "demo-verify" ? "Open confirmation link" : "Open password-change link"}</a> : <p>This link has expired.</p>}
+        <p class="field-help">Links expire after 30 minutes and work once. Opening a link does not consume it.</p>
+      </article>)}
+      {!inbox.verifiedAt && <form method="post" action="/api/auth/demo-resend"><button>Create a fresh confirmation link</button></form>}
+      {demoSession && <p><a href="/record/">Return to your demo profile</a></p>}
+    </> : <>
+      <p>No private inbox is open in this browser. An email address alone cannot open someone else's inbox.</p>
+      {demoSession ? <form method="post" action="/api/auth/demo-inbox-open"><button class="primary">Open my private inbox</button></form>
+        : <p><a href="/login/?mode=demo">Sign in to your demo account</a> or <a href="/register/?mode=demo">choose a new demo address</a>.</p>}
+    </>}
+  </div>
+</Layout>
+<style>.demo-message { margin: 1.5rem 0; padding: 1rem 1.25rem; border: 1px solid #c7bdab; border-left: 3px solid #8a7135; background: white; } .demo-message h2 { font-size: 1.2rem; }</style>

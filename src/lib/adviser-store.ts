@@ -1,6 +1,6 @@
 import { and, desc, eq, gt } from "drizzle-orm";
 import { db } from "./db";
-import { adviserRuns, studyPlanEvents, type Student } from "./schema";
+import { accounts, adviserRuns, studyPlanEvents, type Student } from "./schema";
 import { planningInputOf } from "./planning-store";
 import { ADVISER_VERSION, ADVISER_LEASE_MS, UNIT_TARGETS, adviserContext, askOllama, preferredPlan, type AdviserResponse } from "./course-adviser";
 import { UserError } from "./errors";
@@ -45,6 +45,8 @@ export async function requestAdvice(student: Student, preferences: string, targe
     const busy = tx.select({ id: adviserRuns.id }).from(adviserRuns).where(and(eq(adviserRuns.status, "pending"), gt(adviserRuns.startedAt, Date.now() - ADVISER_LEASE_MS))).all();
     if (busy.length >= 2) throw new UserError("The course adviser is helping other students. Please try again shortly; standard suggestions remain available.");
     throttle(`adviser:${student.id}`, 12);
+    if (tx.select({ kind: accounts.kind }).from(accounts).where(eq(accounts.studentId, student.id)).get()?.kind === "demo")
+      throttle("adviser:demo-shared", 30);
     const row = tx.insert(adviserRuns).values({ studentId: student.id, preferences, targetUnits, contextHash: context.contextHash,
       snapshot: JSON.stringify({ version: ADVISER_VERSION, year: input.year, term: input.term, limit: input.limit, pool: context.pool, omittedCount: context.omittedCount,
         results: input.results, confirmed: input.confirmed, savedCodes: input.savedCodes }), status: "pending", startedAt: Date.now() }).returning().get();

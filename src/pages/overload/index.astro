@@ -6,6 +6,7 @@ import OverloadSource from "../../components/OverloadSource.astro";
 import { studyLoadFor, overloadsFor, OVERLOAD_STATUS, overloadReviewer } from "../../lib/overload-store";
 import { getCourse, offeringFor } from "../../lib/store";
 import { ACTIVE_YEAR } from "../../lib/academic-year";
+import { accountFor } from "../../lib/email-checks";
 const actor = Astro.locals.actor;
 if (!actor) return Astro.redirect("/login/", 303);
 if (actor.kind === "convenor" && actor.convenor.purpose !== "overload") return new Response("Program-load reviewer access required", { status: 403 });
@@ -53,6 +54,7 @@ const title = actor.kind === "student" ? "Study load and overload requests" : "O
     <ul class="request-list">{requests.map(row => <li><a class="request-card" href={`/overload/${row.request.id}/`}>
       <span class="code">{row.request.year} {row.request.period} · {row.request.requestedLimit ? `${row.request.requestedLimit}-unit limit` : "Load needs clarification"}</span>
       <span>{actor.kind === "convenor" ? row.student.name : row.course.code}</span>
+      {actor.kind === "convenor" && accountFor({ kind: "student", student: row.student })?.kind === "demo" && <span>Demo account</span>}
       <span class="badge">{OVERLOAD_STATUS[row.request.status]}</span>
     </a></li>)}</ul>
   </section>

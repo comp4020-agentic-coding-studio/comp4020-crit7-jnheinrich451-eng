@@ -33,7 +33,7 @@ it("upgrades a populated 2026 database without changing profiles, approvals, eve
     client.prepare("INSERT INTO courses (code, title, units, terms, convenor_id) VALUES ('COMP8620', 'Historical course', 6, '[\"S2\"]', 1)").run();
     client.prepare("INSERT INTO offerings (course_id, year, term) VALUES (1, 2026, 'S2')").run();
     const student = db.insert(students).values({ uid: "historic-user", name: "Existing fictional user", program: "VCOMP" }).returning().get();
-    db.insert(accounts).values({ email: "historic-user@anu.edu.au", passwordHash: "fixture-hash-preserved", studentId: student.id, verifiedAt: 1234 }).run();
+    client.prepare("INSERT INTO accounts (email, password_hash, student_id, verified_at) VALUES (?, ?, ?, ?)").run("historic-user@anu.edu.au", "fixture-hash-preserved", student.id, 1234);
     client.prepare("INSERT INTO transcript (student_id, course_code, units, grade, term) VALUES (?, 'COMP6320', 6, 'HD', '2025 S1')").run(student.id);
     const course = db.select().from(courses).where(eq(courses.code, "COMP8620")).get()!;
     const offering = db.select().from(offerings).where(eq(offerings.courseId, course.id)).get()!;
@@ -45,7 +45,7 @@ it("upgrades a populated 2026 database without changing profiles, approvals, eve
     db.insert(selections).values({ studentId: student.id, offeringId: offering.id }).run();
     const state = () => ({
       profile: db.select().from(students).where(eq(students.id, student.id)).get(),
-      account: db.select().from(accounts).where(eq(accounts.studentId, student.id)).get(),
+      account: client.prepare("SELECT id, email, password_hash, student_id, convenor_id, verified_at, created_at FROM accounts WHERE student_id = ?").get(student.id),
       transcript: client.prepare("SELECT id, student_id, course_code, units, grade, term FROM transcript WHERE student_id = ?").all(student.id),
       requests: client.prepare("SELECT id, student_id, course_id, convenor_id, year, term, status, permission_code, checks, statement, created_at FROM applications").all(), events: db.select().from(applicationEvents).all(),
       enrolments: client.prepare("SELECT id, student_id, course_id, year, term, via, created_at FROM enrolments WHERE student_id = ?").all(student.id),
@@ -53,6 +53,7 @@ it("upgrades a populated 2026 database without changing profiles, approvals, eve
     });
     const before = state();
     migrateDatabase(client);
+    expect(db.select().from(accounts).where(eq(accounts.studentId, student.id)).get()?.kind).toBe("normal");
     expect(db.select().from(transcript).where(eq(transcript.studentId, student.id)).get()).toMatchObject({ mark: null, program: null, institution: null });
     expect(db.select().from(enrolments).where(eq(enrolments.studentId, student.id)).get()).toMatchObject({ units: null, overloadRequestId: null });
     expect(db.select().from(applications).where(eq(applications.id, app.id)).get()).toMatchObject({ assessment: null, scenarioKey: null, requestKey: null });

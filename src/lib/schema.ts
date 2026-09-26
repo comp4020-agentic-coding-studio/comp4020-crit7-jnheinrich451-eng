@@ -246,6 +246,7 @@ export const selections = sqliteTable(
 // through scripts/invite-staff.ts, never from a browser-supplied role.
 export const accounts = sqliteTable("accounts", {
   id: int().primaryKey({ autoIncrement: true }),
+  kind: text().notNull().default("normal"),
   email: text().notNull().unique(),
   passwordHash: text("password_hash"),
   studentId: int("student_id")
@@ -291,6 +292,31 @@ export const authLimits = sqliteTable("auth_limits", {
   key: text().primaryKey(),
   count: int().notNull(),
   resetsAt: int("resets_at").notNull(),
+});
+
+// Demo mail is reconstructed with an HttpOnly browser secret. Neither raw
+// inbox capabilities nor the confirmation links are stored in the database.
+export const demoInboxes = sqliteTable("demo_inboxes", {
+  tokenHash: text("token_hash").primaryKey(),
+  accountId: int("account_id").notNull().references(() => accounts.id),
+  expiresAt: int("expires_at").notNull(),
+});
+export const demoMessages = sqliteTable("demo_messages", {
+  id: int().primaryKey({ autoIncrement: true }),
+  inboxHash: text("inbox_hash").notNull().references(() => demoInboxes.tokenHash),
+  nonce: text().notNull(),
+  purpose: text().notNull(),
+  createdAt: int("created_at").notNull(),
+  expiresAt: int("expires_at").notNull(),
+});
+export const passwordChanges = sqliteTable("password_changes", {
+  tokenHash: text("token_hash").primaryKey(),
+  accountId: int("account_id").notNull().references(() => accounts.id),
+  credentialHash: text("credential_hash").notNull(),
+  status: text().notNull().default("pending"),
+  requestedAt: int("requested_at").notNull(),
+  expiresAt: int("expires_at").notNull(),
+  completedAt: int("completed_at"),
 });
 
 // Offline published catalogue evidence. Kept separate from the 2026 demo's
