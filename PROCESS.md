@@ -1,54 +1,35 @@
 # Process overview
 
-<!-- TEMPLATE: this file is a shape to fill in, not a form. Replace everything
-     in it with your own overview, and delete this comment — `pnpm
-     check:evidence` will remind you if it's still here. -->
+*Draft prepared with Codex from my prompts and the recorded commits; for my review before submission.*
 
-Written by you, for a reader: how you got from the brief to the harness and
-agentic workflow behind this submission. Markers read this file and follow its
-citations; they don't trawl the repo for evidence you didn't point at.
+I rebuilt the permission-request part of course enrolment after my own
+COMP8620 request appeared to reach a convenor as COMP9095 and left me unable to
+proceed. That experience is the motivation, not proof of ANU's internal design.
+I asked Claude and Codex to work from one shared `CLAUDE.md`, while I supplied
+portal screenshots, downloaded catalogue pages and corrections from using the app.
 
-This file is the shape; the course site's
-[assessment page](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/topics/assessment/#what-you-submit)
-is the requirement, and its
-[word counts](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/topics/assessment/#word-counts)
-cover every deliverable.
+The first important decision was to preserve evidence before interpreting it.
+I kept duplicated downloads because courses belong to several specialisations.
+The importer retained source variants and course/year identities rather than
+merging courses by title. The later evaluator covered all 80 supplied course
+versions, keeping unresolved conditions and missing evidence explicitly unknown
+([`978391a`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/978391a),
+[`33722e3`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/33722e3)).
 
-## What I built
+I then asked whether a small LLM could help. The adviser experiment initially
+produced invented quotations and irrelevant matches. Its design changed to
+selecting source-passage IDs, displaying the original text and checking the
+course combination with deterministic rules. Four development cases passed;
+that is evidence for those cases, not a general accuracy claim
+([`09ed6c1`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/09ed6c1)).
 
-A sentence or two. `README.md` is where the account of what the app is and what
-good means here lives; this file is how you got there.
+My own use exposed a different failure: the adviser worked, but I asked,
+"Where is the suggestions?" The response only pointed farther down the page.
+We put course names inside the reply and verified the detail links in Chrome
+with JavaScript disabled
+([`59adefe`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/59adefe)).
 
-## How I got here
-
-The account of the process: how the work actually went, and how you knew the
-result was right. Tell it in whatever order makes it clear. A weekly prototype
-needs a paragraph or two; an assignment needs more.
-
-Cite the record as you go, as links whose text is the commit hash or range and
-whose target is this repo's commit or compare URL, so a reader clicks straight
-to the evidence:
-
-- one commit: [`a1b2c3d`](https://github.com/YOUR-ORG/YOUR-REPO/commit/a1b2c3d)
-- a range:
-  [`a1b2c3d...e4f5a6b`](https://github.com/YOUR-ORG/YOUR-REPO/compare/a1b2c3d...e4f5a6b)
-
-To pair a prompt with the commit it produced, quote the prompt (curated, not a
-full transcript) next to the citation:
-
-> the prompt, verbatim
-
-Screenshots are welcome where one carries the point better than a sentence does.
-Commit the file to this repo and link it with a **relative** path, which is what
-makes it render on GitHub: `![alt text](docs/before.png)`. Images don't count
-towards the word count and don't replace the citation.
-
-## Before you ship
-
-`pnpm check:evidence` verifies that this comment is gone, that your citations
-resolve to real commits, that a crit week's reflection entry is in
-`reflections/`, and that your `CLAUDE.md` is there. It checks that your account
-is traceable, not that it is good: that is the marker's call.
-
-Images aren't checked: unlike a citation whose SHA doesn't resolve, a broken
-image is visible the moment this file is rendered on GitHub.
+The workflow combined small commits, Docker checks, persistent-state checks and
+browser inspection. The complete chronology is in [PROCESS_RECORD.md](PROCESS_RECORD.md).
+Public deployment, real SMTP delivery and Fly-to-mini-PC connectivity remain
+separate acceptance steps; local success does not establish them.
