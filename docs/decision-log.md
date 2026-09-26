@@ -298,3 +298,32 @@ links share the same narrowly scoped password operation, expiry, single-use
 check, credential fingerprint and session revocation. Academic data and reviewer
 assignments stay intact. Demo recovery requires an existing private inbox or
 demo session; an arbitrary fictional address cannot recover another account.
+
+## 2026-09-27 — Rule-driven profiles and a structured adviser harness
+
+John found that every new account received the same transcript and that the
+Llama adviser seemed unintelligent. He asked for profiles generated from the
+saved rules themselves (prerequisite links, offering terms, specialisation and
+degree requirements), so that plans vary and the planner can say what remains,
+and for a template or harness to guide the model.
+
+Profiles: `generateProfile` became a seeded search over the reviewed 2027
+rules (`vcomp-ai-2027-s2-v2`). Across 300 seeds it produced 300 distinct
+transcripts with no failures; compulsory COMP6442 appeared in 299 and COMP6445
+in 283. Neither professional-practice course has a published 2027 offering, so
+v2 leaves that requirement outstanding instead of assuming COMP6250 as v1 did.
+The authored v1 template remains as `generateAuthoredProfile` for existing
+accounts, fixtures and the benchmark.
+
+Adviser: the v1 relevance filter dropped words shorter than three letters, so
+"AI" and "ML" never matched, and required the student's exact words in the
+course sentence. A first v2 had Llama choose topic ids with worked examples; on
+the mini-PC it added unrelated topics and copied worked answers onto requests
+such as "just give me 24 units". The adopted harness reads named topics from a
+reviewed vocabulary without a model, stops non-subject requests without a
+model, and asks Llama only to restate paraphrases as subject names, which pass
+through the same vocabulary. On the 30-case reference set it passed 27 cases
+on `llama3.2:3b` (CPU, about one second per paraphrase); the three misses
+returned no topic rather than a wrong one. The mini-PC's integrated GPU has
+496 MB, so inference runs on CPU; a larger model remains an optional later
+benchmark, not a requirement.

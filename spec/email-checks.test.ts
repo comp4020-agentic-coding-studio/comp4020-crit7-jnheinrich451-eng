@@ -36,7 +36,13 @@ function snapshot(email: string) {
 describe("repeatable verification delivery tests", () => {
   it("sends only to the signed-in account, confirms once, persists receipt and preserves identity and academic state", async () => {
     const email = "email-check-student@anu.edu.au", cookie = await account(email);
-    expect(message(await post("/api/enrol", { courseCode: "COMP8539", year: "2027", term: "S2" }, cookie))).toContain("Enrolled+in+COMP8539");
+    // New accounts get a seeded, rule-generated record, so enrol in the first
+    // no-prerequisite S2 course it has not already passed.
+    let enrolled = "";
+    for (const courseCode of ["COMP6390", "COMP6261", "COMP6466", "COMP6361", "ENVS6025"]) {
+      if (message(await post("/api/enrol", { courseCode, year: "2027", term: "S2" }, cookie)).includes(`Enrolled+in+${courseCode}`)) { enrolled = courseCode; break; }
+    }
+    expect(enrolled).not.toBe("");
     expect(message(await post("/api/applications", { courseCode: "COMP8830", year: "2027", term: "S2",
       statement: "Please review this fictional exception while I test email delivery.", reason: "exception", reviewMode: "convenor" }, cookie))).toMatch(/^\/applications\/\d+\//);
     const before = snapshot(email);

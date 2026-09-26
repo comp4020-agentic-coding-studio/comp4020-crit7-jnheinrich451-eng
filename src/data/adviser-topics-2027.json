@@ -1,0 +1,120 @@
+{
+  "version": "adviser-topics-2027-v1",
+  "note": "Reviewed vocabulary for the course adviser. Aliases are what students type; terms are words that appear in the saved 2027 course descriptions. A course matches a topic only when one of its own source passages contains a term, so every suggestion is grounded in quoted course text. Topics rank interests; they never establish eligibility, equivalence or credit.",
+  "topics": [
+    {
+      "id": "ai",
+      "label": "Artificial intelligence",
+      "aliases": ["ai", "a i", "artificial intelligence", "intelligent agents", "intelligent systems", "knowledge representation", "automated reasoning"],
+      "terms": ["artificial intelligence", "ai", "intelligent agents", "knowledge representation", "reasoning"]
+    },
+    {
+      "id": "machine-learning",
+      "label": "Machine learning",
+      "aliases": ["ml", "machine learning", "statistical learning", "reinforcement learning", "predictive modelling", "predictive modeling", "data science"],
+      "terms": ["machine learning", "reinforcement learning", "bayesian inference", "classification", "regression", "clustering", "probabilistic models", "kernel methods"]
+    },
+    {
+      "id": "deep-learning",
+      "label": "Deep learning and neural networks",
+      "aliases": ["deep learning", "neural network", "neural networks", "neural nets", "generative ai", "genai", "llm", "llms", "large language model", "large language models", "transformers"],
+      "terms": ["deep learning", "neural", "multi layer perceptrons", "generative ai", "back propagation"]
+    },
+    {
+      "id": "vision",
+      "label": "Computer vision and images",
+      "aliases": ["computer vision", "vision", "image", "images", "image analysis", "image processing", "video", "videos", "camera", "cameras", "visual perception"],
+      "terms": ["computer vision", "vision", "image", "images", "video", "videos", "imaging", "scene understanding", "depth sensors"]
+    },
+    {
+      "id": "nlp",
+      "label": "Language and text",
+      "aliases": ["nlp", "natural language", "natural language processing", "language processing", "text", "text mining", "text analysis", "documents", "chatbot", "chatbots", "language model", "language models", "information retrieval", "search engine", "search engines"],
+      "terms": ["natural language processing", "text", "textual", "documents", "information retrieval", "text classification"]
+    },
+    {
+      "id": "robotics",
+      "label": "Robotics and autonomous systems",
+      "aliases": ["robot", "robots", "robotics", "autonomous vehicle", "autonomous vehicles", "self driving", "drone", "drones", "mechatronics", "embedded"],
+      "terms": ["robot", "robots", "robotics", "autonomous vehicle", "autonomous vehicles", "kinematics", "embedded systems", "mechatronics"]
+    },
+    {
+      "id": "data",
+      "label": "Data, databases and analytics",
+      "aliases": ["data", "big data", "data analysis", "data analytics", "analytics", "data mining", "data engineering", "database", "databases", "sql", "data wrangling", "data cleaning"],
+      "terms": ["data mining", "data analytics", "analytics", "databases", "database", "sql", "data cleaning", "data integration", "data quality", "relational data model"]
+    },
+    {
+      "id": "security",
+      "label": "Security and cryptography",
+      "aliases": ["security", "cyber", "cybersecurity", "cyber security", "hacking", "hacker", "hackers", "cryptography", "encryption", "secure", "vulnerability", "vulnerabilities", "exploit", "exploits", "penetration testing"],
+      "terms": ["security", "cryptography", "cryptosystems", "vulnerability", "vulnerabilities", "exploit", "exploitation", "secure design"]
+    },
+    {
+      "id": "systems",
+      "label": "Computer systems and architecture",
+      "aliases": ["operating system", "operating systems", "computer systems", "computer architecture", "hardware", "low level", "parallel", "parallel computing", "concurrency", "high performance computing", "hpc", "supercomputing", "digital circuits"],
+      "terms": ["operating system", "operating systems", "computer architecture", "digital circuits", "hardware", "parallel", "concurrent programming", "high performance computing", "micro architecture"]
+    },
+    {
+      "id": "networks",
+      "label": "Networks and distributed systems",
+      "aliases": ["networks", "networking", "computer networks", "network protocols", "internet", "distributed systems", "distributed computing", "cloud computing"],
+      "terms": ["networks", "network protocols", "networking", "protocols", "distributed systems"]
+    },
+    {
+      "id": "software-engineering",
+      "label": "Software engineering",
+      "aliases": ["software engineering", "software development", "software projects", "software design", "software quality", "software testing", "agile", "large software"],
+      "terms": ["software development", "software engineering", "software systems", "software projects", "software quality", "design methodologies", "object oriented"]
+    },
+    {
+      "id": "programming",
+      "label": "Programming and programming languages",
+      "aliases": ["programming", "coding", "programming languages", "programming language", "compiler", "compilers", "functional programming", "java", "python"],
+      "terms": ["programming languages", "programming language", "programming", "compiler", "compilation"]
+    },
+    {
+      "id": "theory",
+      "label": "Theory, logic and algorithms",
+      "aliases": ["theory", "theoretical", "theoretical computer science", "algorithm", "algorithms", "logic", "formal methods", "computability", "complexity", "automata", "optimisation", "optimization", "information theory"],
+      "terms": ["algorithms", "logic", "formal methods", "formal notations", "computability", "complexity", "automata", "theoretical computer science", "optimisation", "information theory"]
+    },
+    {
+      "id": "maths",
+      "label": "Mathematics and scientific computing",
+      "aliases": ["math", "maths", "mathematics", "numerical", "numerical methods", "scientific computing", "linear algebra", "matrix", "matrices", "number theory", "differential equations", "discrete mathematics"],
+      "terms": ["mathematics", "mathematical", "numerical", "scientific computing", "linear algebra", "matrix", "differential equations", "number theory", "discrete mathematics"]
+    },
+    {
+      "id": "hci",
+      "label": "Human-computer interaction and design",
+      "aliases": ["hci", "human computer interaction", "ux", "ui", "user experience", "user interface", "user interfaces", "interaction design", "usability", "web design", "web development", "accessibility"],
+      "terms": ["human computer interaction", "interaction design", "experience design", "interface", "human centred", "web interface", "web sites"]
+    },
+    {
+      "id": "creative",
+      "label": "Graphics, games and creative computing",
+      "aliases": ["graphics", "computer graphics", "game", "games", "video games", "game development", "game design", "art", "digital art", "music", "sound", "audio", "animation", "3d", "visualisation", "visualization", "creative computing"],
+      "terms": ["computer graphics", "graphics", "game", "games", "music", "sound", "artwork", "artworks", "animation", "3d", "creative computing", "visualisation"]
+    },
+    {
+      "id": "research",
+      "label": "Research preparation",
+      "aliases": ["research", "phd", "doctorate", "thesis", "research project", "academic research", "research methods"],
+      "terms": ["research methodology", "research methods", "research project", "computing research"]
+    },
+    {
+      "id": "professional",
+      "label": "Professional practice, ethics and management",
+      "aliases": ["ethics", "ethical", "leadership", "communication", "professional practice", "responsible innovation", "management", "project management", "business", "law", "legal", "governance", "policy", "regulation", "entrepreneurship", "startup", "startups"],
+      "terms": ["professional practice", "ethical", "leadership", "communication skills", "governance", "regulation", "law", "management", "business"]
+    },
+    {
+      "id": "environment",
+      "label": "Environment and sustainability",
+      "aliases": ["environment", "environmental", "climate", "sustainability", "sustainable"],
+      "terms": ["environmental", "environment", "sustainability"]
+    }
+  ]
+}

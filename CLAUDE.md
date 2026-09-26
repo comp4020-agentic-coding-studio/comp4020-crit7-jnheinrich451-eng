@@ -225,11 +225,23 @@ See `docs/overload-design.md` and `docs/course-changes-and-logo.md`.
 
 See `docs/profile-suggestions-next-stage.md`.
 
-- New fictional profiles use the versioned VCOMP + ARTIF-SPEC template:
-  completed 2026 S1/S2 and 2027 S1 with exact fictional marks (COMP6670 in
-  2026 S2), loads of 24/18/18 so lower-level study doesn't crowd out the 48-unit
-  advanced minimum, and an initial 2027 S2 planning preference. Historical 2026
-  availability is an explicit assumption, notably COMP6250.
+- New fictional profiles come from the rule-driven generator
+  (`vcomp-ai-2027-s2-v2`, VCOMP + ARTIF-SPEC): a seeded search places each
+  course only where the gate finds its saved prerequisites met by earlier
+  results or allowed concurrent study, in a semester matching its saved 2027
+  offering pattern. Permission-only, unreviewed, conflicting, variable-credit
+  and project courses are excluded, never guessed. Loads are a permutation of
+  24/18/18 (60 units), lower-level credit stays within 48 units, and marks run
+  65-92 with a GPA of at least 6 over the first 48 units. Historical 2026
+  availability is an explicit assumption.
+- Each generated profile saves what its record leaves outstanding
+  (`remainingRequirements`, the planner's own buckets); My profile shows
+  "still needed" from live progress. Professional practice stays outstanding
+  while neither COMP6250 nor COMP8260 has a 2027 offering; v2 never places it
+  by assumption.
+- Existing accounts keep their saved template. The authored v1 template
+  (`generateAuthoredProfile`: COMP6670 in 2026 S2, COMP6250 as a historical
+  assumption) remains for those accounts, test fixtures and the benchmark.
 - Generated snapshots and planning preferences persist separately from
   transcript facts. Preserve existing registered profiles and don't reseed old
   accounts; existing VCOMP accounts can save an AI focus and semester from their
@@ -257,10 +269,20 @@ See `docs/course-adviser.md` for validation, runtime limits and timings.
 - It takes study interests and an explicit unit preference in My profile;
   exchanges persist separately from academic facts. Personal unit ceilings are
   separate from institutional limits, and context changes invalidate old advice.
-- A bounded server-side Ollama call selects source passage IDs from ready
-  options; the app renders the original excerpts and rechecks the combination
-  through the deterministic planner. Missing or failed inference falls back to labelled
-  rule-based planning.
+- Three tiers, in order. Topics the student names are read from the reviewed
+  vocabulary (`src/data/adviser-topics-2027.json`) without a model. Requests
+  about marks, units, approvals, the rules or course codes end as no-match
+  without a model. Only paraphrases reach Llama, which returns short subject
+  names that pass through the same vocabulary; model text is never shown or
+  trusted directly, so only reviewed topics can come out.
+- A course matches a topic only through its own saved passages (title matches
+  weigh most); the app quotes the original text and rechecks the combination
+  through the deterministic planner. Keyword results are labelled as such.
+  Missing or failed inference falls back to labelled rule-based planning.
+- Reference cases live in `src/data/adviser-reference.json`: named and
+  non-subject cases are checked in `pnpm check`; paraphrases are scored by the
+  opt-in live benchmark. Change the vocabulary or prompt only with a benchmark
+  run, and add a case for any reported miss.
 - Compose defaults to Windows-host Ollama; the ignored `.env.adviser-minipc`
   selects John's mini-PC over private Tailscale Serve (no public Funnel or model
   exposure). An optional server-only `OLLAMA_HOST_HEADER` supplies the upstream

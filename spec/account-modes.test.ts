@@ -78,7 +78,8 @@ describe("chosen demo identities and private inboxes", () => {
     expect(message(await post("verify", { token }))).toContain("invalid+or+expired");
     const before = snapshot(email);
     expect(before.account.kind).toBe("demo"); expect(before.account.convenor_id).toBeNull();
-    expect(before.transcript).toHaveLength(10);
+    // Generated records vary by seed; every one covers three semesters and 60 units.
+    expect((before.transcript as { units: number }[]).reduce((n, r) => n + r.units, 0)).toBe(60);
     expect(JSON.stringify(before)).not.toContain(token);
     expect(JSON.stringify(before)).not.toContain(inboxCookie.split("=")[1]);
     expect(message(await post("email-test", {}, session))).toContain("private+demo+inbox");
@@ -119,7 +120,13 @@ describe("email-confirmed password changes", () => {
     const email = "password-change@anu.edu.au", { cookie, verification } = await realAccount(email);
     const secondSession = cookies(await post("login", { email, password }));
     const coursePost = (path: string, fields: Record<string, string>) => fetch(new URL(path, base), { method: "POST", headers: { origin: base, cookie }, body: new URLSearchParams(fields), redirect: "manual" });
-    expect(message(await coursePost("/api/enrol", { courseCode: "COMP8539", year: "2027", term: "S2" }))).toContain("Enrolled+in+COMP8539");
+    // New accounts get a seeded, rule-generated record, so enrol in the first
+    // no-prerequisite S2 course it has not already passed.
+    let enrolled = "";
+    for (const courseCode of ["COMP6390", "COMP6261", "COMP6466", "COMP6361", "ENVS6025"]) {
+      if (message(await coursePost("/api/enrol", { courseCode, year: "2027", term: "S2" })).includes(`Enrolled+in+${courseCode}`)) { enrolled = courseCode; break; }
+    }
+    expect(enrolled).not.toBe("");
     expect(message(await coursePost("/api/applications", { courseCode: "COMP8830", year: "2027", term: "S2", statement: "Please review this fictional exception for a preservation test.", reason: "exception", reviewMode: "convenor" }))).toMatch(/^\/applications\/\d+\//);
     const before = snapshot(email);
     expect(before.enrolments).toHaveLength(1); expect(before.applications).toHaveLength(1);
