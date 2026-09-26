@@ -2143,3 +2143,42 @@ evidence directory. A bounded read-only review was requested from the installed
 Claude CLI, but it returned no output after several minutes and was stopped.
 No Claude review is claimed. John's existing AGENTS.md change and assets were
 preserved; only the connection files and this record were staged.
+
+## 2026-09-26 16:06 — Suggestions visible inside the adviser reply
+
+**Prompt:**
+
+> It works, but the output is in See your checked options below? Where is the suggestions?
+
+**Result:**
+The adviser now lists the checked course codes, titles and units inside its
+reply, with distinct labels for interest matches and other study-plan suggestions.
+Each course links to its detailed card; a visible View course details and save
+link jumps to the full list. Moved that list immediately after the adviser,
+ahead of the completed-study breakdown and graduation-planning note. Empty
+results explain the absence of options; stale results hide the old shortlist.
+The unit limit is labelled as a maximum rather than a promise to fill all units.
+No model prompt, rule, account or database change was needed.
+
+**Verified:**
+Read the shared harness, published Crit 7 contract and current rendering path.
+Docker Node 24 / pnpm 11.9.0 check passed: zero diagnostics, 495 tests in 25 files.
+Used a disposable built app and real mini-PC inference with John's example
+interest text and a 24-unit preference. Chrome with JavaScript disabled showed
+COMP8539 as an interest match and COMP6120 as a study-plan suggestion inside the
+reply. Verified every shortlist anchor had a target and clicked both a course
+link and the detail-list link. Reload retained the list; saving a course made
+the advice stale and removed the shortlist. All four form POSTs returned 303;
+ten academic results remained ten and no enrolments were created.
+Inspected 1440-pixel and 390-pixel screenshots with no horizontal overflow.
+Stopped the disposable server and restarted the normal local preview; homepage
+returned 200. The mini-PC connection and existing data volume were retained.
+
+**Commit:** [`59adefe`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/59adefe)
+
+**What happened:**
+John's screenshot showed only a successful matching message and a vague
+"See your checked options below" instruction. The course cards existed farther
+down the page, separated from the adviser by academic-progress content. The
+previous functional checks passed but did not establish that the answer was
+easy to find. The correction makes the result explicit at the response point.
