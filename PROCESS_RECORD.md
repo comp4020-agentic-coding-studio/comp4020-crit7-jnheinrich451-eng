@@ -1986,3 +1986,90 @@ rows; added explicit validation before using later dates. Browser automation
 initially matched both sign-in and resend email inputs; scoped the selector to
 the sign-in field and reran with a fresh disposable account. The real browser
 workflow and final checks then passed.
+
+## 2026-09-26 14:39 — Interest matching inside the checked course planner
+
+**Prompt:**
+
+> "yes you can do that preference-aware course adviser"
+> "After deployment, if they needs to use their own anu emails, or they can register by a fictional email?"
+
+**Result:**
+Added Course adviser inside My profile: study-interest text, an explicit personal
+unit ceiling, persisted responses, original source excerpts, rechecked suggestions
+and a return to standard suggestions. Local compose connects to Windows Ollama
+with Llama 3.2 3B. The model selects source passage IDs from a bounded eligible
+pool; it cannot write facts, enrolments or permissions. The deterministic planner
+checks the combined selection, including personal units, incompatibilities and
+degree/project space. Context changes make old advice stale. Courses matched but
+left out carry the planner's reason.
+
+Generated migration 0010 stores adviser exchanges, snapshots, model identity and
+outcomes separately from academic facts. Planning events record transitions.
+Calls have a 45-second deadline, no automatic retry, two global in-flight slots,
+a per-student throttle, a recoverable pending lease and conditional completion.
+Failed calls fall back to rule-based suggestions. An unconfigured deployment
+explicitly offers unit preferences without AI. This is a synchronous bounded
+helper, not a durable background-job system or unrestricted chat service.
+
+Recorded the email-access answer and next-stage delivery check: deployed SMTP
+verification requires a real inbox at exactly anu.edu.au; local captured email
+does not make fictional addresses work publicly. Existing reviewer invitations
+still use separate real addresses. No authentication bypass or guest mode added.
+Fly model hosting and prerequisite-extraction benchmarking remain separate work.
+
+**Verified:**
+Read the shared harness, published Crit 7 JSON contract, current code and Ollama's
+official structured-output/generate documentation. Claude returned a bounded
+read-only review of the draft through the installed CLI. Applied its conditional
+completion, pool bounds, missing-configuration messaging, omitted-match and
+provenance improvements. The final source-ID design superseded the draft quotes
+Claude inspected; Claude did not independently test the final version.
+
+Docker Node 24 / pnpm 11.9.0 check passed: zero diagnostics across 114 files and
+492 tests across 25 files. New coverage checks source identities, conservative
+relevance, prompt bounds, prerequisites, lower personal limits, saved/confirmed
+load, stale contexts, model failure/timeout, persistence, idempotent retries,
+duplicate in-flight submissions, identity/CSRF boundaries and escaped text.
+The migration/reseed check now preserves adviser exchanges too.
+
+Four live development smoke cases passed with model digest
+a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72:
+vision chose COMP8539, software engineering chose COMP6120, guaranteed marks and
+rule-override requests produced no accepted match. These cases were used during
+development, not held-out accuracy evaluation. The relevance filter can miss
+synonyms/acronyms and does not certify semantic understanding.
+
+Chrome with JavaScript disabled used disposable accounts and databases. Verified
+live advice, six-unit ceiling, reload, changed interests, explicit save, stale
+selection handling and dismissal. Repeated the unit-preference flow without a
+configured model. Native POSTs returned 303 with the expected Origin; ten academic
+results stayed ten and no enrolments were created. Inspected final 1440x1000 and
+390x844 layouts with no horizontal overflow; condensed the initial verbose reply
+into a native details section. Stopped the disposable server.
+
+Backed up the real local preview before applying the migration. Preservation
+hashes matched all 11 accounts, one study plan/event, ten requests/32 events,
+seven enrolments, nine registered profiles/58 result rows, nine selections and
+one overload request/three events; foreign-key errors zero. Refreshed local
+preview and Help returned 200; the main app reached llama3.2:3b. Local commit only,
+no push/deployment or real email delivery. User assets and AGENTS.md left intact.
+
+**Commit:** [`09ed6c1`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/09ed6c1)
+
+**What happened:**
+The initial live model design failed all four cases: copied quotations were
+paraphrased/invented and courses duplicated. Replaced free-text quotes with
+source-passage selection and program-rendered original text. A subsequent trial
+still selected irrelevant passages for difficulty/override requests; added a
+conservative shared-subject-word filter. Its first draft accidentally treated
+common words such as "the" and "and" as subjects; corrected the stop-word list.
+
+The first full test run found three failures with the same cause: passing a
+six-unit preference as the institutional limit still permitted twelve units,
+because the overload evaluator correctly clamps its normal limit to at least
+24. Introduced a separate personal ceiling in the planner and retained the
+institutional policy unchanged. Targeted checks then passed. A later typecheck
+caught a synthetic pool-size fixture missing CourseRules.text; corrected that
+fixture and reran the full successful check. The user's pre-existing AGENTS.md
+trailing blank still fails an unstaged whitespace check; the staged work passed.
