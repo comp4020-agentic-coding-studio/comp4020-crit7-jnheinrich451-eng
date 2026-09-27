@@ -10,6 +10,10 @@ const checkedOptions = a.active ? a.personalised?.options ?? [] : [];
 const omitted = a.active ? a.response?.matches.filter(m => !a.personalised?.options.some(c => c.course.code === m.code)) ?? [] : [];
 const matchedInPlan = checkedOptions.some(({ course }) => a.response?.matches.some(m => m.code === course.code));
 const periodName = (year: number, term: string) => `${year} ${term === "S1" ? "First" : "Second"} Semester`;
+// When nothing is ready to enrol, say why and name the first next steps here,
+// not only in the sections further down the page.
+const blocked = a.active && checkedOptions.length === 0 && a.personalised
+  ? [...a.personalised.attentionAll, ...a.personalised.laterAll].filter(c => !a.related.some(r => r.match.code === c.course.code)).slice(0, 3) : [];
 ---
 <aside class="course-adviser" aria-labelledby="adviser-heading" data-course-adviser>
   <p class="eyebrow">A little help choosing</p>
@@ -34,7 +38,7 @@ const periodName = (year: number, term: string) => `${year} ${term === "S1" ? "F
       : <>
         <p><strong>{a.response?.reason === "matched" && !matchedInPlan ? "Courses match your interests, but none fits what your degree still needs this semester." : a.response?.reason === "matched" && a.response.method === "keywords" ? "Your interests have been matched to course topics by keyword." : a.response?.reason === "matched" ? "Your interests have been matched to course evidence." : a.response?.reason === "no-match" && a.response.method === "keywords" && !a.response.topics?.length ? "No subject interest was found to match, so your standard study-plan suggestions are shown." : a.response?.reason === "no-match" ? "No clear interest match was found in the available options." : a.response?.reason === "no-options" ? "There are no ready courses to match in this semester." : a.response?.reason === "not-configured" ? "Your unit preference has been applied without AI matching." : "The AI adviser couldn’t complete this request."}</strong></p>
         {a.response?.method === "keywords" && (a.response.topics?.length ? <p>You named these topics directly, so they were matched against a reviewed topic list without AI.</p>
-          : <p>Requests about marks, unit load, approvals or the rules are not subject interests, so no AI reading was attempted. Your unit limit still applies.</p>)}
+          : <p>Requests about marks, unit load, approvals or the rules are not subject interests, so no AI reading was attempted. Your unit limit still applies. To get interest-based advice, name a subject you enjoy, such as “AI”, “databases” or “computer systems”.</p>)}
         {a.response?.topics && a.response.topics.length > 0 && <p data-adviser-topics>Topics: {a.response.topics.map(topicLabel).join(", ")}.</p>}
         {a.asksSpecialisation && <p data-adviser-specialisation>Your record follows the {a.personalised?.supported ? "Artificial Intelligence" : "assigned"} specialisation. The adviser matches subject interests within it; it cannot change or add a specialisation.</p>}
         {run.status === "fallback" && <p>Rule-based suggestions remain available below.</p>}
@@ -49,7 +53,11 @@ const periodName = (year: number, term: string) => `${year} ${term === "S1" ? "F
             <span class="field-help">{course.units} units · {a.response?.matches.some(m => m.code === course.code) ? "Matches your interests" : "Suggested from your study plan"}</span>
           </li>)}</ul>
           <p><a class="button" href="#suggested-options-heading">View course details and save</a></p>
-        </> : <p>No additional courses are suggested for this plan. <a href="#suggested-options-heading">Review your selection and next steps</a>.</p>}
+        </> : <div data-adviser-empty>
+          <p>Nothing is ready to enrol directly this semester that counts toward what your degree still needs.{blocked.length > 0 ? " These relevant courses need another step first:" : ""}</p>
+          {blocked.length > 0 && <ul>{blocked.map(c => <li><a href={catalogueLink("course", c.course.code, 2027)}>{c.course.code} {c.course.title}</a> — {c.offered ? a.personalised!.attentionLabel(c.result) : c.later ? `next saved offering ${periodName(c.later.year, c.later.term)} (indicative)` : "no later offering recorded"}.</li>)}</ul>}
+          <p><a href="#suggested-options-heading">Review your selection and all next steps</a>.</p>
+        </div>}
         <p class="field-help">Suggestions use a {effectiveLimit}-unit ceiling{run.targetUnits > effectiveLimit ? ` within your approved limit, rather than the requested ${run.targetUnits} units` : ""}, including confirmed and saved courses. This is a maximum, not a promise to fill every unit.</p>
         <details><summary>How these suggestions were checked</summary>
           <p>Topics you name directly, such as “AI” or “robots”, are matched against a reviewed topic list without AI. When you describe an interest in other words and AI matching is available, Llama restates it as subject names, which are matched against the same list. The app then finds courses whose own saved descriptions mention those topics and quotes that text; a match in a course title counts most. The planner checks your record, study load and space for required study. An interest match does not approve enrolment or guarantee graduation.</p>

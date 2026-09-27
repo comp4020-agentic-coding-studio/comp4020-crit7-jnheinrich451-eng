@@ -50,9 +50,12 @@ export function evidenceChoices(pool: AdviserCandidate[]) {
 // "human computer". A simple plural suffix is accepted on either side.
 const normalise = (text: string) => ` ${text.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()} `;
 // Phrases pass through the same normalisation, leaving only [a-z0-9 ]: no
-// regex metacharacters can reach the pattern.
+// regex metacharacters can reach the pattern. A reviewed plural also matches
+// its singular ("computer systems" finds "computer system"), and vice versa.
 function occurrences(text: string, phrase: string) {
-  const pattern = new RegExp(`(?<=[^a-z0-9])${normalise(phrase).trim()}(?:s|es)?(?=[^a-z0-9])`, "g");
+  const normal = normalise(phrase).trim();
+  const stem = normal.length > 3 && normal.endsWith("s") && !normal.endsWith("ss") ? normal.slice(0, -1) : normal;
+  const pattern = new RegExp(`(?<=[^a-z0-9])${stem}(?:s|es)?(?=[^a-z0-9])`, "g");
   return [...text.matchAll(pattern)].map(m => ({ start: m.index!, end: m.index! + m[0].length }));
 }
 /** Topics named in the student's own words. Longer aliases claim text first,

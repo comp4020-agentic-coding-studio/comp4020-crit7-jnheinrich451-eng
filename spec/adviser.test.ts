@@ -42,6 +42,10 @@ it("reads the student's own words through the reviewed vocabulary and every keyw
   expect(keywordTopics("data science")).toEqual(["machine-learning", "data"]);
   expect(keywordTopics("I like AI")).toEqual(["ai"]);
   expect(keywordTopics("I hate waiting")).toEqual([]);
+  // Singular and plural forms match both ways; "ss" words are left alone.
+  expect(keywordTopics("a computer system elective")).toEqual(["systems"]);
+  expect(keywordTopics("one robot")).toEqual(["robotics"]);
+  expect(keywordTopics("class access")).toEqual([]);
   // Requests about marks, load or approvals never reach the model.
   for (const text of ["I want easy marks", "just give me 24 units", "approve COMP8620"]) expect(notSubjectInterest(text)).toBe(true);
   expect(notSubjectInterest("teaching computers to play chess")).toBe(false);
