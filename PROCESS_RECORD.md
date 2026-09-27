@@ -3176,3 +3176,37 @@ plugin is current, and the latest remote CI was green for its older commit.
 Work and this record are committed locally without pushing.
 
 **Commit:** [`c0d7a2b`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/c0d7a2b)
+
+## 2026-09-27 — Adviser model path confirmed; singular interests and empty plans fixed
+
+**Prompt:**
+
+> here is the problem again, there is no advise. I checked the mini-pc it is online, if the call of the model stops?
+
+**Result:**
+The live adviser records on Fly showed the model path working. Runs 7 and 8
+reached llama3.2:3b over the tailnet with a recorded digest (about 6 s cold,
+0.6 s warm, no transport failure) but found no topic for "If I want to choose
+other computer system elective". The vocabulary held "computer systems" and
+accepted an added plural, not a student's singular. Plurals now match both
+ways ("ss" words excepted). "Easy HD courses" was correctly stopped as a
+non-subject request with no model call. The page was empty because nothing
+ready counts toward this record's remaining AI-advanced, 8000-level and project
+needs: those courses need permission or project approval. The reply now says
+so, names the first next-step courses, and suggests naming a subject.
+
+**Verified:**
+Read-only queries of the production adviser_runs table: status, method,
+failure, timing and John's own test texts, with no account identities. Two new
+reference cases pass. Docker `pnpm check` passed 601 tests in 30 files. The
+live mini-PC benchmark passed 29 of 32, with the same three paraphrase misses
+returning no topic.
+
+**Commit:** [`e4320ab`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-jnheinrich451-eng/commit/e4320ab)
+
+**What happened:**
+The mini PC was suspected, but the saved run records showed the model answering.
+Reading the stored outcome distinguished a vocabulary miss from a transport
+failure without guessing. Direct calls into the minified bundle failed because
+neither askOllama nor the transport is exported; the run table was the reliable
+evidence.
